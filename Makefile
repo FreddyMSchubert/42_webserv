@@ -6,7 +6,7 @@ OBJ = $(SRC:./src/%.c=$(OBJ_DIR)/%.o)
 
 HEADERS := -I ./include
 LIBS := 
-CFLAGS := -Wall -Wextra -Werror
+CFLAGS := -Wall -Wextra -Werror -std=c++17 -Wc++11-extensions
 
 $(NAME): $(OBJ)
 	c++ $(OBJ) $(LIBS) $(HEADERS) -o $(NAME)
@@ -16,8 +16,8 @@ $(OBJ_DIR)/%.o: ./src/%.c
 	@mkdir -p $(dir $@)
 	c++ $(CFLAGS) -o $@ -c $< $(HEADERS) -g
 
-all: setup libmlx libft gnl $(NAME)
-	rm -f save.cubsave
+all: $(NAME)
+	
 clean:
 	rm -rf $(OBJ_DIR)
 
