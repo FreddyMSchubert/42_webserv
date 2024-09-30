@@ -1,4 +1,4 @@
-#include "../include/Webserv.hpp"
+#include "../include/Server.hpp"
 #include <iostream>
 
 int main(int argc, char *argv[])
@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << e.what() << '\n';
+		std::cerr << e.what() << std::endl;
 	}
 	
 

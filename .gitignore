@@ -1,3 +1,12 @@
+vscode/
+.idea/
+
+./obsidian/
+
+webserv
+
+.DS_Store
+
 # Prerequisites
 *.d
 
@@ -30,3 +39,9 @@
 *.exe
 *.out
 *.app
+
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+
+!.devcontainer/**/**.*
