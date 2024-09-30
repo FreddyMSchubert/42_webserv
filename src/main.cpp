@@ -11,8 +11,8 @@ int main(int argc, char *argv[])
 	
 	try
 	{
-		Webserv webserv(argc == 2 ? argv[1] : "./config/default.conf", 80);
-		webserv.run();
+		Server webserv(argc == 2 ? argv[1] : "./config/default.conf", 80);
+		webserv.Run();
 	}
 	catch(const std::exception& e)
 	{

@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-class Webserv
+class Server
 {
 	private:
 		int _port;
@@ -12,8 +12,8 @@ class Webserv
 		std::string _config_file;
 
 	public:
-		Webserv(const std::string &config_file, int port);
-		~Webserv();
+		Server(const std::string &config_file, int port);
+		~Server();
 		
-		void run();
+		void Run();
 };

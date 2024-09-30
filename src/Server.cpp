@@ -1,11 +1,11 @@
-#include "../include/Webserv.hpp"
+#include "../include/Server.hpp"
 #include <fstream>
 
-Webserv::Webserv(const std::string &config_file, int port) : _config_file(config_file), _port(port) { }
+Server::Server(const std::string &config_file, int port) : _config_file(config_file), _port(port) { }
 
-Webserv::~Webserv() {}
+Server::~Server() {}
 
-void Webserv::run()
+void Server::run()
 {
 
 	if (!std::fstream(_config_file).good())
