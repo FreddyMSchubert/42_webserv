@@ -5,7 +5,7 @@ Server::Server(const std::string &config_file, int port) : _config_file(config_f
 
 Server::~Server() {}
 
-void Server::run()
+void Server::Run()
 {
 
 	if (!std::fstream(_config_file).good())
