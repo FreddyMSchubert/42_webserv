@@ -1,7 +1,7 @@
 #include "../include/Server.hpp"
 #include <fstream>
 
-Server::Server(const std::string &config_file, int port) : _config_file(config_file), _port(port) { }
+Server::Server(const std::string &config_file, int port) : _port(port), _run(false),  _config_file(config_file) { }
 
 Server::~Server() {}
 

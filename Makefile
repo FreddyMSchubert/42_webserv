@@ -9,12 +9,7 @@ LIBS :=
 CFLAGS := -Wall -Wextra -Werror -std=c++17 -Wc++11-extensions
 
 $(NAME): $(OBJ)
-	c++ $(OBJ) $(LIBS) $(HEADERS) -o $(NAME)
-
-$(OBJ_DIR)/%.o: ./src/%.c
-	@mkdir -p $(OBJ_DIR)
-	@mkdir -p $(dir $@)
-	c++ $(CFLAGS) -o $@ -c $< $(HEADERS) -g
+	c++ $(CFLAGS) $(OBJ) $(LIBS) $(HEADERS) -o $(NAME)
 
 all: $(NAME)
 	

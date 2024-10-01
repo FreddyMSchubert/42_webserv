@@ -36,7 +36,7 @@
 			"setupCommands": [
 				{
 					"description": "Enable pretty-printing for lldb",
-					"text": "command script import /path/to/lldb/pretty_printers.py",
+					"text": "settings set target.pretty-printing true",
 					"ignoreFailures": true
 				}
 			],
