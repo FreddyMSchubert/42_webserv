@@ -1,6 +1,7 @@
 #pragma once
 
 enum class Method {
+	UNKNOWN,
 	GET,
 	POST,
 	PUT,
