@@ -28,5 +28,6 @@ class Packet
 		std::string getVersion();
 		std::map<std::string, std::string> getHeaders();
 		std::string getBody();
-		virtual void Run() = 0;
+		void logData();
+		// virtual void Run() = 0;
 };

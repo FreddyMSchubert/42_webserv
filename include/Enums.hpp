@@ -4,13 +4,7 @@ enum class Method {
 	UNKNOWN,
 	GET,
 	POST,
-	PUT,
-	DELETE,
-	HEAD,
-	OPTIONS,
-	TRACE,
-	CONNECT,
-	PATCH
+	DELETE
 };
 
 enum class Status {

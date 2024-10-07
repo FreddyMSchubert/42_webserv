@@ -1,0 +1,4 @@
+GET /api/v1/users HTTP/1.1
+Host: example.com
+User-Agent: Mozilla/5.0
+Accept: application/json

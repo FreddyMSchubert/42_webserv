@@ -1,5 +1,6 @@
 #include "../include/Server.hpp"
 #include <iostream>
+#include "../include/Tests.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -8,6 +9,10 @@ int main(int argc, char *argv[])
 		std::cerr << "Usage: " << argv[0] << " [config_file]" << std::endl;
 		return 1;
 	}
+
+	Tests::testPacketParsing("./tester/packet_parsing_tests/basic_get.packet");
+	Tests::testPacketParsing("./tester/packet_parsing_tests/basic_post.packet");
+	Tests::testPacketParsing("./tester/packet_parsing_tests/basic_delete.packet");
 	
 	try
 	{
@@ -19,5 +24,5 @@ int main(int argc, char *argv[])
 		std::cerr << e.what() << std::endl;
 	}
 	
-
+	return 0;
 }

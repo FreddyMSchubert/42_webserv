@@ -21,7 +21,10 @@ fclean: clean
 
 re: fclean all
 
-debug: CFLAGS += -g -O0
+run: all
+	./$(NAME)
+
+debug: CFLAGS += -g -O0 -fsanitize=address -g
 debug: fclean all
 
-.PHONY: all clean fclean re ebug
+.PHONY: all clean fclean re run debug

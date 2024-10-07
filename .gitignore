@@ -16,6 +16,9 @@ webserv
 *.o
 *.obj
 
+# Debugging artifacts
+*.dSYM
+
 # Precompiled Headers
 *.gch
 *.pch
