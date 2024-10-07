@@ -10,7 +10,7 @@ html
 	backdrop-filter: blur(100px);
 	font-family: Verdana, Geneva, Tahoma, sans-serif;
 	color: white;
-	overflow-y: hidden;
+	overflow: hidden;
 }
 
 .app
@@ -55,4 +55,42 @@ html
 .animate
 {
 	animation: click-animation 0.1s;
+}
+
+/* PARTICLES */
+
+.falling-particles
+{
+	width: 100vw;
+	height: 100vh;
+	position: absolute;
+	pointer-events: none;
+	top: 0;
+	left: 0;
+}
+
+.falling-particle
+{
+	position: absolute;
+	opacity: 1;
+	pointer-events: none;
+	animation: fall 1s linear forwards;
+}
+
+@keyframes fall
+{
+	0%
+	{
+		transform: scale(1);
+		opacity: 1;
+	}
+	50%
+	{
+		opacity: 1;
+	}
+	100%
+	{
+		transform: translateY(100vh) scale(0.5);
+		opacity: 0;
+	}
 }

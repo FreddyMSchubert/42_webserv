@@ -6,11 +6,23 @@ function addScore()
 	localStorage.setItem("score", score);
 	document.getElementsByClassName("score")[0].innerHTML = score;
 
-	const cookieWrapper = document.getElementsByClassName("cookie-wrapper")[0];
-	cookieWrapper.classList.remove("animate");
-	void cookieWrapper.offsetWidth; // Force a reflow to reset animation
-	cookieWrapper.classList.add("animate");
-	setTimeout(() => cookieWrapper.classList.remove("animate"), 300);
+	const fallingParticle = document.createElement("img");
+	fallingParticle.classList.add("falling-particle");
+	fallingParticle.src = "assets/42logo.png";
+	const particleWidthPx = 50;
+	const maxLeftPx = window.innerWidth - particleWidthPx;
+	fallingParticle.style.left = `${Math.random() * maxLeftPx}px`;
+	fallingParticle.style.top = '-50px';
+	document.getElementsByClassName("falling-particles")[0].appendChild(fallingParticle);
+	setTimeout(() => {
+		fallingParticle.remove();
+	}, 3000);
+
+	const btnWrapper = document.getElementsByClassName("btn-wrapper")[0];
+	btnWrapper.classList.remove("animate");
+	void btnWrapper.offsetWidth; // Force a reflow to reset animation
+	btnWrapper.classList.add("animate");
+	setTimeout(() => btnWrapper.classList.remove("animate"), 300);
 }
 
 document.getElementsByClassName("btn")[0].addEventListener("click", addScore);
