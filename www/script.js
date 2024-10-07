@@ -1,24 +1,51 @@
 let score = 0;
 let clicks = [];
+let autoClicks = [];
 let maxCPS = 0;
 let maxEverCPS = 0;
+let automations = [
+	{ name: 'Byte Digger', cost: 15, cps: 0.1, count: 0 },
+	{ name: 'Incompetent Junior', cost: 100, cps: 1, count: 0 },
+	{ name: 'Data Mill', cost: 1100, cps: 8, count: 0 },
+	{ name: 'Master of Recursivity', cost: 1100, cps: 8, count: 0 },
+	{ name: 'Handler of Exception', cost: 12000, cps: 47, count: 0 },
+	{ name: 'Algorithm Optimizer', cost: 130000, cps: 260, count: 0 },
+	{ name: 'Legacy Refactorer', cost: 1400000, cps: 1400, count: 0 },
+	{ name: 'System Architect', cost: 20000000, cps: 7800, count: 0 },
+	{ name: 'Quantum Debugger', cost: 330000000, cps: 44000, count: 0 },
+	{ name: 'Sentient DevOps', cost: 5100000000, cps: 260000, count: 0 },
+	{ name: 'The Singularity', cost: 100000000000, cps: 1600000, count: 0 }
+];
+let savedClicks = 0;
 
-function addScore()
+function addScore(increment = 1, humanMade = false)
 {
+	let previousSavedClicks = savedClicks;
+	savedClicks += increment;
+	let fullClickHappened = Math.floor(savedClicks) > Math.floor(previousSavedClicks);
+
 	// score
-	score++;
+	score += increment;
 	localStorage.setItem("score", score);
-	document.getElementsByClassName("score")[0].innerHTML = score;
+	document.getElementsByClassName("score")[0].innerHTML = Math.round(score);
+
+	if (!fullClickHappened)
+		return;
 
 	// particles
 	const fallingParticle = document.createElement("img");
 	fallingParticle.classList.add("falling-particle");
 	fallingParticle.src = "assets/42logo.png";
 
-	fallingParticle.style.filter = `invert(1) sepia(1) saturate(5) hue-rotate(${Math.random() * 360}deg) brightness(1)`;
+	if (humanMade)
+		fallingParticle.style.filter = `invert(1) sepia(1) saturate(5) hue-rotate(${Math.random() * 360}deg) brightness(1)`;
+	else
+		fallingParticle.style.filter = `brightness(0)`;
 
 	const sizeMultiplier = getSizeMultiplier();
-	const particleScalePx = 50 * sizeMultiplier;
+	let particleScalePx = 50;
+	if (humanMade)
+		particleScalePx *= sizeMultiplier;
 	const maxLeftPx = window.innerWidth - particleScalePx;
 
 	fallingParticle.style.width = `${particleScalePx}px`;
@@ -32,17 +59,27 @@ function addScore()
 	}, 3000);
 
 	// cps
-	clicks.push(Date.now());
+	if (humanMade)
+		clicks.push(Date.now());
+	else
+		for (let i = 0; i < increment; i++)
+			autoClicks.push(Date.now());
 	updateCPS();
 
 	// button animation
+	if (!humanMade)
+		return;
 	const btnWrapper = document.getElementsByClassName("btn-wrapper")[0];
 	btnWrapper.classList.remove("animate");
 	void btnWrapper.offsetWidth; // Force a reflow to reset animation
 	btnWrapper.classList.add("animate");
 	setTimeout(() => btnWrapper.classList.remove("animate"), 300);
 }
-document.getElementsByClassName("btn")[0].addEventListener("click", addScore);
+document.getElementsByClassName("btn")[0].addEventListener("click", event => addScore(1, true));
+document.addEventListener("keyup", event => {
+	if (event.key === "Enter" || event.key === " ")
+		addScore(1, true);
+});
 
 function getSizeMultiplier()
 {
@@ -52,6 +89,7 @@ function getSizeMultiplier()
 
 function updateCPS()
 {
+	autoClicks = autoClicks.filter(t => Date.now() - t <= 1000);
 	clicks = clicks.filter(t => Date.now() - t <= 1000);
 	if (clicks.length > maxCPS)
 		maxCPS = clicks.length;
@@ -63,6 +101,7 @@ function updateCPS()
 	document.getElementsByClassName("cps")[0].innerHTML = clicks.length;
 	document.getElementsByClassName("maxcps")[0].innerHTML = maxCPS;
 	document.getElementsByClassName("maxevercps")[0].innerHTML = maxEverCPS;
+	document.getElementsByClassName("autocps")[0].innerHTML = getAutoCPS().toFixed(2);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -77,5 +116,68 @@ document.addEventListener('DOMContentLoaded', function() {
 		localStorage.setItem("maxCPS", 0);
 	document.getElementsByClassName("score")[0].innerHTML = score;
 	setInterval(updateCPS, 100);
+	setInterval(autoScore, 10);
+	initializeAutomation();
 });
 
+/* ---- AUTOMATIONS ----- */
+
+function initializeAutomation()
+{
+	const list = document.getElementById("automation-items");
+	automations.forEach((automation, index) => {
+		if (localStorage.getItem(`automation${index}cost`))
+			automation.cost = localStorage.getItem(`automation${index}cost`) || automation.cost;
+		if (localStorage.getItem(`automation${index}count`))
+			automation.count = localStorage.getItem(`automation${index}count`) || automation.count;
+		const item = document.createElement("li");
+		item.className = "automation-item";
+		item.innerHTML = `
+			${automation.name} - Cost: ${Number(automation.cost).toFixed(2)}, CPS: ${automation.cps}, Owned: ${automation.count}
+		`;
+		item.addEventListener("click", () => buyAutomation(index));
+		list.appendChild(item);
+	});
+}
+
+// Buy automation
+function buyAutomation(index)
+{
+	const automation = automations[index];
+	if (score >= automation.cost)
+	{
+		score -= automation.cost;
+		automation.count++;
+		automation.cost = automation.cost * 1.15;
+		localStorage.setItem("score", score);
+		localStorage.setItem(`automation${index}cost`, automation.cost);
+		localStorage.setItem(`automation${index}count`, automation.count);
+		updateAutomationDisplay();
+	}
+}
+
+function updateAutomationDisplay()
+{
+	const listItems = document.getElementsByClassName("automation-item");
+	automations.forEach((automation, index) => {
+		listItems[index].innerHTML = `
+			${automation.name}<br>- Cost: ${automation.cost.toFixed(2)}, CPS: ${automation.cps}, Owned: ${automation.count}
+		`;
+	});
+	document.getElementsByClassName("score")[0].innerHTML = score;
+}
+
+function getAutoCPS()
+{
+	let autoIncrement = 0;
+	for (let i = 0; i < automations.length; i++)
+		autoIncrement += automations[i].cps * automations[i].count;
+	return autoIncrement;
+}
+
+function autoScore()
+{
+	const autoIncrement = getAutoCPS() / 100;
+	if (autoIncrement > 0)
+		addScore(autoIncrement);
+}

@@ -32,8 +32,8 @@ html
 .btn
 {
 	border-radius: 50%;
-	width: 50vmin;
-	height: 50vmin;
+	width: 35vmin;
+	height: 35vmin;
 	background-image: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
 	animation: rotate 10s linear infinite;
 	box-shadow: 0 0 30px 5px #6a11cb;
@@ -61,6 +61,7 @@ html
 
 .falling-particles
 {
+	z-index: -1;
 	width: 100vw;
 	height: 100vh;
 	position: absolute;
@@ -93,4 +94,29 @@ html
 		transform: translateY(100vh) scale(0.5);
 		opacity: 0;
 	}
+}
+
+/* AUTOMATIONS */
+
+.automation-list
+{
+	position: absolute;
+	left: 5%;
+	top: 50%;
+	transform: translateY(-50%);
+	background-color: #29292954;
+	padding: 20px;
+	border-radius: 10px;
+	backdrop-filter: blur(10px);
+	width: 20vmin;
+	color: white;
+}
+
+.automation-item
+{
+	display: flex;
+	justify-content: space-between;
+	padding: 10px;
+	border-bottom: 1px solid white;
+	cursor: pointer;
 }
