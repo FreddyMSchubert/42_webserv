@@ -3,7 +3,7 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include "Enums.hpp"
+#include "../Enums.hpp"
 
 class Packet
 {
