@@ -3,22 +3,24 @@ let score = 0;
 function addScore()
 {
 	score++;
-	document.cookie = "score=" + score;
+	localStorage.setItem("score", score);
 	document.getElementsByClassName("score")[0].innerHTML = score;
+
+	const cookieWrapper = document.getElementsByClassName("cookie-wrapper")[0];
+	cookieWrapper.classList.remove("animate");
+	void cookieWrapper.offsetWidth; // Force a reflow to reset animation
+	cookieWrapper.classList.add("animate");
+	setTimeout(() => cookieWrapper.classList.remove("animate"), 300);
 }
 
 document.getElementsByClassName("btn")[0].addEventListener("click", addScore);
 
 document.addEventListener('DOMContentLoaded', function() {
 	
-	if (document.cookie == "")
-		document.cookie = "score=0";
-	
-	let cookie = document.cookie.split("=");
-	if(cookie[0] == "score")
-	{
-		score = parseInt(cookie[1]);
-		document.getElementsByClassName("score")[0].innerHTML = score;
-	}
+	if (localStorage.getItem("score"))
+		score = parseInt(localStorage.getItem("score"));
+	else
+		localStorage.setItem("score", 0);
+	document.getElementsByClassName("score")[0].innerHTML = score;
 });
 
