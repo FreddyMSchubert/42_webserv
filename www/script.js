@@ -46,6 +46,8 @@ function addScore(increment = 1, humanMade = false)
 	let particleScalePx = 50;
 	if (humanMade)
 		particleScalePx *= sizeMultiplier;
+	else if (increment > 1)
+		particleScalePx *= increment;
 	const maxLeftPx = window.innerWidth - particleScalePx;
 
 	fallingParticle.style.width = `${particleScalePx}px`;
@@ -62,8 +64,13 @@ function addScore(increment = 1, humanMade = false)
 	if (humanMade)
 		clicks.push(Date.now());
 	else
-		for (let i = 0; i < increment; i++)
+	{
+		if (increment < 1)
+			for (let i = 0; i < increment; i++)
+				autoClicks.push(Date.now());
+		else
 			autoClicks.push(Date.now());
+	}
 	updateCPS();
 
 	// button animation
@@ -101,7 +108,7 @@ function updateCPS()
 	document.getElementsByClassName("cps")[0].innerHTML = clicks.length;
 	document.getElementsByClassName("maxcps")[0].innerHTML = maxCPS;
 	document.getElementsByClassName("maxevercps")[0].innerHTML = maxEverCPS;
-	document.getElementsByClassName("autocps")[0].innerHTML = getAutoCPS().toFixed(2);
+	document.getElementsByClassName("autocps")[0].innerHTML = getAutoCPS().toFixed(1);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -124,12 +131,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initializeAutomation()
 {
-	const list = document.getElementById("automation-items");
 	automations.forEach((automation, index) => {
 		if (localStorage.getItem(`automation${index}cost`))
 			automation.cost = localStorage.getItem(`automation${index}cost`) || automation.cost;
 		if (localStorage.getItem(`automation${index}count`))
 			automation.count = localStorage.getItem(`automation${index}count`) || automation.count;
+	});
+	writeAutomationData();
+}
+
+function writeAutomationData()
+{
+	const list = document.getElementById("automation-items");
+	list.innerHTML = "";
+	automations.forEach((automation, index) => {
 		const item = document.createElement("li");
 		item.className = "automation-item";
 		item.innerHTML = `
@@ -152,19 +167,9 @@ function buyAutomation(index)
 		localStorage.setItem("score", score);
 		localStorage.setItem(`automation${index}cost`, automation.cost);
 		localStorage.setItem(`automation${index}count`, automation.count);
-		updateAutomationDisplay();
+		writeAutomationData();
+		document.getElementsByClassName("score")[0].innerHTML = score;
 	}
-}
-
-function updateAutomationDisplay()
-{
-	const listItems = document.getElementsByClassName("automation-item");
-	automations.forEach((automation, index) => {
-		listItems[index].innerHTML = `
-			${automation.name}<br>- Cost: ${automation.cost.toFixed(2)}, CPS: ${automation.cps}, Owned: ${automation.count}
-		`;
-	});
-	document.getElementsByClassName("score")[0].innerHTML = score;
 }
 
 function getAutoCPS()
