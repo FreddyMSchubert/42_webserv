@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
 	Tests::testPacketParsing("./tester/packet_parsing_tests/basic_get.packet");
 	Tests::testPacketParsing("./tester/packet_parsing_tests/basic_post.packet");
 	Tests::testPacketParsing("./tester/packet_parsing_tests/basic_delete.packet");
+	Tests::testPacketParsing("./tester/packet_parsing_tests/chrome_get.packet");
 	
 	try
 	{

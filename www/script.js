@@ -7,14 +7,14 @@ let automations = [
 	{ name: 'Byte Digger', cost: 15, cps: 0.1, count: 0 },
 	{ name: 'Incompetent Junior', cost: 100, cps: 1, count: 0 },
 	{ name: 'Data Mill', cost: 1100, cps: 8, count: 0 },
-	{ name: 'Master of Recursivity', cost: 1100, cps: 8, count: 0 },
-	{ name: 'Handler of Exception', cost: 12000, cps: 47, count: 0 },
-	{ name: 'Algorithm Optimizer', cost: 130000, cps: 260, count: 0 },
-	{ name: 'Legacy Refactorer', cost: 1400000, cps: 1400, count: 0 },
-	{ name: 'System Architect', cost: 20000000, cps: 7800, count: 0 },
-	{ name: 'Quantum Debugger', cost: 330000000, cps: 44000, count: 0 },
-	{ name: 'Sentient DevOps', cost: 5100000000, cps: 260000, count: 0 },
-	{ name: 'The Singularity', cost: 100000000000, cps: 1600000, count: 0 }
+	{ name: 'Master of Recursivity', cost: 12000, cps: 47, count: 0 },
+	{ name: 'Handler of Exception', cost: 130000, cps: 260, count: 0 },
+	{ name: 'Algorithm Optimizer', cost: 1400000, cps: 1400, count: 0 },
+	{ name: 'Legacy Refactorer', cost: 20000000, cps: 7800, count: 0 },
+	{ name: 'System Architect', cost: 330000000, cps: 44000, count: 0 },
+	{ name: 'Quantum Debugger', cost: 5100000000, cps: 260000, count: 0 },
+	{ name: 'Sentient DevOps', cost: 75000000000, cps: 1600000, count: 0 },
+	{ name: 'The Singularity', cost: 1000000000000, cps: 100000000, count: 0 }
 ];
 let savedClicks = 0;
 
@@ -27,7 +27,7 @@ function addScore(increment = 1, humanMade = false)
 	// score
 	score += increment;
 	localStorage.setItem("score", score);
-	document.getElementsByClassName("score")[0].innerHTML = Math.round(score);
+	document.getElementsByClassName("score")[0].innerHTML = Math.round(score).toLocaleString();
 
 	if (!fullClickHappened)
 		return;
@@ -47,7 +47,7 @@ function addScore(increment = 1, humanMade = false)
 	if (humanMade)
 		particleScalePx *= sizeMultiplier;
 	else if (increment > 1)
-		particleScalePx *= increment;
+		particleScalePx *= increment * 2 / increment;
 	const maxLeftPx = window.innerWidth - particleScalePx;
 
 	fallingParticle.style.width = `${particleScalePx}px`;
@@ -64,13 +64,7 @@ function addScore(increment = 1, humanMade = false)
 	if (humanMade)
 		clicks.push(Date.now());
 	else
-	{
-		if (increment < 1)
-			for (let i = 0; i < increment; i++)
-				autoClicks.push(Date.now());
-		else
-			autoClicks.push(Date.now());
-	}
+		autoClicks.push(Date.now());
 	updateCPS();
 
 	// button animation
@@ -105,10 +99,10 @@ function updateCPS()
 		maxEverCPS = maxCPS;
 		localStorage.setItem("maxCPS", maxEverCPS);
 	}
-	document.getElementsByClassName("cps")[0].innerHTML = clicks.length;
-	document.getElementsByClassName("maxcps")[0].innerHTML = maxCPS;
-	document.getElementsByClassName("maxevercps")[0].innerHTML = maxEverCPS;
-	document.getElementsByClassName("autocps")[0].innerHTML = getAutoCPS().toFixed(1);
+	document.getElementsByClassName("cps")[0].innerHTML = clicks.length.toLocaleString();
+	document.getElementsByClassName("maxcps")[0].innerHTML = maxCPS.toLocaleString();
+	document.getElementsByClassName("maxevercps")[0].innerHTML = maxEverCPS.toLocaleString();
+	document.getElementsByClassName("autocps")[0].innerHTML = getAutoCPS().toFixed(1).toLocaleString();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -148,7 +142,7 @@ function writeAutomationData()
 		const item = document.createElement("li");
 		item.className = "automation-item";
 		item.innerHTML = `
-			${automation.name} - Cost: ${Number(automation.cost).toFixed(2)}, CPS: ${automation.cps}, Owned: ${automation.count}
+			${automation.name} - Cost: ${Number(Number(automation.cost).toFixed(2)).toLocaleString()}, CPS: ${automation.cps.toLocaleString()}, Owned: ${automation.count.toLocaleString()}
 		`;
 		item.addEventListener("click", () => buyAutomation(index));
 		list.appendChild(item);
