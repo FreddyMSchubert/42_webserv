@@ -1,0 +1,16 @@
+GET /api/v1/users HTTP/1.1
+Host: example.com
+User-Agent: Mozilla/5.0
+Transfer-Encoding: chunked
+Accept: application/json
+
+4\r\n
+Wiki\r\n
+5\r\n
+pedia\r\n
+a\r\n
+11hihahohehl\r\n
+f\r\n
+chunks. hellothe\r\n
+0\r\n
+\r\n

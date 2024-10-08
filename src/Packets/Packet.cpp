@@ -13,7 +13,7 @@ Packet::Packet(const std::string &rawPacket)
 
 	while (std::getline(iss, line))
 	{
-		if (line == "\r")
+		if (line.find(":") == std::string::npos)
 			break;
 		headers += line + "\n";
 	}
@@ -62,12 +62,15 @@ void Packet::ParseHeaders(std::string &headers)
 		if (!line.empty() && line.back() == '\r') // windows artifacts
 			line.pop_back();
 
-		std::string::size_type separator = headers.find(':');
-		if (separator == std::string::npos)
-			throw std::runtime_error("Invalid headers line");
+		if (line.empty())
+			continue;
 
-		std::string key(headers.substr(0, separator));
-		std::string value(headers.substr(separator + 1));
+		std::string::size_type separator = line.find(':');
+		if (separator == std::string::npos)
+			throw std::runtime_error("Invalid packet header");
+
+		std::string key(line.substr(0, separator));
+		std::string value(line.substr(separator + 1));
 
 		// trim whitespace
 		key.erase(0, key.find_first_not_of(" \t"));
@@ -81,7 +84,49 @@ void Packet::ParseHeaders(std::string &headers)
 
 void Packet::ParseBody(std::string &body)
 {
-	_body = body;
+	// Chunked Transfer Encoding
+	if (_headers.find("Transfer-Encoding") != _headers.end() && _headers["Transfer-Encoding"] == "chunked")
+	{
+		std::istringstream iss(body);
+		std::string line;
+		std::string chunkSize;
+		std::string chunk;
+		while (std::getline(iss, line))
+		{
+			if (line.empty())
+				continue;
+			if (line.back() == '\r') // windows artifacts
+				line.pop_back();
+
+			if (chunkSize.empty())
+			{
+				chunkSize = line;
+				continue;
+			}
+			if (line.size() == std::stoul(chunkSize, nullptr, 16))
+			{
+				_body += chunk;
+				chunkSize.clear();
+				chunk.clear();
+				continue;
+			}
+			chunk += line;
+		}
+	}
+	// Content-Length header
+	else if (_headers.find("Content-Length") != _headers.end())
+	{
+		size_t contentLength = std::stoi(_headers["Content-Length"]);
+		if (body.size() < contentLength)
+			throw std::runtime_error("Invalid body size");
+		_body = body.substr(0, contentLength);
+	}
+	// No specified body encoding
+	else
+	{
+		_body = body;
+		// throw std::runtime_error("Unsupported transfer encoding");
+	}
 }
 
 Method Packet::getMethod() { return _method; }
@@ -106,6 +151,7 @@ void Packet::logData()
 	for (auto &header : _headers)
 		std::cout << header.first << ": " << header.second << std::endl;
 	std::cout << "Body: " << _body << std::endl;
+	std::cout << "---" << std::endl;
 }
 
 Packet::Packet(Packet const &src)
