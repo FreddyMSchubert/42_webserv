@@ -84,33 +84,42 @@ void Packet::ParseHeaders(std::string &headers)
 
 void Packet::ParseBody(std::string &body)
 {
+	// log char and ascii int for each char in body input
+	for (size_t i = 0; i < body.size(); i++)
+	{
+		std::cout << "\"" << body[i] << "\" " << (int)body[i] << std::endl;
+	}
+
 	// Chunked Transfer Encoding
 	if (_headers.find("Transfer-Encoding") != _headers.end() && _headers["Transfer-Encoding"] == "chunked")
 	{
-		std::istringstream iss(body);
-		std::string line;
-		std::string chunkSize;
-		std::string chunk;
-		while (std::getline(iss, line))
-		{
-			if (line.empty())
-				continue;
-			if (line.back() == '\r') // windows artifacts
-				line.pop_back();
+		size_t pos = 0;
+		_body.clear();
 
-			if (chunkSize.empty())
-			{
-				chunkSize = line;
-				continue;
-			}
-			if (line.size() == std::stoul(chunkSize, nullptr, 16))
-			{
-				_body += chunk;
-				chunkSize.clear();
-				chunk.clear();
-				continue;
-			}
-			chunk += line;
+		while (true)
+		{
+			size_t crlfPos = body.find("\r\n", pos);
+			if (crlfPos == std::string::npos)
+				throw std::runtime_error("Invalid chunked encoding: Missing CRLF after chunk size");
+
+			std::string chunkSizeStr = body.substr(pos, crlfPos - pos);
+			size_t chunkSize = std::stoul(chunkSizeStr, nullptr, 16);
+			pos = crlfPos + 2;
+
+			if (chunkSize == 0)
+				break;
+
+			if (body.size() < pos + chunkSize)
+				throw std::runtime_error("Invalid chunked encoding: Incomplete chunk data");
+
+			std::string chunkData = body.substr(pos, chunkSize);
+			_body += chunkData;
+			pos += chunkSize;
+
+			if (body.substr(pos, 2) != "\r\n")
+				throw std::runtime_error("Invalid chunked encoding: Missing CRLF after chunk data");
+
+			pos += 2;
 		}
 	}
 	// Content-Length header
@@ -150,7 +159,8 @@ void Packet::logData()
 	std::cout << "Headers: " << std::endl;
 	for (auto &header : _headers)
 		std::cout << header.first << ": " << header.second << std::endl;
-	std::cout << "Body: " << _body << std::endl;
+	if (!_body.empty())
+		std::cout << "Body: " << _body << std::endl;
 	std::cout << "---" << std::endl;
 }
 

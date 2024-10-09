@@ -3,6 +3,10 @@
 ### [Official Requirements](#official-mandatory-requirements)
 ### [Visual Flowchart for Webserv](#visual-flowchart-for-webserv)
 
+### Useful links
+
+- [LF / CRLF file converter](https://app.execeratics.com/LFandCRLFonline/convert.php?filename=basic_chunked.packet&m=crlf&l=en)
+
 ### Official (mandatory) requirements
 #### What we need to do:
 1. Take a config file or have a default one
