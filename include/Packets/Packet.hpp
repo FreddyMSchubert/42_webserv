@@ -11,6 +11,7 @@ class Packet
 		void ParseRequestLine(std::string &line);
 		void ParseHeaders(std::string &headers);
 		void ParseBody(std::string &body);
+		std::string sanitizeUri(const std::string& uri);
 	protected:
 		std::string _rawData;
 		Method _method;

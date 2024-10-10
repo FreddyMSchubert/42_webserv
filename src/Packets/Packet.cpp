@@ -52,6 +52,7 @@ void Packet::ParseRequestLine(std::string &line)
 		_method = Method::UNKNOWN;
 
 	stream  >> _path >> _version;
+	_path = sanitizeUri(_path);
 }
 
 void Packet::ParseHeaders(std::string &headers)
@@ -142,6 +143,15 @@ void Packet::ParseBody(std::string &body)
 		_body = body;
 		// throw std::runtime_error("Unsupported transfer encoding");
 	}
+}
+
+std::string Packet::sanitizeUri(const std::string& uri)
+{
+	std::string sanitized_uri = uri;
+	size_t pos;
+	while ((pos = sanitized_uri.find("..")) != std::string::npos)
+		sanitized_uri.erase(pos, 2);
+	return sanitized_uri;
 }
 
 Method Packet::getMethod() { return _method; }
