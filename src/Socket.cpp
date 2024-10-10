@@ -69,51 +69,63 @@ void Socket::Run()
 			int client_fd = *it;
 			if (FD_ISSET(client_fd, &read_fds))
 			{
+				std::string data;
 				char buffer[4096];
-				ssize_t received = recv(client_fd, buffer, sizeof(buffer), 0);
-				if (received <= 0)
+				ssize_t received;
+				
+				// TODO: check if this part successfully reads the whole request even if its chunked
+				while (true)
 				{
-					// XXX: this is not working properly
-					closeSocket(client_fd);
-					it = _clients.erase(it);
+					received = recv(client_fd, buffer, sizeof(buffer), 0);
+					if (received < 0)
+					{
+						closeSocket(client_fd);
+						break;
+					}
+
+					data.append(buffer, received);
+
+					if (data.find("\r\n\r\n") != std::string::npos)
+						break;
 				}
-				else
+		
+				// Request request(std::string(buffer, received)); // XXX: i think in my version parsing is not fully working yet
+				Logger::Log(LogLevel::INFO, "Received data!");
+				// request.Run();
+
+				// TODO: check for length of received data and if its 0 do something
+
+				try
 				{
-					
-					// Request request(std::string(buffer, received)); // XXX: i think in my version parsing is not fully working yet
-					Logger::Log(LogLevel::INFO, "Received data!");
-					// request.Run();
+					// Request req(std::string(buffer, received));
+					Request req(data);
+					if (LOG_INCOMING_PACKETS)
+						req.logData();
+					std::string path = req.getPath();
+					if (path == std::string("/"))
+						path = "/index.html";
+					std::string response_str;
 					try
 					{
-						Request req(std::string(buffer, received));
-						if (LOG_INCOMING_PACKETS)
-							req.logData();
-						std::string path = req.getPath();
-						if (path == std::string("/"))
-							path = "/index.html";
-						std::string response_str;
-						try
-						{
-							response_str = getFileAsString(std::string("./www") + path);
-						}
-						catch (std::exception &e)
-						{
-							Logger::Log(LogLevel::ERROR, std::string("Failed to get file: ") + e.what());
-							redirectToError(client_fd, 404);
-							it = _clients.erase(it);
-							continue;
-						}
-						// Response res (resonse_Str);
-						sendData(response_str, client_fd);
-						closeSocket(client_fd);
-						Logger::Log(LogLevel::INFO, "Data sent!");
+						response_str = getFileAsString(std::string("./www") + path);
 					}
 					catch (std::exception &e)
 					{
-						Logger::Log(LogLevel::ERROR, std::string("Failed to send data: ") + e.what());
+						Logger::Log(LogLevel::ERROR, std::string("Failed to get file: ") + e.what());
+						redirectToError(client_fd, 404);
+						it = _clients.erase(it);
+						continue;
 					}
-					it = _clients.erase(it);
+					// Response res (resonse_Str);
+					sendData(response_str, client_fd);
+					closeSocket(client_fd);
+					Logger::Log(LogLevel::INFO, "Data sent!");
 				}
+				catch (std::exception &e)
+				{
+					Logger::Log(LogLevel::ERROR, std::string("Failed to send data: ") + e.what());
+				}
+				it = _clients.erase(it);
 			}
 			else ++it;
 		}
