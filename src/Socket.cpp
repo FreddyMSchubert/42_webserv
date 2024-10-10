@@ -91,9 +91,20 @@ void Socket::Run()
 						std::string path = req.getPath();
 						if (path == std::string("/"))
 							path = "/index.html";
-						std::string response_Str = getFileAsString(std::string("./www") + path);
+						std::string response_str;
+						try
+						{
+							response_str = getFileAsString(std::string("./www") + path);
+						}
+						catch (std::exception &e)
+						{
+							Logger::Log(LogLevel::ERROR, std::string("Failed to get file: ") + e.what());
+							redirectToError(client_fd, 404);
+							it = _clients.erase(it);
+							continue;
+						}
 						// Response res (resonse_Str);
-						sendData(response_Str, client_fd);
+						sendData(response_str, client_fd);
 						closeSocket(client_fd);
 						Logger::Log(LogLevel::INFO, "Data sent!");
 					}
@@ -189,6 +200,39 @@ void Socket::_setNonBlocking(int fd)
 		throw std::runtime_error("Failed to set non-blocking mode");
 	}
 }
+
+void Socket::redirectToError(int client_fd, int error_code)
+{
+	int websiteId = rand() % 4;
+	std::string website;
+	switch(websiteId)
+	{
+		case 0: website = "https://http.cat/"; break;
+		case 1: website = "https://http.dog/"; break;
+		case 2: website = "https://http.fish/"; break;
+		case 3: website = "https://httpducks.com/"; break;
+	}
+	website = website + std::to_string(error_code);
+	if (websiteId > 0)
+		website += ".jpg";
+
+	Logger::Log(LogLevel::INFO, "Redirecting client to " + website + std::to_string(error_code));
+	sendRedirect(client_fd, website);
+}
+
+void Socket::sendRedirect(int client_fd, const std::string& new_url)
+{
+	std::string response = "HTTP/1.1 302 Found\r\n";
+	response += "Location: " + new_url + "\r\n";
+	response += "Content-Length: 0\r\n";
+	response += "Connection: close\r\n";
+	response += "\r\n"; // End of headers
+
+	sendData(response, client_fd);
+	closeSocket(client_fd);
+	Logger::Log(LogLevel::INFO, "Redirected client to " + new_url);
+}
+
 
 Socket::~Socket()
 {

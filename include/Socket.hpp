@@ -41,4 +41,6 @@ class Socket
 		void sendData(const std::string &data, int socket_fd);
 		void Run();
 		void closeSocket(int socket);
+		void redirectToError(int client_fd, int error_code);
+		void sendRedirect(int client_fd, const std::string& new_url);
 };

@@ -16,7 +16,9 @@ int main(int argc, char *argv[])
 	// Tests::testPacketParsing("./tester/packet_parsing_tests/basic_delete.packet");
 	// Tests::testPacketParsing("./tester/packet_parsing_tests/chrome_get.packet");
 	// Tests::testPacketParsing("./tester/packet_parsing_tests/basic_chunked.packet");
-	
+
+	srand(time(NULL));
+
 	try
 	{
 		Server webserv(argc == 2 ? argv[1] : "./config/default.conf", 80);

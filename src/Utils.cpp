@@ -2,7 +2,6 @@
 
 std::string getFileAsString(const std::string& path)
 {
-	std::cout << "Reading file at " << path << std::endl;
 	std::ifstream file(path);
 	if (!file.is_open() || !file.good())
 		throw std::runtime_error(std::string("Couldn't read file at ") + path);

@@ -177,7 +177,6 @@ void Packet::logData()
 		std::cout << header.first << ": " << header.second << std::endl;
 	if (!_body.empty())
 		std::cout << "Body: " << _body << std::endl;
-	std::cout << "---" << std::endl;
 }
 
 Packet::Packet(const Packet &src)
