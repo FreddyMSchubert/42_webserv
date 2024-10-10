@@ -1,4 +1,5 @@
 #include "../include/Server.hpp"
+#include "../include/Logger.hpp"
 #include <iostream>
 #include "../include/Tests.hpp"
 
@@ -10,11 +11,11 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	Tests::testPacketParsing("./tester/packet_parsing_tests/basic_get.packet");
-	Tests::testPacketParsing("./tester/packet_parsing_tests/basic_post.packet");
-	Tests::testPacketParsing("./tester/packet_parsing_tests/basic_delete.packet");
-	Tests::testPacketParsing("./tester/packet_parsing_tests/chrome_get.packet");
-	Tests::testPacketParsing("./tester/packet_parsing_tests/basic_chunked.packet");
+	// Tests::testPacketParsing("./tester/packet_parsing_tests/basic_get.packet");
+	// Tests::testPacketParsing("./tester/packet_parsing_tests/basic_post.packet");
+	// Tests::testPacketParsing("./tester/packet_parsing_tests/basic_delete.packet");
+	// Tests::testPacketParsing("./tester/packet_parsing_tests/chrome_get.packet");
+	// Tests::testPacketParsing("./tester/packet_parsing_tests/basic_chunked.packet");
 	
 	try
 	{
@@ -23,7 +24,7 @@ int main(int argc, char *argv[])
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		Logger::Log(LogLevel::ERROR, e.what());
 	}
 	
 	return 0;
