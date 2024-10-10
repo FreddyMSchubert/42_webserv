@@ -16,6 +16,7 @@
 #include <vector>
 #include "Packets/Response.hpp"
 #include "Packets/Request.hpp"
+#include "Settings.hpp"
 
 class Socket
 {
