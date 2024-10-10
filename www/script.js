@@ -4,6 +4,9 @@ let autoClicks = [];
 let maxCPS = 0;
 let maxEverCPS = 0;
 let savedClicks = 0;
+let colors = [
+	0
+]
 let automations = [
 	{ name: 'Byte Digger', cost: 15, cps: 0.1, count: 0, efficiency: 1 },
 	{ name: 'Incompetent Junior', cost: 100, cps: 1, count: 0, efficiency: 1 },
@@ -26,6 +29,7 @@ let upgrades = [
 	{ name: 'Carpal Tunnel Prevention VI', cost: 100000000, unlock_amount: 100, unlock_automation: 0, result: "click_eff", factor: 2, owned: false },
 	{ name: 'Carpal Tunnel Prevention VII', cost: 1000000000, unlock_amount: 150, unlock_automation: 0, result: "click_eff", factor: 2, owned: false },
 	{ name: 'Carpal Tunnel Prevention VIII', cost: 10000000000, unlock_amount: 200, unlock_automation: 0, result: "click_eff", factor: 2, owned: false },
+	
 	{ name: 'Buff Diggers', cost: 9990, unlock_amount: 10, unlock_automation: 0, result: "building_eff", factor: 2, owned: false },
 	{ name: 'Buff Juniors', cost: 66600, unlock_amount: 10, unlock_automation: 1, result: "building_eff", factor: 2, owned: false },
 	{ name: 'Buff Mills', cost: 750000, unlock_amount: 10, unlock_automation: 2, result: "building_eff", factor: 2, owned: false },
@@ -37,6 +41,7 @@ let upgrades = [
 	{ name: 'Buff Debuggers', cost: 1000000000000, unlock_amount: 10, unlock_automation: 8, result: "building_eff", factor: 2, owned: false },
 	{ name: 'Buff DevOpss', cost: 10000000000000, unlock_amount: 10, unlock_automation: 9, result: "building_eff", factor: 2, owned: false },
 	{ name: 'Buff Singularities', cost: 100000000000000, unlock_amount: 10, unlock_automation: 10, result: "building_eff", factor: 2, owned: false },
+	
 	{ name: 'Godlike Juniors', cost: 99900, unlock_amount: 50, unlock_automation: 0, result: "building_eff", factor: 3, owned: false },
 	{ name: 'Godlike Juniors', cost: 666000, unlock_amount: 50, unlock_automation: 1, result: "building_eff", factor: 3, owned: false },
 	{ name: 'Godlike Mills', cost: 75000000, unlock_amount: 50, unlock_automation: 2, result: "building_eff", factor: 3, owned: false },
@@ -48,7 +53,42 @@ let upgrades = [
 	{ name: 'Godlike Debuggers', cost: 1000000000000000, unlock_amount: 50, unlock_automation: 8, result: "building_eff", factor: 3, owned: false },
 	{ name: 'Godlike DevOpss', cost: 1000000000000000, unlock_amount: 50, unlock_automation: 9, result: "building_eff", factor: 3, owned: false },
 	{ name: 'Godlike Singularities', cost: 1000000000000000, unlock_amount: 50, unlock_automation: 10, result: "building_eff", factor: 3, owned: false },
-];
+	
+	{ name: 'Colorful Dreams I', cost: 5, unlock_amount: 0, unlock_automation: 0, result: "newcolor", factor: 120, owned: false },
+	{ name: 'Colorful Dreams II', cost: 5, unlock_amount: 0, unlock_automation: 0, result: "newcolor", factor: 240, owned: false },
+	
+	{ name: 'Colorful Dreams III', cost: 5, unlock_amount: 1, unlock_automation: 1, result: "newcolor", factor: 30, owned: false },
+	{ name: 'Colorful Dreams IV', cost: 5, unlock_amount: 1, unlock_automation: 1, result: "newcolor", factor: 180, owned: false },
+	{ name: 'Colorful Dreams V', cost: 5, unlock_amount: 1, unlock_automation: 1, result: "newcolor", factor: 270, owned: false },
+	
+	{ name: 'Colorful Dreams VI', cost: 5, unlock_amount: 1, unlock_automation: 2, result: "newcolor", factor: 60, owned: false },
+	{ name: 'Colorful Dreams VII', cost: 5, unlock_amount: 1, unlock_automation: 2, result: "newcolor", factor: 300, owned: false },
+	{ name: 'Colorful Dreams VIII', cost: 5, unlock_amount: 1, unlock_automation: 2, result: "newcolor", factor: 210, owned: false },
+	
+	{ name: 'Colorful Dreams IX', cost: 5, unlock_amount: 1, unlock_automation: 3, result: "newcolor", factor: 90, owned: false },
+	{ name: 'Colorful Dreams X', cost: 5, unlock_amount: 1, unlock_automation: 3, result: "newcolor", factor: 330, owned: false },
+	{ name: 'Colorful Dreams XI', cost: 5, unlock_amount: 1, unlock_automation: 3, result: "newcolor", factor: 150, owned: false },
+	
+	{ name: 'Colorful Dreams XII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 15, owned: false },
+	{ name: 'Colorful Dreams XIII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 75, owned: false },
+	{ name: 'Colorful Dreams XIV', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 285, owned: false },
+	
+	{ name: 'Colorful Dreams XV', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 105, owned: false },
+	{ name: 'Colorful Dreams XVI', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 345, owned: false },
+	{ name: 'Colorful Dreams XVII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 255, owned: false },
+	
+	{ name: 'Colorful Dreams XVIII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 25, owned: false },
+	{ name: 'Colorful Dreams XIX', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 95, owned: false },
+	{ name: 'Colorful Dreams XX', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 205, owned: false },
+	
+	{ name: 'Colorful Dreams XXI', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 355, owned: false },
+	{ name: 'Colorful Dreams XXII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 125, owned: false },
+	{ name: 'Colorful Dreams XXIII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 235, owned: false },
+	
+	{ name: 'Colorful Dreams XXIV', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 55, owned: false },
+	{ name: 'Colorful Dreams XXV', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 175, owned: false },
+	{ name: 'Colorful Dreams XXVI', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 295, owned: false }
+	];
 
 // upgrade stats
 let clickEfficiency = 1;
@@ -73,7 +113,7 @@ function addScore(increment = 1, humanMade = false)
 	fallingParticle.src = "assets/42logo.png";
 
 	if (humanMade)
-		fallingParticle.style.filter = `invert(1) sepia(1) saturate(5) hue-rotate(${Math.random() * 360}deg) brightness(1)`;
+		fallingParticle.style.filter = `invert(1) sepia(1) saturate(5) hue-rotate(${colors[Math.floor(Math.random() * colors.length)]}deg) brightness(1)`;
 	else
 		fallingParticle.style.filter = `brightness(0)`;
 
@@ -230,6 +270,7 @@ function autoScore()
 
 function initializeUpgrades()
 {
+	colors = localStorage.getItem("colors") ? localStorage.getItem("colors").split(",") : colors;
 	upgrades.forEach((upgrade, index) => {
 		if (localStorage.getItem(`upgrade${index}owned`))
 			upgrade.owned = localStorage.getItem(`upgrade${index}owned`) === "true";
@@ -277,6 +318,10 @@ function buyUpgrade(index)
 				automations[upgrade.unlock_automation].efficiency *= upgrade.factor;
 				localStorage.setItem(`automation${upgrade.unlock_automation}efficiency`, automations[upgrade.unlock_automation].efficiency);
 				writeAutomationData();
+				break;
+			case "newcolor":
+				colors.push(upgrade.factor);
+				localStorage.setItem("colors", colors);
 				break;
 		}
 	}
