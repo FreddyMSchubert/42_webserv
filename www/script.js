@@ -6,13 +6,16 @@ let maxEverCPS = 0;
 let savedClicks = 0;
 let colors = [
 	0
-]
+];
+let particles = [
+	"42logo"
+];
 
 let progressGoal = 10;
 let progressLevel = 0;
 let progress = 0;
 
-const progressGoalIncrease = 3;
+const progressGoalIncrease = 2;
 let progressCelebration = 0;
 
 let automations = [
@@ -67,28 +70,35 @@ let upgrades = [
 	{ name: 'Colorful Dreams III', cost: 1, unlock_amount: 2, unlock_automation: -1, result: "newcolor", factor: 30, owned: false },
 	{ name: 'Colorful Dreams IV', cost: 1, unlock_amount: 3, unlock_automation: -1, result: "newcolor", factor: 180, owned: false },
 	{ name: 'Colorful Dreams V', cost: 1, unlock_amount: 4, unlock_automation: -1, result: "newcolor", factor: 270, owned: false },
-	{ name: 'Colorful Dreams VI', cost: 1, unlock_amount: 5, unlock_automation: -1, result: "newcolor", factor: 60, owned: false },
-	{ name: 'Colorful Dreams VII', cost: 1, unlock_amount: 6, unlock_automation: -1, result: "newcolor", factor: 300, owned: false },
-	{ name: 'Colorful Dreams VIII', cost: 1, unlock_amount: 7, unlock_automation: -1, result: "newcolor", factor: 210, owned: false },
-	{ name: 'Colorful Dreams IX', cost: 1, unlock_amount: 8, unlock_automation: -1, result: "newcolor", factor: 90, owned: false },
-	{ name: 'Colorful Dreams X', cost: 1, unlock_amount: 9, unlock_automation: -1, result: "newcolor", factor: 330, owned: false },
-	{ name: 'Colorful Dreams XI', cost: 1, unlock_amount: 10, unlock_automation: -1, result: "newcolor", factor: 150, owned: false },
-	{ name: 'Colorful Dreams XII', cost: 1, unlock_amount: 11, unlock_automation: -1, result: "newcolor", factor: 15, owned: false },
-	{ name: 'Colorful Dreams XIII', cost: 1, unlock_amount: 12, unlock_automation: -1, result: "newcolor", factor: 75, owned: false },
-	{ name: 'Colorful Dreams XIV', cost: 1, unlock_amount: 13, unlock_automation: -1, result: "newcolor", factor: 285, owned: false },
-	{ name: 'Colorful Dreams XV', cost: 1, unlock_amount: 14, unlock_automation: -1, result: "newcolor", factor: 105, owned: false },
-	{ name: 'Colorful Dreams XVI', cost: 1, unlock_amount: 15, unlock_automation: -1, result: "newcolor", factor: 345, owned: false },
-	{ name: 'Colorful Dreams XVII', cost: 1, unlock_amount: 16, unlock_automation: -1, result: "newcolor", factor: 255, owned: false },
-	{ name: 'Colorful Dreams XVIII', cost: 1, unlock_amount: 17, unlock_automation: -1, result: "newcolor", factor: 25, owned: false },
-	{ name: 'Colorful Dreams XIX', cost: 1, unlock_amount: 18, unlock_automation: -1, result: "newcolor", factor: 95, owned: false },
-	{ name: 'Colorful Dreams XX', cost: 1, unlock_amount: 19, unlock_automation: -1, result: "newcolor", factor: 205, owned: false },
-	{ name: 'Colorful Dreams XXI', cost: 1, unlock_amount: 20, unlock_automation: -1, result: "newcolor", factor: 355, owned: false },
-	{ name: 'Colorful Dreams XXII', cost: 1, unlock_amount: 21, unlock_automation: -1, result: "newcolor", factor: 125, owned: false },
-	{ name: 'Colorful Dreams XXIII', cost: 1, unlock_amount: 22, unlock_automation: -1, result: "newcolor", factor: 235, owned: false },
-	{ name: 'Colorful Dreams XXIV', cost: 1, unlock_amount: 23, unlock_automation: -1, result: "newcolor", factor: 55, owned: false },
-	{ name: 'Colorful Dreams XXV', cost: 1, unlock_amount: 24, unlock_automation: -1, result: "newcolor", factor: 175, owned: false },
-	{ name: 'Colorful Dreams XXVI', cost: 1, unlock_amount: 25, unlock_automation: -1, result: "newcolor", factor: 295, owned: false }
-	];
+	{ name: 'Plentiful Dreams I', cost: 1, unlock_amount: 5, unlock_automation: -1, result: "newparticle", factor: "supermushroom", owned: false },
+	{ name: 'Colorful Dreams VI', cost: 1, unlock_amount: 6, unlock_automation: -1, result: "newcolor", factor: 60, owned: false },
+	{ name: 'Colorful Dreams VII', cost: 1, unlock_amount: 7, unlock_automation: -1, result: "newcolor", factor: 300, owned: false },
+	{ name: 'Colorful Dreams VIII', cost: 1, unlock_amount: 8, unlock_automation: -1, result: "newcolor", factor: 210, owned: false },
+	{ name: 'Colorful Dreams IX', cost: 1, unlock_amount: 9, unlock_automation: -1, result: "newcolor", factor: 90, owned: false },
+	{ name: 'Plentiful Dreams II', cost: 1, unlock_amount: 10, unlock_automation: -1, result: "newparticle", factor: "twitter", owned: false },
+	{ name: 'Colorful Dreams X', cost: 1, unlock_amount: 11, unlock_automation: -1, result: "newcolor", factor: 330, owned: false },
+	{ name: 'Colorful Dreams XI', cost: 1, unlock_amount: 12, unlock_automation: -1, result: "newcolor", factor: 150, owned: false },
+	{ name: 'Colorful Dreams XII', cost: 1, unlock_amount: 13, unlock_automation: -1, result: "newcolor", factor: 15, owned: false },
+	{ name: 'Colorful Dreams XIII', cost: 1, unlock_amount: 14, unlock_automation: -1, result: "newcolor", factor: 75, owned: false },
+	{ name: 'Plentiful Dreams III', cost: 1, unlock_amount: 15, unlock_automation: -1, result: "newparticle", factor: "youtube", owned: false },
+	{ name: 'Colorful Dreams XIV', cost: 1, unlock_amount: 16, unlock_automation: -1, result: "newcolor", factor: 285, owned: false },
+	{ name: 'Colorful Dreams XV', cost: 1, unlock_amount: 17, unlock_automation: -1, result: "newcolor", factor: 105, owned: false },
+	{ name: 'Colorful Dreams XVI', cost: 1, unlock_amount: 18, unlock_automation: -1, result: "newcolor", factor: 345, owned: false },
+	{ name: 'Colorful Dreams XVII', cost: 1, unlock_amount: 19, unlock_automation: -1, result: "newcolor", factor: 255, owned: false },
+	{ name: 'Plentiful Dreams IV', cost: 1, unlock_amount: 20, unlock_automation: -1, result: "newparticle", factor: "windows", owned: false },
+	{ name: 'Colorful Dreams XVIII', cost: 1, unlock_amount: 21, unlock_automation: -1, result: "newcolor", factor: 25, owned: false },
+	{ name: 'Colorful Dreams XIX', cost: 1, unlock_amount: 22, unlock_automation: -1, result: "newcolor", factor: 95, owned: false },
+	{ name: 'Colorful Dreams XX', cost: 1, unlock_amount: 23, unlock_automation: -1, result: "newcolor", factor: 205, owned: false },
+	{ name: 'Colorful Dreams XXI', cost: 1, unlock_amount: 24, unlock_automation: -1, result: "newcolor", factor: 355, owned: false },
+	{ name: 'Plentiful Dreams V', cost: 1, unlock_amount: 25, unlock_automation: -1, result: "newparticle", factor: "apple", owned: false },
+	{ name: 'Colorful Dreams XXII', cost: 1, unlock_amount: 26, unlock_automation: -1, result: "newcolor", factor: 125, owned: false },
+	{ name: 'Colorful Dreams XXIII', cost: 1, unlock_amount: 27, unlock_automation: -1, result: "newcolor", factor: 235, owned: false },
+	{ name: 'Colorful Dreams XXIV', cost: 1, unlock_amount: 28, unlock_automation: -1, result: "newcolor", factor: 55, owned: false },
+	{ name: 'Colorful Dreams XXV', cost: 1, unlock_amount: 29, unlock_automation: -1, result: "newcolor", factor: 175, owned: false },
+	{ name: 'Plentiful Dreams VI', cost: 1, unlock_amount: 30, unlock_automation: -1, result: "newparticle", factor: "mcdonalds", owned: false },
+	{ name: 'Colorful Dreams XXVI', cost: 1, unlock_amount: 31, unlock_automation: -1, result: "newcolor", factor: 295, owned: false },
+	{ name: 'Plentiful Dreams VII', cost: 1, unlock_amount: 35, unlock_automation: -1, result: "newparticle", factor: "nike", owned: false },
+];
 
 // upgrade stats
 let clickEfficiency = 1;
@@ -152,7 +162,10 @@ function spawnParticle(humanMade, increment, isCelebration = false)
 {
 	const fallingParticle = document.createElement("img");
 	fallingParticle.classList.add("falling-particle");
-	fallingParticle.src = "assets/42logo.png";
+	let particleImgId = Math.floor(Math.random() * particles.length);
+	if (!humanMade)
+		particleImgId = 0;
+	fallingParticle.src = `assets/particles/${particles[particleImgId]}.png`;
 
 	if (humanMade)
 		fallingParticle.style.filter = `invert(1) sepia(1) saturate(5) hue-rotate(${colors[Math.floor(Math.random() * colors.length)]}deg) brightness(1)`;
@@ -314,6 +327,7 @@ function autoScore()
 function initializeUpgrades()
 {
 	colors = localStorage.getItem("colors") ? localStorage.getItem("colors").split(",") : colors;
+	particles = localStorage.getItem("particles") ? localStorage.getItem("particles").split(",") : particles;
 	upgrades.forEach((upgrade, index) => {
 		if (localStorage.getItem(`upgrade${index}owned`))
 			upgrade.owned = localStorage.getItem(`upgrade${index}owned`) === "true";
@@ -369,6 +383,10 @@ function buyUpgrade(index)
 			case "newcolor":
 				colors.push(upgrade.factor);
 				localStorage.setItem("colors", colors);
+				break;
+			case "newparticle":
+				particles.push(upgrade.factor);
+				localStorage.setItem("particles", particles);
 				break;
 		}
 	}
