@@ -15,7 +15,7 @@ let progressGoal = 10;
 let progressLevel = 0;
 let progress = 0;
 
-const progressGoalIncrease = 2;
+const progressGoalIncrease = 3;
 let progressCelebration = 0;
 
 let automations = [
@@ -350,7 +350,7 @@ function writeUpgradeData()
 		const item = document.createElement("li");
 		item.className = "upgrade-item";
 		item.innerHTML = `
-			${upgrade.name} - Cost: ${Number(Number(upgrade.cost).toFixed(2)).toLocaleString()}, Owned: ${upgrade.owned}
+			${upgrade.name} - Cost: ${Number(Number(upgrade.cost).toFixed(2)).toLocaleString()}
 		`;
 		item.addEventListener("click", () => buyUpgrade(index));
 		list.appendChild(item);

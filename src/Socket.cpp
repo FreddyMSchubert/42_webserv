@@ -6,6 +6,7 @@
 #include <string>
 #include <sys/types.h>
 #include "../include/Logger.hpp"
+#include "../include/Utils.hpp"
 
 Socket::Socket() : _socket_pid(-1), _port(0), _address("127.0.0.1")
 {
@@ -68,7 +69,7 @@ void Socket::Run()
 			int client_fd = *it;
 			if (FD_ISSET(client_fd, &read_fds))
 			{
-				char buffer[1024];
+				char buffer[4096];
 				ssize_t received = recv(client_fd, buffer, sizeof(buffer), 0);
 				if (received <= 0)
 				{
@@ -84,13 +85,15 @@ void Socket::Run()
 					// request.Run();
 					try
 					{
-						std::string resonse_Str = "HTTP/1.1 200 OK\r\n"
-							"Content-Type: text/html\r\n"
-							"Content-Length: 20\r\n"
-							"\r\n"
-							"<h1>Hello 42</h1>";
+						Request req(std::string(buffer, received));
+						if (LOG_INCOMING_PACKETS)
+							req.logData();
+						std::string path = req.getPath();
+						if (path == std::string("/"))
+							path = "/index.html";
+						std::string response_Str = getFileAsString(std::string("./www") + path);
 						// Response res (resonse_Str);
-						sendData(resonse_Str, client_fd);
+						sendData(response_Str, client_fd);
 						closeSocket(client_fd);
 						Logger::Log(LogLevel::INFO, "Data sent!");
 					}
@@ -108,15 +111,13 @@ void Socket::Run()
 
 void Socket::sendData(Response &response, int client_fd)
 {
-	ssize_t sent = send(client_fd, response.getRawPacket().c_str(), response.getRawPacket().length(), 0);
-	if (sent < 0)
-		throw std::runtime_error("Failed to send data");
-	else
-		Logger::Log(LogLevel::INFO, "Data sent!");
+	sendData(response.getRawPacket(), client_fd);
 }
 
 void Socket::sendData(const std::string &data, int socket_fd)
 {
+	if (LOG_OUTGOING_PACKETS)
+		Logger::Log(LogLevel::INFO, "Sending data: " + data);
 	ssize_t sent = send(socket_fd, data.c_str(), data.length(), 0);
 	if (sent < 0)
 		throw std::runtime_error("Failed to send data");
