@@ -13,7 +13,7 @@ Packet::Packet(const std::string &rawPacket) : _rawData(rawPacket)
 
 	while (std::getline(iss, line))
 	{
-		if (line == "\r")
+		if (line.find(":") == std::string::npos)
 			break;
 		headers += line + "\n";
 	}
@@ -63,12 +63,15 @@ void Packet::ParseHeaders(std::string &headers)
 		if (!line.empty() && line.back() == '\r') // windows artifacts
 			line.pop_back();
 
-		std::string::size_type separator = headers.find(':');
-		if (separator == std::string::npos)
-			throw std::runtime_error("Invalid headers line");
+		if (line.empty())
+			continue;
 
-		std::string key(headers.substr(0, separator));
-		std::string value(headers.substr(separator + 1));
+		std::string::size_type separator = line.find(':');
+		if (separator == std::string::npos)
+			throw std::runtime_error("Invalid packet header");
+
+		std::string key(line.substr(0, separator));
+		std::string value(line.substr(separator + 1));
 
 		// trim whitespace
 		key.erase(0, key.find_first_not_of(" \t"));
@@ -87,7 +90,58 @@ void Packet::Run()
 
 void Packet::ParseBody(std::string &body)
 {
-	_body = body;
+	// log char and ascii int for each char in body input
+	for (size_t i = 0; i < body.size(); i++)
+	{
+		std::cout << "\"" << body[i] << "\" " << (int)body[i] << std::endl;
+	}
+
+	// Chunked Transfer Encoding
+	if (_headers.find("Transfer-Encoding") != _headers.end() && _headers["Transfer-Encoding"] == "chunked")
+	{
+		size_t pos = 0;
+		_body.clear();
+
+		while (true)
+		{
+			size_t crlfPos = body.find("\r\n", pos);
+			if (crlfPos == std::string::npos)
+				throw std::runtime_error("Invalid chunked encoding: Missing CRLF after chunk size");
+
+			std::string chunkSizeStr = body.substr(pos, crlfPos - pos);
+			size_t chunkSize = std::stoul(chunkSizeStr, nullptr, 16);
+			pos = crlfPos + 2;
+
+			if (chunkSize == 0)
+				break;
+
+			if (body.size() < pos + chunkSize)
+				throw std::runtime_error("Invalid chunked encoding: Incomplete chunk data");
+
+			std::string chunkData = body.substr(pos, chunkSize);
+			_body += chunkData;
+			pos += chunkSize;
+
+			if (body.substr(pos, 2) != "\r\n")
+				throw std::runtime_error("Invalid chunked encoding: Missing CRLF after chunk data");
+
+			pos += 2;
+		}
+	}
+	// Content-Length header
+	else if (_headers.find("Content-Length") != _headers.end())
+	{
+		size_t contentLength = std::stoi(_headers["Content-Length"]);
+		if (body.size() < contentLength)
+			throw std::runtime_error("Invalid body size");
+		_body = body.substr(0, contentLength);
+	}
+	// No specified body encoding
+	else
+	{
+		_body = body;
+		// throw std::runtime_error("Unsupported transfer encoding");
+	}
 }
 
 Method Packet::getMethod() { return _method; }
@@ -111,7 +165,9 @@ void Packet::logData()
 	std::cout << "Headers: " << std::endl;
 	for (auto &header : _headers)
 		std::cout << header.first << ": " << header.second << std::endl;
-	std::cout << "Body: " << _body << std::endl;
+	if (!_body.empty())
+		std::cout << "Body: " << _body << std::endl;
+	std::cout << "---" << std::endl;
 }
 
 Packet::Packet(const Packet &src)

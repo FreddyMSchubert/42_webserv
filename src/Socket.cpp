@@ -79,7 +79,7 @@ void Socket::Run()
 				else
 				{
 					
-					Request request(std::string(buffer, received)); // XXX: i think in my version parsing is not fully working yet
+					// Request request(std::string(buffer, received)); // XXX: i think in my version parsing is not fully working yet
 					Logger::Log(LogLevel::INFO, "Received data!");
 					// request.Run();
 					try
@@ -89,7 +89,7 @@ void Socket::Run()
 							"Content-Length: 20\r\n"
 							"\r\n"
 							"<h1>Hello 42</h1>";
-						Response res (resonse_Str);
+						// Response res (resonse_Str);
 						sendData(resonse_Str, client_fd);
 						closeSocket(client_fd);
 						Logger::Log(LogLevel::INFO, "Data sent!");
