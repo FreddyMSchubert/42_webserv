@@ -75,29 +75,7 @@ html
 	position: absolute;
 	opacity: 1;
 	pointer-events: none;
-	animation: fall 1s linear forwards;
-}
-
-@keyframes fall
-{
-	0%
-	{
-		transform: scale(1);
-		opacity: 0;
-	}
-	5%
-	{
-		opacity: 1;
-	}
-	50%
-	{
-		opacity: 1;
-	}
-	100%
-	{
-		transform: translateY(100vh) scale(0.5);
-		opacity: 0;
-	}
+	animation: fall0 1s linear forwards;
 }
 
 /* AUTOMATIONS */
@@ -149,4 +127,94 @@ html
 	padding: 10px;
 	border-bottom: 1px solid white;
 	cursor: pointer;
+}
+
+/* FALL ANIMATIONS */
+
+@keyframes fall0
+{
+	0%
+	{
+		transform: scale(1) rotate(0deg);
+		opacity: 0;
+	}
+	5%
+	{
+		opacity: 1;
+	}
+	50%
+	{
+		opacity: 1;
+	}
+	100%
+	{
+		transform: translateY(100vh) scale(0.5) rotate(50deg);
+		opacity: 0;
+	}
+}
+
+@keyframes fall1
+{
+	0%
+	{
+		transform: scale(1) rotate(0deg);
+		opacity: 0;
+	}
+	5%
+	{
+		opacity: 1;
+	}
+	50%
+	{
+		opacity: 1;
+	}
+	100%
+	{
+		transform: translateY(100vh) scale(0.5) rotate(-50deg);
+		opacity: 0;
+	}
+}
+
+@keyframes fall2
+{
+	0%
+	{
+		transform: scale(1) rotate(0deg);
+		opacity: 0;
+	}
+	5%
+	{
+		opacity: 1;
+	}
+	50%
+	{
+		opacity: 1;
+	}
+	100%
+	{
+		transform: translateY(100vh) scale(0.5) rotate(-100deg);
+		opacity: 0;
+	}
+}
+
+@keyframes fall3
+{
+	0%
+	{
+		transform: scale(1) rotate(0deg);
+		opacity: 0;
+	}
+	5%
+	{
+		opacity: 1;
+	}
+	50%
+	{
+		opacity: 1;
+	}
+	100%
+	{
+		transform: translateY(100vh) scale(0.5) rotate(100deg);
+		opacity: 0;
+	}
 }
