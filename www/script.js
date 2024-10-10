@@ -118,7 +118,7 @@ function addScore(increment = 1, humanMade = false)
 		progressLevel++;
 		progressGoal *= progressGoalIncrease;
 		progress = 0;
-		progressCelebration = 300;
+		progressCelebration = 300 + progressLevel * 10;
 		progressBar.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
 		writeUpgradeData();
 
@@ -172,13 +172,17 @@ function spawnParticle(humanMade, increment, isCelebration = false)
 	fallingParticle.style.width = `${particleScalePx}px`;
 	fallingParticle.style.height = `${particleScalePx}px`;
 	fallingParticle.style.left = `${Math.random() * maxLeftPx}px`;
-	fallingParticle.style.top = '-50px';
+	fallingParticle.style.top = `-$(particleScalePx)px`;
+
+	let animationType = Math.floor(Math.random() * 4);
+	let animationDuration = (Math.floor(Math.random() * 3)) + 1;
+	fallingParticle.style.animation = `fall${animationType} ${animationDuration}s linear`;
 
 	document.getElementsByClassName("falling-particles")[0].appendChild(fallingParticle);
 
 	setTimeout(() => {
 		fallingParticle.remove();
-	}, 3000);
+	}, animationDuration * 1000);
 }
 
 function getSizeMultiplier()
