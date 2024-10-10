@@ -7,6 +7,14 @@ let savedClicks = 0;
 let colors = [
 	0
 ]
+
+let progressGoal = 10;
+let progressLevel = 0;
+let progress = 0;
+
+const progressGoalIncrease = 3;
+let progressCelebration = 0;
+
 let automations = [
 	{ name: 'Byte Digger', cost: 15, cps: 0.1, count: 0, efficiency: 1 },
 	{ name: 'Incompetent Junior', cost: 100, cps: 1, count: 0, efficiency: 1 },
@@ -54,40 +62,32 @@ let upgrades = [
 	{ name: 'Godlike DevOpss', cost: 1000000000000000, unlock_amount: 50, unlock_automation: 9, result: "building_eff", factor: 3, owned: false },
 	{ name: 'Godlike Singularities', cost: 1000000000000000, unlock_amount: 50, unlock_automation: 10, result: "building_eff", factor: 3, owned: false },
 	
-	{ name: 'Colorful Dreams I', cost: 5, unlock_amount: 0, unlock_automation: 0, result: "newcolor", factor: 120, owned: false },
-	{ name: 'Colorful Dreams II', cost: 5, unlock_amount: 0, unlock_automation: 0, result: "newcolor", factor: 240, owned: false },
-	
-	{ name: 'Colorful Dreams III', cost: 5, unlock_amount: 1, unlock_automation: 1, result: "newcolor", factor: 30, owned: false },
-	{ name: 'Colorful Dreams IV', cost: 5, unlock_amount: 1, unlock_automation: 1, result: "newcolor", factor: 180, owned: false },
-	{ name: 'Colorful Dreams V', cost: 5, unlock_amount: 1, unlock_automation: 1, result: "newcolor", factor: 270, owned: false },
-	
-	{ name: 'Colorful Dreams VI', cost: 5, unlock_amount: 1, unlock_automation: 2, result: "newcolor", factor: 60, owned: false },
-	{ name: 'Colorful Dreams VII', cost: 5, unlock_amount: 1, unlock_automation: 2, result: "newcolor", factor: 300, owned: false },
-	{ name: 'Colorful Dreams VIII', cost: 5, unlock_amount: 1, unlock_automation: 2, result: "newcolor", factor: 210, owned: false },
-	
-	{ name: 'Colorful Dreams IX', cost: 5, unlock_amount: 1, unlock_automation: 3, result: "newcolor", factor: 90, owned: false },
-	{ name: 'Colorful Dreams X', cost: 5, unlock_amount: 1, unlock_automation: 3, result: "newcolor", factor: 330, owned: false },
-	{ name: 'Colorful Dreams XI', cost: 5, unlock_amount: 1, unlock_automation: 3, result: "newcolor", factor: 150, owned: false },
-	
-	{ name: 'Colorful Dreams XII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 15, owned: false },
-	{ name: 'Colorful Dreams XIII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 75, owned: false },
-	{ name: 'Colorful Dreams XIV', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 285, owned: false },
-	
-	{ name: 'Colorful Dreams XV', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 105, owned: false },
-	{ name: 'Colorful Dreams XVI', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 345, owned: false },
-	{ name: 'Colorful Dreams XVII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 255, owned: false },
-	
-	{ name: 'Colorful Dreams XVIII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 25, owned: false },
-	{ name: 'Colorful Dreams XIX', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 95, owned: false },
-	{ name: 'Colorful Dreams XX', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 205, owned: false },
-	
-	{ name: 'Colorful Dreams XXI', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 355, owned: false },
-	{ name: 'Colorful Dreams XXII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 125, owned: false },
-	{ name: 'Colorful Dreams XXIII', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 235, owned: false },
-	
-	{ name: 'Colorful Dreams XXIV', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 55, owned: false },
-	{ name: 'Colorful Dreams XXV', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 175, owned: false },
-	{ name: 'Colorful Dreams XXVI', cost: 5, unlock_amount: 1, unlock_automation: 4, result: "newcolor", factor: 295, owned: false }
+	{ name: 'Colorful Dreams I', cost: 1, unlock_amount: 0, unlock_automation: -1, result: "newcolor", factor: 120, owned: false },
+	{ name: 'Colorful Dreams II', cost: 1, unlock_amount: 1, unlock_automation: -1, result: "newcolor", factor: 240, owned: false },
+	{ name: 'Colorful Dreams III', cost: 1, unlock_amount: 2, unlock_automation: -1, result: "newcolor", factor: 30, owned: false },
+	{ name: 'Colorful Dreams IV', cost: 1, unlock_amount: 3, unlock_automation: -1, result: "newcolor", factor: 180, owned: false },
+	{ name: 'Colorful Dreams V', cost: 1, unlock_amount: 4, unlock_automation: -1, result: "newcolor", factor: 270, owned: false },
+	{ name: 'Colorful Dreams VI', cost: 1, unlock_amount: 5, unlock_automation: -1, result: "newcolor", factor: 60, owned: false },
+	{ name: 'Colorful Dreams VII', cost: 1, unlock_amount: 6, unlock_automation: -1, result: "newcolor", factor: 300, owned: false },
+	{ name: 'Colorful Dreams VIII', cost: 1, unlock_amount: 7, unlock_automation: -1, result: "newcolor", factor: 210, owned: false },
+	{ name: 'Colorful Dreams IX', cost: 1, unlock_amount: 8, unlock_automation: -1, result: "newcolor", factor: 90, owned: false },
+	{ name: 'Colorful Dreams X', cost: 1, unlock_amount: 9, unlock_automation: -1, result: "newcolor", factor: 330, owned: false },
+	{ name: 'Colorful Dreams XI', cost: 1, unlock_amount: 10, unlock_automation: -1, result: "newcolor", factor: 150, owned: false },
+	{ name: 'Colorful Dreams XII', cost: 1, unlock_amount: 11, unlock_automation: -1, result: "newcolor", factor: 15, owned: false },
+	{ name: 'Colorful Dreams XIII', cost: 1, unlock_amount: 12, unlock_automation: -1, result: "newcolor", factor: 75, owned: false },
+	{ name: 'Colorful Dreams XIV', cost: 1, unlock_amount: 13, unlock_automation: -1, result: "newcolor", factor: 285, owned: false },
+	{ name: 'Colorful Dreams XV', cost: 1, unlock_amount: 14, unlock_automation: -1, result: "newcolor", factor: 105, owned: false },
+	{ name: 'Colorful Dreams XVI', cost: 1, unlock_amount: 15, unlock_automation: -1, result: "newcolor", factor: 345, owned: false },
+	{ name: 'Colorful Dreams XVII', cost: 1, unlock_amount: 16, unlock_automation: -1, result: "newcolor", factor: 255, owned: false },
+	{ name: 'Colorful Dreams XVIII', cost: 1, unlock_amount: 17, unlock_automation: -1, result: "newcolor", factor: 25, owned: false },
+	{ name: 'Colorful Dreams XIX', cost: 1, unlock_amount: 18, unlock_automation: -1, result: "newcolor", factor: 95, owned: false },
+	{ name: 'Colorful Dreams XX', cost: 1, unlock_amount: 19, unlock_automation: -1, result: "newcolor", factor: 205, owned: false },
+	{ name: 'Colorful Dreams XXI', cost: 1, unlock_amount: 20, unlock_automation: -1, result: "newcolor", factor: 355, owned: false },
+	{ name: 'Colorful Dreams XXII', cost: 1, unlock_amount: 21, unlock_automation: -1, result: "newcolor", factor: 125, owned: false },
+	{ name: 'Colorful Dreams XXIII', cost: 1, unlock_amount: 22, unlock_automation: -1, result: "newcolor", factor: 235, owned: false },
+	{ name: 'Colorful Dreams XXIV', cost: 1, unlock_amount: 23, unlock_automation: -1, result: "newcolor", factor: 55, owned: false },
+	{ name: 'Colorful Dreams XXV', cost: 1, unlock_amount: 24, unlock_automation: -1, result: "newcolor", factor: 175, owned: false },
+	{ name: 'Colorful Dreams XXVI', cost: 1, unlock_amount: 25, unlock_automation: -1, result: "newcolor", factor: 295, owned: false }
 	];
 
 // upgrade stats
@@ -108,36 +108,24 @@ function addScore(increment = 1, humanMade = false)
 		return;
 
 	// particles
-	const fallingParticle = document.createElement("img");
-	fallingParticle.classList.add("falling-particle");
-	fallingParticle.src = "assets/42logo.png";
+	spawnParticle(humanMade, increment);
 
-	if (humanMade)
-		fallingParticle.style.filter = `invert(1) sepia(1) saturate(5) hue-rotate(${colors[Math.floor(Math.random() * colors.length)]}deg) brightness(1)`;
-	else
-		fallingParticle.style.filter = `brightness(0)`;
-
-	const sizeMultiplier = getSizeMultiplier();
-	let particleScalePx = 50;
-	if (humanMade)
-		particleScalePx *= sizeMultiplier;
-	else if (increment > 1)
-		particleScalePx *= increment * 2 / increment;
-	const maxLeftPx = window.innerWidth - particleScalePx;
-
-	fallingParticle.style.width = `${particleScalePx}px`;
-	fallingParticle.style.height = `${particleScalePx}px`;
-	fallingParticle.style.left = `${Math.random() * maxLeftPx}px`;
-	fallingParticle.style.top = '-50px';
-
-	document.getElementsByClassName("falling-particles")[0].appendChild(fallingParticle);
-	for (let i = 0; i < increment - 1 && humanMade; i++)
+	// progress
+	const progressBar = document.getElementsByClassName("progressbar-progress")[0];
+	progress += 1;
+	if (progress >= progressGoal)
 	{
-		document.getElementsByClassName("falling-particles")[0].appendChild(fallingParticle.cloneNode());
+		progressLevel++;
+		progressGoal *= progressGoalIncrease;
+		progress = 0;
+		progressCelebration = 300;
+		progressBar.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+		writeUpgradeData();
+
+		localStorage.setItem("progressLevel", progressLevel);
+		localStorage.setItem("progressGoal", progressGoal);
 	}
-	setTimeout(() => {
-		fallingParticle.remove();
-	}, 3000);
+	progressBar.style.width = `${progress / progressGoal * 100}%`;
 
 	// cps
 	if (humanMade)
@@ -160,6 +148,38 @@ document.addEventListener("keyup", event => {
 	if (event.key === "Enter" || event.key === " ")
 		addScore(1, true);
 });
+function spawnParticle(humanMade, increment, isCelebration = false)
+{
+	const fallingParticle = document.createElement("img");
+	fallingParticle.classList.add("falling-particle");
+	fallingParticle.src = "assets/42logo.png";
+
+	if (humanMade)
+		fallingParticle.style.filter = `invert(1) sepia(1) saturate(5) hue-rotate(${colors[Math.floor(Math.random() * colors.length)]}deg) brightness(1)`;
+	else
+		fallingParticle.style.filter = `brightness(0)`;
+
+	const sizeMultiplier = getSizeMultiplier();
+	let particleScalePx = 50;
+	if (humanMade)
+		particleScalePx *= sizeMultiplier;
+	else if (increment > 1)
+		particleScalePx *= increment * 2 / increment;
+	if (isCelebration)
+		particleScalePx = 250;
+	const maxLeftPx = window.innerWidth - particleScalePx;
+
+	fallingParticle.style.width = `${particleScalePx}px`;
+	fallingParticle.style.height = `${particleScalePx}px`;
+	fallingParticle.style.left = `${Math.random() * maxLeftPx}px`;
+	fallingParticle.style.top = '-50px';
+
+	document.getElementsByClassName("falling-particles")[0].appendChild(fallingParticle);
+
+	setTimeout(() => {
+		fallingParticle.remove();
+	}, 3000);
+}
 
 function getSizeMultiplier()
 {
@@ -195,11 +215,30 @@ document.addEventListener('DOMContentLoaded', function() {
 	else
 		localStorage.setItem("maxCPS", 0);
 	document.getElementsByClassName("score")[0].innerHTML = score;
+	progressGoal = localStorage.getItem("progressGoal") || progressGoal;
+	progressLevel = localStorage.getItem("progressLevel") || 0;
 	setInterval(updateCPS, 100);
 	setInterval(autoScore, 10);
 	initializeAutomation();
 	initializeUpgrades();
+	setInterval(updateProgress, 10);
 });
+
+function updateProgress()
+{
+	if (progressCelebration > 0)
+	{
+		progressCelebration--;
+		spawnParticle(true, 100000000, true);
+		if (progressCelebration == 0)
+		{
+			alert("Welcome to level " + progressLevel + "! Click OK to DOUBLE YOUR SCORE!");
+			score *= 2;
+			localStorage.setItem("score", score);
+			document.getElementsByClassName("score")[0].innerHTML = Math.round(score).toLocaleString();
+		}
+	}
+}
 
 /* ---- AUTOMATIONS ----- */
 
@@ -284,7 +323,11 @@ function writeUpgradeData()
 	const list = document.getElementById("upgrade-list");
 	list.innerHTML = "";
 	upgrades.forEach((upgrade, index) => {
-		if (automations[upgrade.unlock_automation].count < upgrade.unlock_amount || upgrade.owned)
+		if (upgrade.owned)
+			return;
+		if (upgrade.unlock_automation == -1 && upgrade.unlock_amount > progressLevel)
+			return;
+		if (upgrade.unlock_automation != -1 && automations[upgrade.unlock_automation].count < upgrade.unlock_amount)
 			return;
 		const item = document.createElement("li");
 		item.className = "upgrade-item";
@@ -337,4 +380,9 @@ function reset()
 	maxCPS = 0;
 	maxEverCPS = 0;
 	savedClicks = 0;
+	progressGoal = 10;
+	progressLevel = 0;
+	progress = 0;
+	localStorage.clear();
+	location.reload();
 }
