@@ -1,7 +1,7 @@
 #include "../../include/Packets/Packet.hpp"
 #include <sstream>
 
-Packet::Packet(const std::string &rawPacket)
+Packet::Packet(const std::string &rawPacket) : _rawData(rawPacket)
 {
 	std::istringstream iss(rawPacket);
 	std::string line;
@@ -31,6 +31,7 @@ Packet::Packet(Method method, const std::string path, const std::string version,
 	_version = version;
 	_headers = headers;
 	_body = body;
+	// TODO: create _rawData from this?
 }
 
 void Packet::ParseRequestLine(std::string &line)
@@ -79,6 +80,11 @@ void Packet::ParseHeaders(std::string &headers)
 	}
 }
 
+void Packet::Run()
+{
+	std::cout << "Packet::Run()" << std::endl;
+}
+
 void Packet::ParseBody(std::string &body)
 {
 	_body = body;
@@ -108,7 +114,7 @@ void Packet::logData()
 	std::cout << "Body: " << _body << std::endl;
 }
 
-Packet::Packet(Packet const &src)
+Packet::Packet(const Packet &src)
 {
 	_headers.clear();
 
@@ -117,9 +123,10 @@ Packet::Packet(Packet const &src)
 	_version = src._version;
 	_headers = src._headers;
 	_body = src._body;
+	_rawData = src._rawData;
 }
 
-Packet &Packet::operator=(Packet const &src)
+Packet &Packet::operator=(const Packet &src)
 {
 	if (&src == this) return *this;
 
@@ -130,6 +137,13 @@ Packet &Packet::operator=(Packet const &src)
 	_version = src._version;
 	_headers = src._headers;
 	_body = src._body;
+	_rawData = src._rawData;
 	return *this;
 }
 
+std::string Packet::getRawPacket()
+{
+	return _rawData;
+}
+
+Packet::~Packet() {}
