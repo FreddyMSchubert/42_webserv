@@ -26,8 +26,8 @@ std::vector<t_server_config> init_testing_configs()
 	configs[0].default_location.root = "./www/clicker";
 	configs[1].default_location.root = "./www/platformer";
 
-	configs[0].default_location.index = "index.html";
-	configs[1].default_location.index = "index.html";
+	configs[0].default_location.index = "/index.html";
+	configs[1].default_location.index = "/index.html";
 
 	configs[0].default_location.directory_listing = false;
 	configs[1].default_location.directory_listing = true;

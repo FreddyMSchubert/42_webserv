@@ -41,7 +41,12 @@ void Socket::Run()
 			max_fd = client_fd;
 	}
 
-	int activity = select(max_fd + 1, &read_fds, nullptr, nullptr, nullptr);
+	// select timeout
+	struct timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = 100000; // 100ms
+
+	int activity = select(max_fd + 1, &read_fds, nullptr, nullptr, &tv); // TODO: select is blocking, use poll instead
 	if (activity < 0 && errno != EINTR)
 		throw std::runtime_error("select error");
 
@@ -91,20 +96,19 @@ void Socket::Run()
 					break;
 				}
 			}
-	
-			// Request request(std::string(buffer, received)); // XXX: i think in my version parsing is not fully working yet
+
 			Logger::Log(LogLevel::INFO, "Received data!");
-			// request.Run();
 
 			// TODO: check for length of received data and if its 0 do something
 
+			std::cout << "Data: " << data << std::endl;
+
 			try
 			{
-				// Request req(std::string(buffer, received));
 				Request req(data);
 				if (LOG_INCOMING_PACKETS)
 					req.logData();
-				std::string response_Str = req.ProcessRequest();
+				std::string response_Str = req.ProcessRequest(config);
 				if (response_Str.empty())
 				{
 					redirectToError(client_fd, 404);
@@ -118,7 +122,7 @@ void Socket::Run()
 			}
 			catch (std::exception &e)
 			{
-				Logger::Log(LogLevel::ERROR, std::string("Failed to send data: ") + e.what());
+				Logger::Log(LogLevel::ERROR, std::string("Failed to receive or send data: ") + e.what());
 			}
 			it = _clients.erase(it);
 		}
@@ -227,7 +231,7 @@ void Socket::redirectToError(int client_fd, int error_code)
 	if (websiteId > 0)
 		website += ".jpg";
 
-	Logger::Log(LogLevel::INFO, "Redirecting client to " + website + std::to_string(error_code));
+	Logger::Log(LogLevel::INFO, "Redirecting client to " + website + " with code " + std::to_string(error_code) + ".");
 	sendRedirect(client_fd, website);
 }
 

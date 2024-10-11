@@ -91,12 +91,6 @@ void Packet::Run()
 
 void Packet::ParseBody(std::string &body)
 {
-	// log char and ascii int for each char in body input
-	for (size_t i = 0; i < body.size(); i++)
-	{
-		std::cout << "\"" << body[i] << "\" " << (int)body[i] << std::endl;
-	}
-
 	// Chunked Transfer Encoding
 	if (_headers.find("Transfer-Encoding") != _headers.end() && _headers["Transfer-Encoding"] == "chunked")
 	{
@@ -140,8 +134,8 @@ void Packet::ParseBody(std::string &body)
 	// No specified body encoding
 	else
 	{
-		_body = body;
 		// throw std::runtime_error("Unsupported transfer encoding");
+		_body = body;
 	}
 }
 
