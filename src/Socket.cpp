@@ -8,16 +8,13 @@
 #include "../include/Logger.hpp"
 #include "../include/Utils.hpp"
 
-Socket::Socket() : _socket_pid(-1) {}
-
-void Socket::Init(t_server_config config)
+Socket::Socket(t_server_config config) : _socket_pid(-1), config(config)
 {
 	_socket_pid = socket(AF_INET, SOCK_STREAM, 0);
 	if (_socket_pid == -1)
 		throw std::runtime_error("Socket creation failed");
 
 	Logger::Log(LogLevel::INFO, "Running Socket...");
-	this->config = config;
 	try
 	{
 		_connect();

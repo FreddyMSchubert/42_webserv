@@ -30,7 +30,7 @@ class Socket
 		void _close();
 		void _setNonBlocking(int fd);
 	public:
-		Socket();
+		Socket(t_server_config config);
 		Socket(int port, std::string address);
 		Socket(Socket&& other) noexcept = default;
 		Socket& operator=(Socket&& other) noexcept = default;
@@ -39,7 +39,6 @@ class Socket
 		~Socket();
 		void sendData(Response &response, int socket_fd);
 		void sendData(const std::string &data, int socket_fd);
-		void Init(t_server_config config);
 		void Run();
 		void closeSocket(int socket);
 		void redirectToError(int client_fd, int error_code);

@@ -53,23 +53,20 @@ int main(int argc, char *argv[])
 	std::vector<t_server_config> configs = init_testing_configs(); // TODO: config parsing
 	std::vector<Server> servers;
 
-	// Init
-
-	for (auto &config : configs)
+	try
 	{
-		try
-		{
+		for (auto &config : configs)
 			servers.emplace_back(config);
-			servers.back().Init();
-		}
-		catch(const std::exception& e)
-		{
-			Logger::Log(LogLevel::ERROR, e.what());
-		}
-	}
 
-	for (auto &server : servers)
-		server.Run();
+		while (true)
+			for (auto &server : servers)
+				server.Run();
+	}
+	catch(const std::exception& e)
+	{
+		Logger::Log(LogLevel::ERROR, e.what());
+		return 1;
+	}
 
 	return 0;
 }

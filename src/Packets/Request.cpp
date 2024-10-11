@@ -1,6 +1,5 @@
 #include "../../include/Packets/Request.hpp"
 
-// TODO: this function should not return void but the response to the request that we can send it back directly
 std::string Request::ProcessRequest()
 {
 	std::cout << "Request::Run()" << std::endl;

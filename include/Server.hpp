@@ -23,6 +23,5 @@ class Server
 		Server& operator=(Server&& other) noexcept = default;
 		~Server() = default;
 		
-		void Init();
 		void Run();
 };
