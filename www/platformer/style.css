@@ -41,7 +41,7 @@ body
 	width: 30px;
 	height: 50px;
 	background: url('assets/obstacle.png') no-repeat;
-	animation: obstacle-move 2s linear infinite;
+	animation: obstacle-move 2s linear;
 }
 
 @keyframes obstacle-move

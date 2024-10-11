@@ -14,6 +14,20 @@ document.addEventListener('keydown', function(event) {
 	}
 });
 
+obstacle.addEventListener('animationend', () => {
+	obstacle.style.animation = 'none';
+	obstacle.offsetHeight;
+	obstacle.style.animation = `obstacle-move ${Math.floor(Math.random() * 3) + 1}s linear`;
+	score++;
+	scoreElement.textContent = score;
+	if (score > highScore)
+	{
+		highScore = score;
+		highScoreElement.textContent = highScore;
+		localStorage.setItem('highScore', highScore);
+	}
+});
+
 function jump() {
 	isJumping = true;
 	let jumpHeight = 0;
@@ -44,18 +58,7 @@ let checkCollision = setInterval(() => {
 		playerRect.bottom > obstacleRect.top &&
 		playerRect.top < obstacleRect.bottom
 	) {
-		alert('Game Over!');
-		obstacle.style.animation = 'none';
-		let finalScore = score;
-		if (finalScore > highScore) {
-			localStorage.setItem('highScore', finalScore);
-			highScoreElement.textContent = finalScore;
-		}
 		score = 0;
-		scoreElement.textContent = score;
-		obstacle.style.animation = 'obstacle-move 2s linear infinite';
-	} else {
-		score++;
 		scoreElement.textContent = score;
 	}
 }, 100);
