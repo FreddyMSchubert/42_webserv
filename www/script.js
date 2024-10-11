@@ -121,7 +121,6 @@ function addScore(increment = 1, humanMade = false)
 	spawnParticle(humanMade, increment);
 
 	// progress
-	const progressBar = document.getElementsByClassName("progressbar-progress")[0];
 	progress += 1;
 	if (progress >= progressGoal)
 	{
@@ -129,13 +128,12 @@ function addScore(increment = 1, humanMade = false)
 		progressGoal *= progressGoalIncrease;
 		progress = 0;
 		progressCelebration = 300 + progressLevel * 10;
-		progressBar.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
 		writeUpgradeData();
 
 		localStorage.setItem("progressLevel", progressLevel);
 		localStorage.setItem("progressGoal", progressGoal);
 	}
-	progressBar.style.width = `${progress / progressGoal * 100}%`;
+	document.getElementsByClassName("progressbar-progress")[0].style.width = `${progress / progressGoal * 100}%`;
 
 	// cps
 	if (humanMade)
@@ -238,6 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	setInterval(autoScore, 10);
 	initializeAutomation();
 	initializeUpgrades();
+	cycleBtnColor();
 	setInterval(updateProgress, 10);
 });
 
@@ -383,6 +382,7 @@ function buyUpgrade(index)
 			case "newcolor":
 				colors.push(upgrade.factor);
 				localStorage.setItem("colors", colors);
+				cycleBtnColor();
 				break;
 			case "newparticle":
 				particles.push(upgrade.factor);
@@ -390,6 +390,21 @@ function buyUpgrade(index)
 				break;
 		}
 	}
+}
+
+function cycleBtnColor()
+{
+	const btn = document.getElementsByClassName("btn")[0];
+	let baseCol = colors[colors.length - 1];
+	let secondCol = baseCol - 50;
+
+	baseCol = baseCol % 360;
+	secondCol = secondCol % 360;
+
+	btn.style.backgroundImage = `linear-gradient(to right, hsl(${baseCol}deg, 100%, 50%) 0%, hsl(${secondCol}deg, 100%, 50%) 100%)`;
+	btn.style.boxShadow = `0 0 30px 5px hsl(${baseCol}deg, 100%, 50%)`;
+
+	document.getElementsByClassName("progressbar-progress")[0].style.backgroundColor = `hsl(${baseCol}, 100%, 50%)`;
 }
 
 function reset()
