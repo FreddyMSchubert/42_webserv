@@ -8,7 +8,8 @@ void Server::Init()
 
 	Logger::Log(LogLevel::INFO, "Initializing new Webserv at \"" + config.host + ":" + std::to_string(config.port) + "\".");
 
-	_sockets.push_back(Socket());
+	
+	_sockets.emplace_back();
 
 	for (auto &socket : _sockets)
 		socket.Init(config);

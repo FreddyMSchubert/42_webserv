@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 	{
 		try
 		{
-			servers.push_back(config);
+			servers.emplace_back(config);
 			servers.back().Init();
 		}
 		catch(const std::exception& e)
@@ -68,20 +68,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// Run loop
-
-	while (true)
-	{
-		try
-		{
-			for (auto &server : servers)
-				server.Run();
-		}
-		catch(const std::exception& e)
-		{
-			Logger::Log(LogLevel::ERROR, e.what());
-		}
-	}
+	for (auto &server : servers)
+		server.Run();
 
 	return 0;
 }
