@@ -17,14 +17,14 @@ typedef struct s_location
 typedef struct s_error_page
 {
 	int error_code;
-	std::string path;
+	t_location path;
 } t_error_page;
 
 typedef struct s_server_config
 {
 	std::vector<std::string> server_names;
 	std::string host;
-	int port;
+	int port; // below 1024 require root
 
 	t_location default_location;
 	std::vector<t_location> locations;

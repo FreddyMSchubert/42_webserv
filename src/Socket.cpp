@@ -8,23 +8,16 @@
 #include "../include/Logger.hpp"
 #include "../include/Utils.hpp"
 
-Socket::Socket() : _socket_pid(-1), _port(0), _address("127.0.0.1")
+Socket::Socket() : _socket_pid(-1) {}
+
+void Socket::Init(t_server_config config)
 {
 	_socket_pid = socket(AF_INET, SOCK_STREAM, 0);
 	if (_socket_pid == -1)
 		throw std::runtime_error("Socket creation failed");
-}
 
-Socket::Socket(int port, std::string ip) : _port(port), _address(ip)
-{
-	_socket_pid = socket(AF_INET, SOCK_STREAM, 0);
-	if (_socket_pid == -1)
-		throw std::runtime_error("Socket creation failed");
-}
-
-void Socket::Run()
-{
 	Logger::Log(LogLevel::INFO, "Running Socket...");
+	this->config = config;
 	try
 	{
 		_connect();
@@ -34,101 +27,105 @@ void Socket::Run()
 		throw std::runtime_error(e.what());
 	}
 	_setNonBlocking(_socket_pid);
+}
 
+void Socket::Run()
+{
 	fd_set read_fds;
 	int max_fd = _socket_pid;
 
-	while (42)
+	FD_ZERO(&read_fds);
+	FD_SET(_socket_pid, &read_fds);
+
+	for (int client_fd : _clients)
 	{
-		FD_ZERO(&read_fds);
-		FD_SET(_socket_pid, &read_fds);
+		FD_SET(client_fd, &read_fds);
+		if (client_fd > max_fd)
+			max_fd = client_fd;
+	}
 
-		for (int client_fd : _clients)
+	int activity = select(max_fd + 1, &read_fds, nullptr, nullptr, nullptr);
+	if (activity < 0 && errno != EINTR)
+		throw std::runtime_error("select error");
+
+	if (FD_ISSET(_socket_pid, &read_fds))
+	{
+		int new_socket = accept(_socket_pid, nullptr, nullptr);
+		if (new_socket < 0)
+			throw std::runtime_error("Failed to accept connection");
+		_setNonBlocking(new_socket);
+		_clients.push_back(new_socket);
+		Logger::Log(LogLevel::INFO, "New connection accepted!");
+	}
+
+	for (auto it = _clients.begin(); it != _clients.end(); )
+	{
+		int client_fd = *it;
+		if (FD_ISSET(client_fd, &read_fds))
 		{
-			FD_SET(client_fd, &read_fds);
-			if (client_fd > max_fd)
-				max_fd = client_fd;
-		}
-
-		int activity = select(max_fd + 1, &read_fds, nullptr, nullptr, nullptr);
-		if (activity < 0 && errno != EINTR)
-			throw std::runtime_error("select error");
-
-		if (FD_ISSET(_socket_pid, &read_fds))
-		{
-			int new_socket = accept(_socket_pid, nullptr, nullptr);
-			if (new_socket < 0)
-				throw std::runtime_error("Failed to accept connection");
-			_setNonBlocking(new_socket);
-			_clients.push_back(new_socket);
-			Logger::Log(LogLevel::INFO, "New connection accepted!");
-		}
-
-		for (auto it = _clients.begin(); it != _clients.end(); )
-		{
-			int client_fd = *it;
-			if (FD_ISSET(client_fd, &read_fds))
+			std::string data;
+			char buffer[4096];
+			ssize_t received;
+			
+			// TODO: check if this part successfully reads the whole request even if its chunked
+			while (true)
 			{
-				std::string data;
-				char buffer[4096];
-				ssize_t received;
-				
-				// TODO: check if this part successfully reads the whole request even if its chunked
-				while (true)
+				received = recv(client_fd, buffer, sizeof(buffer), 0);
+				if (received > 0)
 				{
-					received = recv(client_fd, buffer, sizeof(buffer), 0);
-					if (received < 0)
-					{
-						closeSocket(client_fd);
-						break;
-					}
-
 					data.append(buffer, received);
-
 					if (data.find("\r\n\r\n") != std::string::npos)
 						break;
 				}
-		
-				// Request request(std::string(buffer, received)); // XXX: i think in my version parsing is not fully working yet
-				Logger::Log(LogLevel::INFO, "Received data!");
-				// request.Run();
-
-				// TODO: check for length of received data and if its 0 do something
-
-				try
+				else if (received == 0)
 				{
-					// Request req(std::string(buffer, received));
-					Request req(data);
-					if (LOG_INCOMING_PACKETS)
-						req.logData();
-					std::string path = req.getPath();
-					if (path == std::string("/"))
-						path = "/index.html";
-					std::string response_str;
-					try
-					{
-						response_str = getFileAsString(std::string("./www") + path);
-					}
-					catch (std::exception &e)
-					{
-						Logger::Log(LogLevel::ERROR, std::string("Failed to get file: ") + e.what());
-						redirectToError(client_fd, 404);
-						it = _clients.erase(it);
-						continue;
-					}
-					// Response res (resonse_Str);
-					sendData(response_str, client_fd);
+					Logger::Log(LogLevel::INFO, "Connection closed by client");
 					closeSocket(client_fd);
-					Logger::Log(LogLevel::INFO, "Data sent!");
+					it = _clients.erase(it);
+					break;
 				}
-				catch (std::exception &e)
+				else if (received < 0)
 				{
-					Logger::Log(LogLevel::ERROR, std::string("Failed to send data: ") + e.what());
+					if (errno == EWOULDBLOCK || errno == EAGAIN)
+						break; // No more data to read at this time
+					Logger::Log(LogLevel::ERROR, "Failed to receive data: " + std::string(strerror(errno)));
+					closeSocket(client_fd);
+					it = _clients.erase(it);
+					break;
 				}
-				it = _clients.erase(it);
 			}
-			else ++it;
+	
+			// Request request(std::string(buffer, received)); // XXX: i think in my version parsing is not fully working yet
+			Logger::Log(LogLevel::INFO, "Received data!");
+			// request.Run();
+
+			// TODO: check for length of received data and if its 0 do something
+
+			try
+			{
+				// Request req(std::string(buffer, received));
+				Request req(data);
+				if (LOG_INCOMING_PACKETS)
+					req.logData();
+				std::string response_Str = req.ProcessRequest();
+				if (response_Str.empty())
+				{
+					redirectToError(client_fd, 404);
+					it = _clients.erase(it);
+					continue;
+				}
+				Response res (response_Str);
+				sendData(res, client_fd);
+				closeSocket(client_fd);
+				Logger::Log(LogLevel::INFO, "Data sent!");
+			}
+			catch (std::exception &e)
+			{
+				Logger::Log(LogLevel::ERROR, std::string("Failed to send data: ") + e.what());
+			}
+			it = _clients.erase(it);
 		}
+		else ++it;
 	}
 }
 
@@ -152,8 +149,13 @@ void Socket::_connect()
 {
 	std::memset(&_socket, 0, sizeof(_socket));
 	_socket.sin_family = AF_INET;
-	_socket.sin_port = htons(_port);
-	_socket.sin_addr.s_addr = INADDR_ANY; // TODO: change this to given ip (inet_addr(_address.c_str()))
+	_socket.sin_port = htons(config.port);
+
+	if (inet_pton(AF_INET, config.host.c_str(), &_socket.sin_addr) <= 0)
+	{
+		close(_socket_pid);
+		throw std::runtime_error("Invalid IP address: " + config.host);
+	}
 	
 	if (bind(_socket_pid, (struct sockaddr *)&_socket, sizeof(_socket)) == -1)
 	{

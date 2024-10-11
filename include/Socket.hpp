@@ -17,15 +17,15 @@
 #include "Packets/Response.hpp"
 #include "Packets/Request.hpp"
 #include "Settings.hpp"
+#include "../include/Config.hpp"
 
 class Socket
 {
 	private:
 		int _socket_pid;
-		int _port;
-		std::string _address;
 		struct sockaddr_in _socket;
 		std::vector<int> _clients;
+		t_server_config config;
 		void _connect();
 		void _close();
 		void _setNonBlocking(int fd);
@@ -34,11 +34,12 @@ class Socket
 		Socket(int port, std::string address);
 		Socket(Socket&& other) noexcept = default;
 		Socket& operator=(Socket&& other) noexcept = default;
-		Socket(const Socket &src);
-		Socket &operator=(const Socket &src);
+		Socket(const Socket &src) = delete;
+		Socket &operator=(const Socket &src) = delete;
 		~Socket();
 		void sendData(Response &response, int socket_fd);
 		void sendData(const std::string &data, int socket_fd);
+		void Init(t_server_config config);
 		void Run();
 		void closeSocket(int socket);
 		void redirectToError(int client_fd, int error_code);

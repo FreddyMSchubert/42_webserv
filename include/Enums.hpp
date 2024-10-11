@@ -1,6 +1,9 @@
 #pragma once
 
-enum class Method {
+#include <iostream>
+
+enum class Method
+{
 	UNKNOWN,
 	GET,
 	POST,
