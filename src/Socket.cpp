@@ -63,70 +63,72 @@ void Socket::Run()
 	for (auto it = _clients.begin(); it != _clients.end(); )
 	{
 		int client_fd = *it;
-		if (FD_ISSET(client_fd, &read_fds))
+		if (!FD_ISSET(client_fd, &read_fds))
 		{
-			std::string data;
-			char buffer[4096];
-			ssize_t received;
-			
-			// TODO: check if this part successfully reads the whole request even if its chunked
-			while (true)
-			{
-				received = recv(client_fd, buffer, sizeof(buffer), 0);
-				if (received > 0)
-				{
-					data.append(buffer, received);
-					if (data.find("\r\n\r\n") != std::string::npos)
-						break;
-				}
-				else if (received == 0)
-				{
-					Logger::Log(LogLevel::INFO, "Connection closed by client");
-					closeSocket(client_fd);
-					it = _clients.erase(it);
-					break;
-				}
-				else if (received < 0)
-				{
-					if (errno == EWOULDBLOCK || errno == EAGAIN)
-						break; // No more data to read at this time
-					Logger::Log(LogLevel::ERROR, "Failed to receive data: " + std::string(strerror(errno)));
-					closeSocket(client_fd);
-					it = _clients.erase(it);
-					break;
-				}
-			}
-
-			Logger::Log(LogLevel::INFO, "Received data!");
-
-			// TODO: check for length of received data and if its 0 do something
-
-			std::cout << "Data: " << data << std::endl;
-
-			try
-			{
-				Request req(data);
-				if (LOG_INCOMING_PACKETS)
-					req.logData();
-				std::string response_Str = req.ProcessRequest(config);
-				if (response_Str.empty())
-				{
-					redirectToError(client_fd, 404);
-					it = _clients.erase(it);
-					continue;
-				}
-				Response res (response_Str);
-				sendData(res, client_fd);
-				closeSocket(client_fd);
-				Logger::Log(LogLevel::INFO, "Data sent!");
-			}
-			catch (std::exception &e)
-			{
-				Logger::Log(LogLevel::ERROR, std::string("Failed to receive or send data: ") + e.what());
-			}
-			it = _clients.erase(it);
+			++it;
+			continue;
 		}
-		else ++it;
+
+		std::string data;
+		char buffer[4096];
+		ssize_t received;
+		
+		// TODO: check if this part successfully reads the whole request even if its chunked
+		while (true)
+		{
+			received = recv(client_fd, buffer, sizeof(buffer), 0);
+			if (received > 0)
+			{
+				data.append(buffer, received);
+				if (data.find("\r\n\r\n") != std::string::npos)
+					break;
+			}
+			else if (received == 0)
+			{
+				Logger::Log(LogLevel::INFO, "Connection closed by client");
+				closeSocket(client_fd);
+				it = _clients.erase(it);
+				break;
+			}
+			else if (received < 0)
+			{
+				if (errno == EWOULDBLOCK || errno == EAGAIN)
+					break; // No more data to read at this time
+				Logger::Log(LogLevel::ERROR, "Failed to receive data: " + std::string(strerror(errno)));
+				closeSocket(client_fd);
+				it = _clients.erase(it);
+				break;
+			}
+		}
+
+		Logger::Log(LogLevel::INFO, "Received data!");
+
+		// TODO: check for length of received data and if its 0 do something
+
+		std::cout << "Data: " << data << std::endl;
+
+		try
+		{
+			Request req(data);
+			if (LOG_INCOMING_PACKETS)
+				req.logData();
+			std::string response_Str = req.ProcessRequest(config);
+			if (response_Str.empty())
+			{
+				redirectToError(client_fd, 404);
+				it = _clients.erase(it);
+				continue;
+			}
+			Response res (response_Str);
+			sendData(res, client_fd);
+			closeSocket(client_fd);
+			Logger::Log(LogLevel::INFO, "Data sent!");
+		}
+		catch (std::exception &e)
+		{
+			Logger::Log(LogLevel::ERROR, std::string("Failed to receive or send data: ") + e.what());
+		}
+		it = _clients.erase(it);
 	}
 }
 
