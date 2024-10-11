@@ -1,0 +1,64 @@
+body
+{
+	margin: 0;
+	overflow: hidden;
+	background: url('assets/background.png') repeat-x;
+	animation: background-scroll 10s linear infinite;
+}
+
+@keyframes background-scroll
+{
+	from { background-position: 0 0; }
+	to { background-position: -800px 0; }
+}
+
+#game
+{
+	position: relative;
+	width: 800px;
+	height: 200px;
+	margin: auto;
+	overflow: hidden;
+	background: url('assets/ground.png') repeat-x bottom;
+	border: 1px solid #000;
+}
+
+#player
+{
+	position: absolute;
+	bottom: 20px;
+	left: 50px;
+	width: 50px;
+	height: 50px;
+	background: url('assets/player.png') no-repeat;
+}
+
+#obstacle
+{
+	position: absolute;
+	bottom: 20px;
+	right: -30px;
+	width: 30px;
+	height: 50px;
+	background: url('assets/obstacle.png') no-repeat;
+	animation: obstacle-move 2s linear infinite;
+}
+
+@keyframes obstacle-move
+{
+	from { right: -30px; }
+	to { right: 830px; }
+}
+
+#score-board
+{
+	text-align: center;
+	font-family: Arial, sans-serif;
+	margin-top: 10px;
+}
+
+#score-board p
+{
+	margin: 5px;
+	font-size: 18px;
+}

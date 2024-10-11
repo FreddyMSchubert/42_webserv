@@ -2,6 +2,13 @@
 #include "../include/Logger.hpp"
 #include <iostream>
 #include "../include/Tests.hpp"
+#include "../include/Config.hpp"
+#include <array>
+
+std::array<t_server_config>	init_default_configs()
+{
+	std::array
+}
 
 int main(int argc, char *argv[])
 {
