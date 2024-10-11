@@ -2,21 +2,26 @@
 
 #include "Enums.hpp"
 #include "Socket.hpp"
+#include "../include/Config.hpp"
+#include "../include/Logger.hpp"
 
 #include <iostream>
 #include <vector>
+#include <fstream>
 
 class Server
 {
 	private:
-		int _port;
-		bool _run;
-		std::string _config_file;
+		t_server_config config;
 		std::vector<Socket> _sockets;
 
 	public:
-		Server(const std::string &config_file, int port);
-		~Server();
+		Server(t_server_config config);
+		Server(Server const &src) = delete;
+		Server &operator=(Server const &src) = delete;
+		Server(Server&& other) noexcept = default;
+		Server& operator=(Server&& other) noexcept = default;
+		~Server() = default;
 		
 		void Run();
 };
