@@ -11,9 +11,9 @@
 class Request : public Packet
 {
 	private:
-		void handleGet(t_server_config config, Response &response);
-		void handlePost(t_server_config config, Response &response);
-		void handleDelete(t_server_config config, Response &response);
+		void handleGet(t_server_config &config, Response &response);
+		void handlePost(t_server_config &config, Response &response);
+		void handleDelete(t_server_config &config, Response &response);
 	public:
 		Request(const std::string &rawPacket) : Packet(rawPacket) {};
 		~Request() = default;

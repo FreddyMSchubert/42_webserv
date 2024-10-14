@@ -1,12 +1,14 @@
 #include "../../../include/Packets/Request.hpp"
 
-void Request::handleGet(t_server_config config, Response &response)
+void Request::handleGet(t_server_config &config, Response &response)
 {
 	std::string path = getPath();
 	if (path == std::string("/"))
 		response.setPath(config.default_location.index); // TODO: i think we should loop trough all the paths and pick the first one to exist
 	else
 		response.setPath(path);
+
+	path = response.getPath();
 
 	response.setVersion("HTTP/1.1");
 	response.setMethod(Method::GET);
@@ -26,9 +28,4 @@ void Request::handleGet(t_server_config config, Response &response)
 		response = Response(); // TODO: do the actual error handling here
 		response.setStatus(Status::NotFound);
 	}
-
-	std::cout << "\n\nGet req" << std::endl;
-	response.logData();
-	std::cout << "\n\n" << std::endl;
-
 }
