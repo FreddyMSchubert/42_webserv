@@ -19,12 +19,12 @@ Socket::Socket(t_server_config config) : _socket_pid(-1), config(config)
 	try
 	{
 		_connect();
+		_setNonBlocking(_socket_pid);
 	}
 	catch(const std::exception &e)
 	{
 		throw std::runtime_error(e.what());
 	}
-	_setNonBlocking(_socket_pid);
 }
 
 // TODO: handle protocols other then HTTP (probably not) that dont send \r\n\r\n in the end
@@ -76,7 +76,8 @@ void Socket::Run()
 	for (auto &client : _clients)
 	{
 
-		if (client.revents & (POLLHUP | POLLERR | POLLNVAL)) {
+		if (client.revents & (POLLHUP | POLLERR | POLLNVAL))
+		{
 			Logger::Log(LogLevel::INFO, "Client disconnected!");
 			closeSocket(client.fd);
 			continue;
@@ -89,7 +90,16 @@ void Socket::Run()
 				Logger::Log(LogLevel::ERROR, "Failed to accept new connection!");
 			else
 			{
-				_setNonBlocking(new_socket);
+				try
+				{
+					_setNonBlocking(new_socket);
+				}
+				catch(const std::exception &e)
+				{
+					Logger::Log(LogLevel::ERROR, e.what());
+					closeSocket(new_socket);
+					continue;
+				}
 				_clients.push_back({new_socket, POLLIN, 0});
 				Logger::Log(LogLevel::INFO, "New connection accepted!");
 			}
@@ -206,12 +216,10 @@ void Socket::closeSocket(int socket)
 void Socket::_setNonBlocking(int fd)
 {
 	int flags = fcntl(fd, F_GETFL, 0);
-	if (flags == -1) {
+	if (flags == -1)
 		throw std::runtime_error("Failed to get socket flags");
-	}
-	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
 		throw std::runtime_error("Failed to set non-blocking mode");
-	}
 }
 
 void Socket::redirectToError(int client_fd, int error_code)
