@@ -36,7 +36,6 @@ class Packet
 		void addHeader(const std::string key, const std::string value);
 		std::string getBody();
 		void setBody(const std::string body);
-		std::string getRawPacket();
 		bool isEmpty();
 		Method getMethod();
 		void setMethod(Method method);

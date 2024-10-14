@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 
+typedef struct s_location t_location;
+
 typedef struct s_location 
 {
 	std::vector<Method> allowed_methods;
@@ -12,6 +14,9 @@ typedef struct s_location
 	std::string index;
 	bool directory_listing;
 	size_t client_max_body_size;
+	bool autoindex;
+	// std::vector<t_location> locations; // TODO: add this back later
+	bool empty() { return root.empty(); }
 } t_location;
 
 typedef struct s_error_page

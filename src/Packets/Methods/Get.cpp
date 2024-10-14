@@ -1,4 +1,9 @@
 #include "../../../include/Packets/Request.hpp"
+#include <exception>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <vector>
 
 static void handle_file_req(t_server_config &config, Response &response, Request &req)
 {
@@ -12,6 +17,8 @@ static void handle_file_req(t_server_config &config, Response &response, Request
 
 	response.setVersion("HTTP/1.1");
 
+	std::cout << "Path: " << path << std::endl;
+
 	try
 	{
 		std::string file = getFileAsString(std::string(config.default_location.root) + path);
@@ -23,35 +30,123 @@ static void handle_file_req(t_server_config &config, Response &response, Request
 	catch (std::exception &e)
 	{
 		Logger::Log(LogLevel::ERROR, std::string("Failed to get file: ") + e.what());
-		response = Response(); // TODO: do the actual error handling here
+		response.setBody("Failed to get file");
 		response.setStatus(Status::NotFound);
 	}
 }
 
+static std::string get_dir_list_html(std::vector<std::filesystem::directory_entry> &entries)
+{
+	std::string body = "<html><head><title>Directory Listing</title></head><body><h1>Directory listing</h1><ul>";
+
+	for (std::filesystem::directory_entry entry : entries)
+	{
+		if (entry.is_directory())
+			body += "<li><a href=\"" + entry.path().filename().string() + "/\">" + entry.path().filename().string() + "/</a></li>";
+		else
+			body += "<li><a href=\"" + entry.path().filename().string() + "\">" + entry.path().filename().string() + "</a></li>";
+	}
+
+	body += R"(</ul><style>
+	body {
+		font-family: sans-serif;
+		background-image: url(https://www.dieter-schwarz-stiftung.de/assets/images/b/Banner_42-Heilbronn_Innovationsfabrik_%28c%29-Bernhard-Lattner-995b796b.jpg);
+	};
+	ul {
+		background-color: lightgray;
+	}
+	</style>)";
+	
+	body += "</body></html>";
+
+	return body;
+}
+
 static void handle_dir_req(t_server_config &config, Response &response, Request &req)
 {
-	(void)config;
-	(void)response;
-	(void)req;
+	t_location location = config.default_location;
+
+	if (req.getPath().size() > 1) // sub route
+		location = get_location(config, req.getPath());
+
+	if (location.empty()) // invalid
+	{
+		Logger::Log(LogLevel::WARNING, "GET: Invalid location");
+		response.setStatus(Status::NotFound);
+		return;
+	}
+
+	if (req.getPath().find(location.root) == 0)
+	{
+		if (!isAllowedMethodAt(location, Method::GET))
+		{
+			Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
+			response.setStatus(Status::MethodNotAllowed);
+			return;
+		}
+		if (location.directory_listing == false) // no directory listing allowed
+		{
+			Logger::Log(LogLevel::WARNING, "GET: Directory listing not allowed");
+			response.setStatus(Status::Forbidden);
+			return;
+		}
+	}
+
+	std::cout << "Root: " << location.root << std::endl;
+
+	std::vector<std::filesystem::directory_entry> entries = getDirectoryEntries(std::string(location.root));
+
+	std::string body = get_dir_list_html(entries);
+
+	response.addHeader("Content-Length", std::to_string(body.size()));
+	response.setStatus(Status::OK);
+	response.setVersion("HTTP/1.1");
+	response.addHeader("Content-Type", "text/html; charset=UTF-8");
+
+	response.setBody(body);
 
 	// if path is /, we should return the index file if there is one and if not, we should return a list of files in the directory
 	// and if the directory does not exist we return 404
 }
 
-static bool is_file_req(Request &req)
+static bool is_file_req(Request &req, t_server_config &config)
 {
-	std::string path = req.getPath();
-	if (path[path.length() - 1] == '/') // XXX: dont know what they mean with /$ at the end of the path.
+	if (req.getPath().back() != '/')
+		return true;
+
+	t_location loc = get_location(config, req.getPath());
+	if (loc.empty())
 		return false;
+
+	std::string path = std::string(loc.root);
+	std::cout << "Path: " << path  << " and " << req.getPath() << std::endl;
+
+	if (req.getPath().size() > 1)
+		path += req.getPath();
+
+	if (path.back() == '/')
+	{
+		std::cout << "Checking if directory exists: " << path + loc.index << std::endl;
+		return std::filesystem::exists(path + "index.html") && std::filesystem::is_regular_file(path + "index.html");
+	}
+
 	return true;
 }
 
 void Request::handleGet(t_server_config &config, Response &response)
 {
 
-	if (is_file_req(*this))
+	std::cout << "Handling GET request" << std::endl;
+
+	if (is_file_req(*this, config))
+	{
+		std::cout << "Handling file request" << std::endl;
 		handle_file_req(config, response, *this);
+	}
 	else
-		handle_file_req(config, response, *this);
+	{
+		std::cout << "Handling directory request" << std::endl;
+		handle_dir_req(config, response, *this);
+	}
 	
 }
