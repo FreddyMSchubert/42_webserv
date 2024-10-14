@@ -23,15 +23,17 @@ Packet::Packet(const std::string &rawPacket)
 		body += line + "\n";
 	ParseBody(body);
 	_is_empty = false;
+	_status = Status::OK; // TODO: add real status
 }
 
-Packet::Packet(Method method, const std::string path, const std::string version, const std::map<std::string, std::string> headers, const std::string body)
+Packet::Packet(Method method, const std::string path, const std::string version, const std::map<std::string, std::string> headers, const std::string body, Status status)
 {
 	_method = method;
 	_path = path;
 	_version = version;
 	_headers = headers;
 	_body = body;
+	_status = status;
 	_is_empty = false;
 }
 
@@ -231,3 +233,5 @@ std::string Packet::getPath() { return _path; }
 std::string Packet::getVersion() { return _version; }
 std::map<std::string, std::string> Packet::getHeaders() { return _headers; }
 std::string Packet::getBody() { return _body; }
+void Packet::setStatus(Status status) { _status = status; }
+Status Packet::getStatus() { return _status; }

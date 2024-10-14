@@ -18,12 +18,13 @@ class Packet
 		std::string _version;
 		std::map<std::string, std::string> _headers;
 		std::string _body;
+		Status _status;
 		bool _is_empty;
 	public:
 		Packet();
 		Packet(const Packet &src);
 		Packet &operator=(const Packet &src);
-		Packet(Method method, const std::string path, const std::string version, const std::map<std::string, std::string> headers, const std::string body);
+		Packet(Method method, const std::string path, const std::string version, const std::map<std::string, std::string> headers, const std::string body, Status status);
 		Packet(const std::string &rawPacket);
 		virtual ~Packet();
 		std::string getPath();
@@ -39,6 +40,8 @@ class Packet
 		bool isEmpty();
 		Method getMethod();
 		void setMethod(Method method);
+		void setStatus(Status status);
+		Status getStatus();
 		void logData();
 		virtual void Run();
 };
