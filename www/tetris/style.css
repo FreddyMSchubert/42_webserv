@@ -1,0 +1,43 @@
+/* style.css */
+
+html, body {
+	height: 100%;
+	margin: 0;
+	font-family: Arial, sans-serif;
+	background: linear-gradient(45deg, #333, #666);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+  }
+  
+  .game-container {
+	display: flex;
+	gap: 20px;
+  }
+  
+  canvas {
+	border: 2px solid white;
+	background-color: #000;
+  }
+  
+  .side-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 40px;
+  }
+  
+  .hold-section, .next-section {
+	color: white;
+  }
+  
+  .hold-section h3, .next-section h3 {
+	text-align: center;
+  }
+  
+  #next-pieces {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	align-items: center;
+  }
+  
