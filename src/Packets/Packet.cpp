@@ -196,20 +196,6 @@ Packet &Packet::operator=(const Packet &src)
 	return *this;
 }
 
-std::string Packet::getRawPacket()
-{
-	std::string rawData;
-
-	rawData +=  _version + std::to_string((int)_status) + "\r\n";
-	for (auto &header : _headers)
-		rawData += header.first + ": " + header.second + "\r\n";
-	
-	rawData += "\r\n" + _body;
-	rawData += "\r\n\r\n";
-
-	return rawData;
-}
-
 Packet::~Packet() {}
 
 Packet::Packet() : _is_empty(true) {}

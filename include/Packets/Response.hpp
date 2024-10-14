@@ -10,4 +10,5 @@ class Response : public Packet
 		Response(const std::string &rawPacket) : Packet(rawPacket) {};
 		~Response() = default;
 		void Run();
+		std::string getRawPacket();
 };

@@ -43,7 +43,10 @@ std::vector<t_server_config> init_testing_configs()
 	configs[1].default_location.client_max_body_size = 1000;
 	configs[2].default_location.client_max_body_size = 1000000;
 
-	configs[1].error_pages.push_back((t_error_page){404, (t_location){std::vector<Method>(), "./www/platformer/404", "404.html", false, 0}});
+	configs[1].error_pages.push_back((t_error_page){404, (t_location){std::vector<Method>(), "./www/platformer/404", "404.html", false, 0, false}});
+
+	configs[0].locations.push_back((t_location){std::vector<Method>(), "./www/clicker/assets", "", true, 0, false});
+	configs[0].locations.back().allowed_methods.push_back(Method::GET);
 
 	return configs;
 }
