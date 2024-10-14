@@ -1,7 +1,8 @@
 #include "../../include/Packets/Packet.hpp"
 #include <sstream>
+#include <string>
 
-Packet::Packet(const std::string &rawPacket) : _rawData(rawPacket)
+Packet::Packet(const std::string &rawPacket)
 {
 	std::istringstream iss(rawPacket);
 	std::string line;
@@ -22,16 +23,19 @@ Packet::Packet(const std::string &rawPacket) : _rawData(rawPacket)
 	while (std::getline(iss, line))
 		body += line + "\n";
 	ParseBody(body);
+	_is_empty = false;
+	_status = Status::OK; // TODO: add real status
 }
 
-Packet::Packet(Method method, const std::string path, const std::string version, const std::map<std::string, std::string> headers, const std::string body)
+Packet::Packet(Method method, const std::string path, const std::string version, const std::map<std::string, std::string> headers, const std::string body, Status status)
 {
 	_method = method;
 	_path = path;
 	_version = version;
 	_headers = headers;
 	_body = body;
-	// TODO: create _rawData from this?
+	_status = status;
+	_is_empty = false;
 }
 
 void Packet::ParseRequestLine(std::string &line)
@@ -148,12 +152,6 @@ std::string Packet::sanitizeUri(const std::string& uri)
 	return sanitized_uri;
 }
 
-Method Packet::getMethod() { return _method; }
-std::string Packet::getPath() { return _path; }
-std::string Packet::getVersion() { return _version; }
-std::map<std::string, std::string> Packet::getHeaders() { return _headers; }
-std::string Packet::getBody() { return _body; }
-
 void Packet::logData()
 {
 	std::cout << "Method: ";
@@ -182,7 +180,6 @@ Packet::Packet(const Packet &src)
 	_version = src._version;
 	_headers = src._headers;
 	_body = src._body;
-	_rawData = src._rawData;
 }
 
 Packet &Packet::operator=(const Packet &src)
@@ -196,13 +193,38 @@ Packet &Packet::operator=(const Packet &src)
 	_version = src._version;
 	_headers = src._headers;
 	_body = src._body;
-	_rawData = src._rawData;
 	return *this;
 }
 
 std::string Packet::getRawPacket()
 {
-	return _rawData;
+	std::string rawData;
+
+	rawData +=  _version + std::to_string((int)_status) + "\r\n";
+	for (auto &header : _headers)
+		rawData += header.first + ": " + header.second + "\r\n";
+	
+	rawData += "\r\n" + _body;
+	rawData += "\r\n\r\n";
+
+	return rawData;
 }
 
 Packet::~Packet() {}
+
+Packet::Packet() : _is_empty(true) {}
+
+void Packet::setPath(const std::string path) { _path = path; }
+void Packet::setVersion(const std::string version) { _version = version; }
+void Packet::setHeaders(const std::map<std::string, std::string> headers) { _headers = headers; }
+void Packet::addHeader(const std::string key, const std::string value) { _headers[key] = value; }
+void Packet::setBody(const std::string body) { _body = body; }
+bool Packet::isEmpty() { return _is_empty; }
+Method Packet::getMethod() { return _method; }
+void Packet::setMethod(Method method) { _method = method; }
+std::string Packet::getPath() { return _path; }
+std::string Packet::getVersion() { return _version; }
+std::map<std::string, std::string> Packet::getHeaders() { return _headers; }
+std::string Packet::getBody() { return _body; }
+void Packet::setStatus(Status status) { _status = status; }
+Status Packet::getStatus() { return _status; }

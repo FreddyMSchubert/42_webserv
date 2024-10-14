@@ -7,7 +7,7 @@ enum class Method
 	UNKNOWN,
 	GET,
 	POST,
-	DELETE
+	DELETE,
 };
 
 enum class Status {
