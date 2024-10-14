@@ -27,14 +27,15 @@ Socket::Socket(t_server_config config) : _socket_pid(-1), config(config)
 	_setNonBlocking(_socket_pid);
 }
 
-std::string Socket::_receiveData(int client_fd, std::vector<int>::iterator &it)
+// TODO: handle protocols other then HTTP (probably not) that dont send \r\n\r\n in the end
+std::string Socket::_receiveData(int client_fd)
 {
 	std::string data;
-		char buffer[4096];
-		ssize_t received;
-		
-	// TODO: check if this part successfully reads the whole request even if its chunked
-	while (true)
+	char buffer[4096];
+	ssize_t received;
+	int max_loops = 1000;
+
+	while (--max_loops)
 	{
 		received = recv(client_fd, buffer, sizeof(buffer), 0);
 		if (received > 0)
@@ -47,94 +48,84 @@ std::string Socket::_receiveData(int client_fd, std::vector<int>::iterator &it)
 		{
 			Logger::Log(LogLevel::INFO, "Connection closed by client");
 			closeSocket(client_fd);
-			it = _clients.erase(it);
 			break;
 		}
 		else if (received < 0)
 		{
 			if (errno == EWOULDBLOCK || errno == EAGAIN)
-				break; // No more data to read at this time
+				break;
 			Logger::Log(LogLevel::ERROR, "Failed to receive data: " + std::string(strerror(errno)));
 			closeSocket(client_fd);
-			it = _clients.erase(it);
 			break;
 		}
 	}
 
-	if (received <= 0)
-		throw std::runtime_error("Failed to receive data");
+	if (data.empty())
+		Logger::Log(LogLevel::WARNING, "Tried to receive data but received nothing");
 	return data;
 }
 
 void Socket::Run()
 {
-	fd_set read_fds;
-	int max_fd = _socket_pid;
+	_clients.push_back({_socket_pid, POLLIN, 0});
 
-	FD_ZERO(&read_fds);
-	FD_SET(_socket_pid, &read_fds);
-
-	for (int client_fd : _clients)
-	{
-		FD_SET(client_fd, &read_fds);
-		if (client_fd > max_fd)
-			max_fd = client_fd;
-	}
-
-	// select timeout
-	struct timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec = 100000; // 100ms
-
-	int activity = select(max_fd + 1, &read_fds, nullptr, nullptr, &tv); // TODO: select is blocking, use poll instead
-	// int activity = poll(nullptr, 0, 100); // TODO: select is blocking, use poll instead
+	int activity = poll(_clients.data(), _clients.size(), 100);
 	if (activity < 0 && errno != EINTR)
-		throw std::runtime_error("select error");
+		throw std::runtime_error("poll error");
 
-	if (FD_ISSET(_socket_pid, &read_fds))
+	for (auto &client : _clients)
 	{
-		int new_socket = accept(_socket_pid, nullptr, nullptr);
-		if (new_socket < 0)
-			throw std::runtime_error("Failed to accept connection");
-		_setNonBlocking(new_socket);
-		_clients.push_back(new_socket);
-		Logger::Log(LogLevel::INFO, "New connection accepted!");
-	}
 
-	for (auto it = _clients.begin(); it != _clients.end(); )
-	{
-		int client_fd = *it;
-		if (!FD_ISSET(client_fd, &read_fds))
-		{
-			++it;
+		if (client.revents & (POLLHUP | POLLERR | POLLNVAL)) {
+			Logger::Log(LogLevel::INFO, "Client disconnected!");
+			closeSocket(client.fd);
 			continue;
 		}
 
-		try
+		if (client.revents & POLLIN && client.fd == _socket_pid)
 		{
-			Request req(_receiveData(client_fd, it));
-			if (LOG_INCOMING_PACKETS)
-				req.logData();
-			Logger::Log(LogLevel::INFO, "Received data!");
-			std::string response_Str = req.ProcessRequest(config);
-			if (response_Str.empty())
+			int new_socket = accept(_socket_pid, nullptr, nullptr);
+			if (new_socket < 0)
+				Logger::Log(LogLevel::ERROR, "Failed to accept new connection!");
+			else
 			{
-				redirectToError(client_fd, 404);
-				it = _clients.erase(it);
+				_setNonBlocking(new_socket);
+				_clients.push_back({new_socket, POLLIN, 0});
+				Logger::Log(LogLevel::INFO, "New connection accepted!");
+			}
+			continue;
+		}
+
+		if (client.revents & POLLIN && client.fd != _socket_pid)
+		{
+			std::string data = _receiveData(client.fd);
+			if (data.empty())
+			{
+				Logger::Log(LogLevel::INFO, "Client sent empty data, closing connection!");
+				closeSocket(client.fd);
 				continue;
 			}
-			Response res(response_Str);
-			sendData(res, client_fd);
-			closeSocket(client_fd);
-			Logger::Log(LogLevel::INFO, "Data sent!");
+
+			Logger::Log(LogLevel::INFO, "Data received from client!");
+			Request req(data);
+			if (LOG_INCOMING_PACKETS)
+				req.logData();
+
+			std::string response_Str = req.ProcessRequest(config);
+			if (response_Str.empty())
+				redirectToError(client.fd, 404);
+			else
+			{
+				Response res(response_Str);
+				sendData(res, client.fd);
+			}
+
+			closeSocket(client.fd);
+			Logger::Log(LogLevel::INFO, "Response sent and connection closed!");
 		}
-		catch (std::exception &e)
-		{
-			Logger::Log(LogLevel::ERROR, std::string("Failed to receive or send data: ") + e.what());
-		}
-		it = _clients.erase(it);
 	}
 }
+
 
 void Socket::sendData(Response &response, int client_fd)
 {
@@ -185,15 +176,9 @@ void Socket::_connect()
 void Socket::_close()
 {
 	Logger::Log(LogLevel::INFO, "Closing socket...");
-	if (_socket_pid != -1)
-	{
-		close(_socket_pid);
-		_socket_pid = -1;
-	}
-	for (auto it = _clients.begin(); it != _clients.end(); ++it)
-	{
-		close(*it);
-	}
+	for (auto &client : _clients)
+		close(client.fd);
+	_socket_pid = -1;
 	_clients.clear();
 	Logger::Log(LogLevel::INFO, "Socket closed!");
 }
@@ -201,14 +186,21 @@ void Socket::_close()
 void Socket::closeSocket(int socket)
 {
 	Logger::Log(LogLevel::INFO, "Trying to close socket: " + std::to_string(socket));
-	auto it = std::find(_clients.begin(), _clients.end(), socket);
-	if (it != _clients.end())
+	int i = 0;
+
+	for (auto &client : _clients)
 	{
-		close(socket);
-		Logger::Log(LogLevel::INFO, "Socket closed: " + std::to_string(socket));
+		if (client.fd == socket)
+		{
+			close(client.fd);
+			_clients.erase(_clients.begin() + i);
+			Logger::Log(LogLevel::INFO, "Socket closed: " + std::to_string(socket));
+			return;
+		}
+		++i;
 	}
-	else
-		Logger::Log(LogLevel::WARNING, "Attempted to close non-existent socket: " + std::to_string(socket));
+
+	Logger::Log(LogLevel::WARNING, "Attempted to close non-existent socket: " + std::to_string(socket));
 }
 
 void Socket::_setNonBlocking(int fd)

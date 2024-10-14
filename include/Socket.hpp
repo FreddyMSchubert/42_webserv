@@ -17,6 +17,7 @@
 #include "Packets/Response.hpp"
 #include "Packets/Request.hpp"
 #include "Settings.hpp"
+#include <poll.h>
 #include "../include/Config.hpp"
 
 class Socket
@@ -24,12 +25,12 @@ class Socket
 	private:
 		int _socket_pid;
 		struct sockaddr_in _socket;
-		std::vector<int> _clients;
+		std::vector<struct pollfd> _clients;
 		t_server_config config;
 		void _connect();
 		void _close();
 		void _setNonBlocking(int fd);
-		std::string _receiveData(int client_fd, std::vector<int>::iterator &it);
+		std::string _receiveData(int client_fd);
 	public:
 		Socket(t_server_config config);
 		Socket(int port, std::string address);
