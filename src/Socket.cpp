@@ -121,14 +121,8 @@ void Socket::Run()
 			if (LOG_INCOMING_PACKETS)
 				req.logData();
 
-			std::string response_Str = req.ProcessRequest(config);
-			if (response_Str.empty())
-				redirectToError(client.fd, 404);
-			else
-			{
-				Response res(response_Str);
-				sendData(res, client.fd);
-			}
+			Response response = req.ProcessRequest(config);
+			sendData(response, client.fd);
 
 			closeSocket(client.fd);
 			Logger::Log(LogLevel::INFO, "Response sent and connection closed!");

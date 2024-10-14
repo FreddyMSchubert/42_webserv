@@ -6,6 +6,7 @@
 class Response : public Packet
 {
 	public:
+		Response() : Packet() {};
 		Response(const std::string &rawPacket) : Packet(rawPacket) {};
 		~Response() = default;
 		void Run();
