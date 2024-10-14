@@ -11,7 +11,6 @@ void Request::handleGet(t_server_config &config, Response &response)
 	path = response.getPath();
 
 	response.setVersion("HTTP/1.1");
-	response.setMethod(Method::GET);
 
 	try
 	{

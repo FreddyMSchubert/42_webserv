@@ -1,5 +1,6 @@
 #include "../../include/Packets/Packet.hpp"
 #include <sstream>
+#include <string>
 
 Packet::Packet(const std::string &rawPacket)
 {
@@ -199,15 +200,7 @@ std::string Packet::getRawPacket()
 {
 	std::string rawData;
 
-	switch (_method)
-	{
-		case Method::GET: rawData += "GET "; break;
-		case Method::POST: rawData += "POST "; break;
-		case Method::DELETE: rawData += "DELETE "; break;
-		default: rawData += "UNKNOWN "; break;
-	}
-
-	rawData += _path + " " + _version + "\r\n";
+	rawData +=  _version + std::to_string((int)_status) + "\r\n";
 	for (auto &header : _headers)
 		rawData += header.first + ": " + header.second + "\r\n";
 	
