@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <sys/types.h>
+#include <poll.h>
 #include "../include/Logger.hpp"
 #include "../include/Utils.hpp"
 
@@ -24,6 +25,45 @@ Socket::Socket(t_server_config config) : _socket_pid(-1), config(config)
 		throw std::runtime_error(e.what());
 	}
 	_setNonBlocking(_socket_pid);
+}
+
+std::string Socket::_receiveData(int client_fd, std::vector<int>::iterator &it)
+{
+	std::string data;
+		char buffer[4096];
+		ssize_t received;
+		
+	// TODO: check if this part successfully reads the whole request even if its chunked
+	while (true)
+	{
+		received = recv(client_fd, buffer, sizeof(buffer), 0);
+		if (received > 0)
+		{
+			data.append(buffer, received);
+			if (data.find("\r\n\r\n") != std::string::npos)
+				break;
+		}
+		else if (received == 0)
+		{
+			Logger::Log(LogLevel::INFO, "Connection closed by client");
+			closeSocket(client_fd);
+			it = _clients.erase(it);
+			break;
+		}
+		else if (received < 0)
+		{
+			if (errno == EWOULDBLOCK || errno == EAGAIN)
+				break; // No more data to read at this time
+			Logger::Log(LogLevel::ERROR, "Failed to receive data: " + std::string(strerror(errno)));
+			closeSocket(client_fd);
+			it = _clients.erase(it);
+			break;
+		}
+	}
+
+	if (received <= 0)
+		throw std::runtime_error("Failed to receive data");
+	return data;
 }
 
 void Socket::Run()
@@ -47,6 +87,7 @@ void Socket::Run()
 	tv.tv_usec = 100000; // 100ms
 
 	int activity = select(max_fd + 1, &read_fds, nullptr, nullptr, &tv); // TODO: select is blocking, use poll instead
+	// int activity = poll(nullptr, 0, 100); // TODO: select is blocking, use poll instead
 	if (activity < 0 && errno != EINTR)
 		throw std::runtime_error("select error");
 
@@ -69,49 +110,12 @@ void Socket::Run()
 			continue;
 		}
 
-		std::string data;
-		char buffer[4096];
-		ssize_t received;
-		
-		// TODO: check if this part successfully reads the whole request even if its chunked
-		while (true)
-		{
-			received = recv(client_fd, buffer, sizeof(buffer), 0);
-			if (received > 0)
-			{
-				data.append(buffer, received);
-				if (data.find("\r\n\r\n") != std::string::npos)
-					break;
-			}
-			else if (received == 0)
-			{
-				Logger::Log(LogLevel::INFO, "Connection closed by client");
-				closeSocket(client_fd);
-				it = _clients.erase(it);
-				break;
-			}
-			else if (received < 0)
-			{
-				if (errno == EWOULDBLOCK || errno == EAGAIN)
-					break; // No more data to read at this time
-				Logger::Log(LogLevel::ERROR, "Failed to receive data: " + std::string(strerror(errno)));
-				closeSocket(client_fd);
-				it = _clients.erase(it);
-				break;
-			}
-		}
-
-		Logger::Log(LogLevel::INFO, "Received data!");
-
-		// TODO: check for length of received data and if its 0 do something
-
-		std::cout << "Data: " << data << std::endl;
-
 		try
 		{
-			Request req(data);
+			Request req(_receiveData(client_fd, it));
 			if (LOG_INCOMING_PACKETS)
 				req.logData();
+			Logger::Log(LogLevel::INFO, "Received data!");
 			std::string response_Str = req.ProcessRequest(config);
 			if (response_Str.empty())
 			{
@@ -119,7 +123,7 @@ void Socket::Run()
 				it = _clients.erase(it);
 				continue;
 			}
-			Response res (response_Str);
+			Response res(response_Str);
 			sendData(res, client_fd);
 			closeSocket(client_fd);
 			Logger::Log(LogLevel::INFO, "Data sent!");

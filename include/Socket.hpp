@@ -29,6 +29,7 @@ class Socket
 		void _connect();
 		void _close();
 		void _setNonBlocking(int fd);
+		std::string _receiveData(int client_fd, std::vector<int>::iterator &it);
 	public:
 		Socket(t_server_config config);
 		Socket(int port, std::string address);
