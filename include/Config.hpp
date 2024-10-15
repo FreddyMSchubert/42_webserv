@@ -19,6 +19,20 @@ typedef struct s_location
 	bool empty() { return root.empty(); }
 } t_location;
 
+inline std::ostream &operator<<(std::ostream &os, const t_location &location)
+{
+	os << "Root: " << location.root << std::endl;
+	os << "Index: " << location.index << std::endl;
+	os << "Directory listing: " << location.directory_listing << std::endl;
+	os << "Client max body size: " << location.client_max_body_size << std::endl;
+	os << "Autoindex: " << location.autoindex << std::endl;
+	os << "Allowed methods: ";
+	for (Method method : location.allowed_methods)
+		os << method << " ";
+	os << std::endl;
+	return os;
+}
+
 typedef struct s_error_page
 {
 	int error_code;

@@ -44,27 +44,30 @@ std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::str
 
 bool isSubroute(const std::string& route, const std::string& subroute)
 {
-	if (route.length() < subroute.length())
-		return false;
-	std::string sub = route.substr(0, subroute.length());
-	if (sub == subroute)
-		return std::filesystem::exists(route) && (std::filesystem::is_directory(route) || std::filesystem::is_regular_file(route));
-	return false;
+	return subroute.find(route) == 0;
 }
 
-// TODO: This function is not correct (we return empty location when going into a sub sub route)
+std::string getFilePathAsURLPath(std::string path, t_server_config &config)
+{
+	std::string urlPath = path;
+	urlPath.replace(0, config.default_location.root.size(), "");
+	if (urlPath == "")
+		urlPath = "/";
+	return urlPath;
+}
+
+// Gets the location config of the path, respecting subdirs
 t_location get_location(t_server_config &config, std::string path)
 {
-	if (path[path.length() - 1] == '/')
-		path = path.substr(0, path.length() - 1);
+	t_location loc = (t_location){{}, "", "", false, 0, false};
 
-	if (isSubroute(config.default_location.root, path))
-		return config.default_location;
+	if (getFilePathAsURLPath(config.default_location.root, config) == path && std::filesystem::exists(config.default_location.root))
+		loc = config.default_location;
 
 	for (t_location &location : config.locations)
-	{
-		if (isSubroute(location.root, path))
-			return location;
-	}
-	return (t_location){{}, "", "", false, 0, false};
+		if (isSubroute(getFilePathAsURLPath(location.root, config), path) && std::filesystem::exists(config.default_location.root))
+			if (loc.root.size() < location.root.size())
+				loc = location;
+
+	return loc;
 }

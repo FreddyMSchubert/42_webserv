@@ -21,6 +21,10 @@ std::vector<t_server_config> init_testing_configs()
 	configs[1].port = 8081;
 	configs[2].port = 4242;
 
+	// configs[0].port = 8082;
+	// configs[1].port = 8083;
+	// configs[2].port = 4243;
+
 	configs[0].default_location.allowed_methods.push_back(Method::GET);
 	configs[1].default_location.allowed_methods.push_back(Method::GET);
 	configs[1].default_location.allowed_methods.push_back(Method::POST);

@@ -10,6 +10,26 @@ enum class Method
 	DELETE,
 };
 
+inline std::ostream &operator<<(std::ostream &os, const Method &m)
+{
+	switch (m)
+	{
+		case Method::GET:
+			os << "GET";
+			break;
+		case Method::POST:
+			os << "POST";
+			break;
+		case Method::DELETE:
+			os << "DELETE";
+			break;
+		default:
+			os << "UNKNOWN";
+			break;
+	}
+	return os;
+}
+
 enum class Status {
 	UNKNOWN = 0,
 	Continue = 100,
