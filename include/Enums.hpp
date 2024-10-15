@@ -2,6 +2,30 @@
 
 #include <iostream>
 
+enum OptionalBoolean
+{
+	MAYBE,
+	TRUE,
+	FALSE,
+};
+
+inline std::ostream &operator<<(std::ostream &os, const OptionalBoolean &b)
+{
+	switch (b)
+	{
+		case OptionalBoolean::TRUE:
+			os << "true";
+			break;
+		case OptionalBoolean::FALSE:
+			os << "false";
+			break;
+		default:
+			os << "maybe";
+			break;
+	}
+	return os;
+}
+
 enum class Method
 {
 	UNKNOWN,

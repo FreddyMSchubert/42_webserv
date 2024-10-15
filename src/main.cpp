@@ -48,10 +48,9 @@ std::vector<t_server_config> init_testing_configs()
 
 	configs[1].error_pages.push_back((t_error_page){404, (t_location){std::vector<Method>(), "./www/platformer/404", "404.html", false, 0, false}});
 
-
 	configs[0].locations.push_back((t_location){std::vector<Method>(), "./www/clicker/assets", "", true, 0, false});
-	configs[0].locations.push_back((t_location){std::vector<Method>(), "./www/clicker/assets/particles", "", false, 0, false});
-	configs[0].locations.back().allowed_methods.push_back(Method::GET);
+	configs[0].locations.push_back((t_location){std::vector<Method>(), "./www/clicker/assets/particles", "", true, 0, false});
+	// configs[0].locations.back().allowed_methods.push_back(Method::GET);
 
 	return configs;
 }

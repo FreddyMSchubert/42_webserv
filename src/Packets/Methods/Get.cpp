@@ -12,6 +12,13 @@ void Response::handle_file_req(t_server_config &config, Request &req)
 
 	std::cout << "Path: " << path << std::endl;
 
+	if (isAllowedMethodAt(config, get_location(config, path), Method::GET) == false)
+	{
+		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
+		setStatus(Status::MethodNotAllowed);
+		return;
+	}
+
 	try
 	{
 		std::string file = getFileAsString(std::string(config.default_location.root) + path);

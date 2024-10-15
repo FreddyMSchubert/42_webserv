@@ -9,7 +9,7 @@ typedef struct s_location t_location;
 
 typedef struct s_location 
 {
-	std::vector<Method> allowed_methods;
+	std::vector<std::pair<Method, OptionalBoolean>> allowed_methods;
 	std::string root;
 	std::string index;
 	bool directory_listing;
@@ -27,8 +27,8 @@ inline std::ostream &operator<<(std::ostream &os, const t_location &location)
 	os << "Client max body size: " << location.client_max_body_size << std::endl;
 	os << "Autoindex: " << location.autoindex << std::endl;
 	os << "Allowed methods: ";
-	for (Method method : location.allowed_methods)
-		os << method << " ";
+	for (const std::pair<Method, OptionalBoolean> &noolean : location.allowed_methods)
+		os << noolean.first << "(" << noolean.second << ")" << " ";
 	os << std::endl;
 	return os;
 }
