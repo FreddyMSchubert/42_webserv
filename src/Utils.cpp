@@ -28,10 +28,25 @@ bool isFileInDirectory(const std::string& path, const std::string& file)
 	return false;
 }
 
-bool isAllowedMethodAt(t_location &location, Method method)
+bool isAllowedMethodAt(t_server_config &config, const t_location location, Method method)
 {
-	return (std::find(location.allowed_methods.begin(), location.allowed_methods.end(), method)
-		!= location.allowed_methods.end());
+	t_location loc = location;
+
+	do
+	{
+
+		if (std::find(loc.allowed_methods.begin(), loc.allowed_methods.end(), method) != loc.allowed_methods.end())
+			return true;
+
+		std::string parentPath = loc.root.substr(0, loc.root.find_last_of('/'));
+		if (parentPath.empty() || loc.root == config.default_location.root)
+			break;
+
+		loc = get_location(config, parentPath);
+
+	} while (true);
+
+	return (std::find(config.default_location.allowed_methods.begin(), config.default_location.allowed_methods.end(), method) != config.default_location.allowed_methods.end());
 }
 
 std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::string& path)

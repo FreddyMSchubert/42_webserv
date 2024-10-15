@@ -10,8 +10,6 @@ void Response::handle_file_req(t_server_config &config, Request &req)
 
 	path = getPath();
 
-	setVersion("HTTP/1.1");
-
 	std::cout << "Path: " << path << std::endl;
 
 	try
@@ -105,12 +103,13 @@ void Response::handle_dir_req(t_server_config &config, Request &req)
 		return;
 	}
 
-	// if (!isAllowedMethodAt(location, Method::GET))
-	// {
-	// 	Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
-	// 	setStatus(Status::MethodNotAllowed);
-	// 	return;
-	// }
+	if (!isAllowedMethodAt(config, location, Method::GET))
+	{
+		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
+		setStatus(Status::MethodNotAllowed);
+		return;
+	}
+
 	if (location.directory_listing == false) // no directory listing allowed
 	{
 		Logger::Log(LogLevel::WARNING, "GET: Directory listing not allowed");
@@ -126,7 +125,6 @@ void Response::handle_dir_req(t_server_config &config, Request &req)
 
 	addHeader("Content-Length", std::to_string(body.size()));
 	setStatus(Status::OK);
-	setVersion("HTTP/1.1");
 	addHeader("Content-Type", "text/html; charset=UTF-8");
 
 	setBody(body);
@@ -155,6 +153,8 @@ void Response::handleGet(Request& req, t_server_config &config)
 	std::cout << "Handling GET request" << std::endl;
 
 	std::cout << is_file_req(req, config) << std::endl;
+
+	setVersion("HTTP/1.1");
 
 	if (is_file_req(req, config))
 	{
