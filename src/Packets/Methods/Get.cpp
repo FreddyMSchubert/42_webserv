@@ -12,7 +12,7 @@ void Response::handle_file_req(t_server_config &config, Request &req)
 
 	std::cout << "Path: " << path << std::endl;
 
-	if (isAllowedMethodAt(config, get_location(config, path), Method::GET) == false)
+	if (isAllowedMethodAt(config, path, Method::GET) == false)
 	{
 		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
 		setStatus(Status::MethodNotAllowed);
@@ -110,7 +110,7 @@ void Response::handle_dir_req(t_server_config &config, Request &req)
 		return;
 	}
 
-	if (!isAllowedMethodAt(config, location, Method::GET))
+	if (!isAllowedMethodAt(config, location.root, Method::GET))
 	{
 		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
 		setStatus(Status::MethodNotAllowed);

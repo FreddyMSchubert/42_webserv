@@ -66,6 +66,13 @@
 		"unordered_map": "cpp",
 		"utility": "cpp",
 		"vector": "cpp",
-		"filesystem": "cpp"
-	}
+		"filesystem": "cpp",
+		"queue": "cpp",
+		"__verbose_abort": "cpp",
+		"clocale": "cpp",
+		"execution": "cpp",
+		"print": "cpp",
+		"variant": "cpp"
+	},
+	"C_Cpp.default.compilerPath": "/usr/bin/clang++"
 }

@@ -28,28 +28,25 @@ bool isFileInDirectory(const std::string& path, const std::string& file)
 	return false;
 }
 
-bool isAllowedMethodAt(t_server_config &config, const t_location location, Method method)
+bool isAllowedMethodAt(t_server_config &config, std::string path, Method method)
 {
-	t_location loc = location;
-
-	do
+	while (true)
 	{
-		std::cout << "Attempting to find method " << method << " at " << loc.root << std::endl;
+		std::cout << "Attempting to find method " << method << " at " << path << std::endl;
 
-		auto methodPair = loc.allowed_methods.find(method);
-		if (methodPair != loc.allowed_methods.end())
+		t_location location = get_location(config, path);
+		if (location.root == "/" || location.root.empty())
+			break;
+		auto methodPair = location.allowed_methods.find(method);
+		if (methodPair != location.allowed_methods.end())
 			return methodPair->second;
 
-		std::string parentPath = loc.root.substr(0, loc.root.find_last_of('/'));
-		if (parentPath.empty() || loc.root == config.default_location.root)
+		if (path.back() == '/')
+			path.pop_back();
+		path = path.substr(0, path.find_last_of('/'));
+		if (path.empty() || path == config.default_location.root)
 			break;
-
-		loc = get_location(config, parentPath);
-
-		if (loc.root == "/" || loc.root.empty())
-			break;
-
-	} while (true);
+	};
 
 	auto foundLoc = config.default_location.allowed_methods.find(method);
 	if (foundLoc != config.default_location.allowed_methods.end())
@@ -88,7 +85,7 @@ t_location get_location(t_server_config &config, std::string path)
 		loc = config.default_location;
 
 	for (t_location &location : config.locations)
-		if (isSubroute(getFilePathAsURLPath(location.root, config), path) && std::filesystem::exists(config.default_location.root))
+		if (isSubroute(getFilePathAsURLPath(location.root, config), path) && std::filesystem::exists(location.root))
 			if (loc.root.size() < location.root.size())
 				loc = location;
 
