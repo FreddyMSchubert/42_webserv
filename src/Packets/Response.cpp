@@ -1,20 +1,36 @@
-#include "../../include/Packets/Response.hpp"
+#include "Response.hpp"
 
-void Response::Run()
+Response::Response(Request& req, t_server_config &config) : Packet()
 {
-	std::cout << "Response::Run()" << std::endl;
+	switch (req.getMethod())
+	{
+		case Method::GET:
+			handleGet(req, config);
+			break;
+		case Method::POST:
+			handlePost(req, config);
+			break;
+		case Method::DELETE:
+			handleDelete(req, config);
+			break;
+		default:
+			std::cout << "Unknown method" << std::endl;
+			break;
+	}
 }
+
+/* ----- METHODS ----- */
 
 std::string Response::getRawPacket()
 {
 	std::string rawData;
 
-	rawData +=  _version + " " + std::to_string((int)_status) + "\r\n";
+	rawData +=  getVersion() + " " + std::to_string((int)getStatus()) + "\r\n";
 
-	for (auto &header : _headers)
+	for (auto &header : getHeaders())
 		rawData += header.first + ": " + header.second + "\r\n";
 	
-	rawData += "\r\n" + _body;
+	rawData += "\r\n" + getBody();
 	rawData += "\r\n\r\n";
 
 	return rawData;

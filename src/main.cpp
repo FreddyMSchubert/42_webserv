@@ -1,7 +1,6 @@
-#include "../include/Server.hpp"
-#include "../include/Logger.hpp"
-#include "../include/Tests.hpp"
-#include "../include/Config.hpp"
+#include "Server.hpp"
+#include "Logger.hpp"
+#include "Config.hpp"
 
 #include <iostream>
 #include <vector>

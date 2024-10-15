@@ -2,20 +2,20 @@
 
 #include <iostream>
 #include "Packet.hpp"
-#include "../../include/Logger.hpp"
-#include "../../include/Socket.hpp"
-#include "../../include/Utils.hpp"
-#include "../../include/Enums.hpp"
-#include "../../include/Config.hpp"
+#include "../Logger.hpp"
+#include "../Utils.hpp"
+#include "../Enums.hpp"
+#include "../Config.hpp"
 
 class Request : public Packet
 {
 	private:
-		void handleGet(t_server_config &config, Response &response);
-		void handlePost(t_server_config &config, Response &response);
-		void handleDelete(t_server_config &config, Response &response);
+		// parsing
+		void ParseRequestLine(std::string &line);
+		void ParseHeaders(std::string &headers);
+		void ParseBody(std::string &body);
+		std::string sanitizeUri(const std::string& uri);
 	public:
-		Request(const std::string &rawPacket) : Packet(rawPacket) {};
+		Request(const std::string &rawPacket);
 		~Request() = default;
-		Response ProcessRequest(t_server_config config);
 };

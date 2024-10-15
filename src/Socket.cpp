@@ -1,13 +1,4 @@
-#include "../include/Socket.hpp"
-#include <cstring>
-#include <algorithm>
-#include <exception>
-#include <iostream>
-#include <string>
-#include <sys/types.h>
-#include <poll.h>
-#include "../include/Logger.hpp"
-#include "../include/Utils.hpp"
+#include "Socket.hpp"
 
 Socket::Socket(t_server_config config) : _socket_pid(-1), config(config)
 {
@@ -80,7 +71,7 @@ void Socket::Run()
 		{
 			Logger::Log(LogLevel::INFO, "Client disconnected!");
 			closeSocket(client.fd);
-			continue;
+			break;
 		}
 
 		if (client.revents & POLLIN && client.fd == _socket_pid)
@@ -98,7 +89,7 @@ void Socket::Run()
 				{
 					Logger::Log(LogLevel::ERROR, e.what());
 					closeSocket(new_socket);
-					continue;
+					break;
 				}
 				_clients.push_back({new_socket, POLLIN, 0});
 				Logger::Log(LogLevel::INFO, "New connection accepted!");
@@ -113,19 +104,21 @@ void Socket::Run()
 			{
 				Logger::Log(LogLevel::INFO, "Client sent empty data, closing connection!");
 				closeSocket(client.fd);
-				continue;
+				break;
 			}
 
 			Logger::Log(LogLevel::INFO, "Data received from client!");
 			Request req(data);
-			if (LOG_INCOMING_PACKETS)
+			#if LOG_INCOMING_PACKETS
 				req.logData();
+			#endif
 
-			Response response = req.ProcessRequest(config);
+			Response response = Response(req, config);
 			sendData(response, client.fd);
 
 			closeSocket(client.fd);
 			Logger::Log(LogLevel::INFO, "Response sent and connection closed!");
+			break;
 		}
 	}
 }
@@ -138,8 +131,9 @@ void Socket::sendData(Response &response, int client_fd)
 
 void Socket::sendData(const std::string &data, int socket_fd)
 {
-	if (LOG_OUTGOING_PACKETS)
+	#if LOG_OUTGOING_PACKETS
 		Logger::Log(LogLevel::INFO, "Sending data: " + data);
+	#endif
 	ssize_t sent = send(socket_fd, data.c_str(), data.length(), 0);
 	if (sent < 0)
 		throw std::runtime_error("Failed to send data");

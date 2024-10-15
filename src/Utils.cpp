@@ -1,8 +1,4 @@
-#include "../include/Utils.hpp"
-#include <algorithm>
-#include <filesystem>
-#include <fstream>
-#include <vector>
+#include "Utils.hpp"
 
 std::string getFileAsString(const std::string& path)
 {

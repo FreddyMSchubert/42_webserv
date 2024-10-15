@@ -1,37 +1,32 @@
-#include "../../../include/Packets/Request.hpp"
-#include <exception>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <vector>
+#include "Response.hpp"
 
-static void handle_file_req(t_server_config &config, Response &response, Request &req)
+void Response::handle_file_req(t_server_config &config, Request &req)
 {
 	std::string path = req.getPath();
 	if (path == std::string("/"))
-		response.setPath(config.default_location.index); // TODO: i think we should loop trough all the paths and pick the first one to exist
+		setPath(config.default_location.index); // TODO: i think we should loop trough all the paths and pick the first one to exist
 	else
-		response.setPath(path);
+		setPath(path);
 
-	path = response.getPath();
+	path = getPath();
 
-	response.setVersion("HTTP/1.1");
+	setVersion("HTTP/1.1");
 
 	std::cout << "Path: " << path << std::endl;
 
 	try
 	{
 		std::string file = getFileAsString(std::string(config.default_location.root) + path);
-		response.addHeader("Content-Length", std::to_string(file.size()));
-		response.setStatus(Status::OK);
-		response.addHeader("Content-Type", "text/" + path.substr(path.find_last_of('.') + 1) + "; charset=UTF-8");
-		response.setBody(file);
+		addHeader("Content-Length", std::to_string(file.size()));
+		setStatus(Status::OK);
+		addHeader("Content-Type", "text/" + path.substr(path.find_last_of('.') + 1) + "; charset=UTF-8");
+		setBody(file);
 	}
 	catch (std::exception &e)
 	{
 		Logger::Log(LogLevel::ERROR, std::string("Failed to get file: ") + e.what());
-		response.setBody("Failed to get file");
-		response.setStatus(Status::NotFound);
+		setBody("Failed to get file");
+		setStatus(Status::NotFound);
 	}
 }
 
@@ -62,7 +57,7 @@ static std::string get_dir_list_html(std::vector<std::filesystem::directory_entr
 	return body;
 }
 
-static void handle_dir_req(t_server_config &config, Response &response, Request &req)
+void Response::handle_dir_req(t_server_config &config, Request &req)
 {
 	t_location location = config.default_location;
 
@@ -72,7 +67,7 @@ static void handle_dir_req(t_server_config &config, Response &response, Request 
 	if (location.empty()) // invalid
 	{
 		Logger::Log(LogLevel::WARNING, "GET: Invalid location");
-		response.setStatus(Status::NotFound);
+		setStatus(Status::NotFound);
 		return;
 	}
 
@@ -81,13 +76,13 @@ static void handle_dir_req(t_server_config &config, Response &response, Request 
 		if (!isAllowedMethodAt(location, Method::GET))
 		{
 			Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
-			response.setStatus(Status::MethodNotAllowed);
+			setStatus(Status::MethodNotAllowed);
 			return;
 		}
 		if (location.directory_listing == false) // no directory listing allowed
 		{
 			Logger::Log(LogLevel::WARNING, "GET: Directory listing not allowed");
-			response.setStatus(Status::Forbidden);
+			setStatus(Status::Forbidden);
 			return;
 		}
 	}
@@ -98,12 +93,12 @@ static void handle_dir_req(t_server_config &config, Response &response, Request 
 
 	std::string body = get_dir_list_html(entries);
 
-	response.addHeader("Content-Length", std::to_string(body.size()));
-	response.setStatus(Status::OK);
-	response.setVersion("HTTP/1.1");
-	response.addHeader("Content-Type", "text/html; charset=UTF-8");
+	addHeader("Content-Length", std::to_string(body.size()));
+	setStatus(Status::OK);
+	setVersion("HTTP/1.1");
+	addHeader("Content-Type", "text/html; charset=UTF-8");
 
-	response.setBody(body);
+	setBody(body);
 
 	// if path is /, we should return the index file if there is one and if not, we should return a list of files in the directory
 	// and if the directory does not exist we return 404
@@ -133,20 +128,20 @@ static bool is_file_req(Request &req, t_server_config &config)
 	return true;
 }
 
-void Request::handleGet(t_server_config &config, Response &response)
+void Response::handleGet(Request& req, t_server_config &config)
 {
 
 	std::cout << "Handling GET request" << std::endl;
 
-	if (is_file_req(*this, config))
+	if (is_file_req(req, config))
 	{
 		std::cout << "Handling file request" << std::endl;
-		handle_file_req(config, response, *this);
+		handle_file_req(config, req);
 	}
 	else
 	{
 		std::cout << "Handling directory request" << std::endl;
-		handle_dir_req(config, response, *this);
+		handle_dir_req(config, req);
 	}
 	
 }

@@ -1,14 +1,29 @@
 #pragma once
 
 #include "Packet.hpp"
+#include "Request.hpp"
+#include "Config.hpp"
+
 #include <iostream>
+#include <exception>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <vector>
 
 class Response : public Packet
 {
+	private:
+		void handleGet(Request& req, t_server_config &config);
+			void handle_file_req(t_server_config &config, Request &req);
+			void handle_dir_req(t_server_config &config, Request &req);
+		void handlePost(Request& req, t_server_config &config);
+		void handleDelete(Request& req, t_server_config &config);
+
 	public:
-		Response() : Packet() {};
-		Response(const std::string &rawPacket) : Packet(rawPacket) {};
+		Response(Request &req, t_server_config &config);
 		~Response() = default;
-		void Run();
+
+		// methods
 		std::string getRawPacket();
 };
