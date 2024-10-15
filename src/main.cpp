@@ -21,10 +21,14 @@ std::vector<t_server_config> init_testing_configs()
 	configs[1].port = 8081;
 	configs[2].port = 4242;
 
-	configs[0].default_location.allowed_methods.push_back(Method::GET);
-	configs[1].default_location.allowed_methods.push_back(Method::GET);
-	configs[1].default_location.allowed_methods.push_back(Method::POST);
-	configs[2].default_location.allowed_methods.push_back(Method::GET);
+	// configs[0].port = 8082;
+	// configs[1].port = 8083;
+	// configs[2].port = 4243;
+
+	configs[0].default_location.allowed_methods[Method::GET] = true;
+	configs[1].default_location.allowed_methods[Method::GET] = true;
+	configs[1].default_location.allowed_methods[Method::POST] = true;
+	configs[2].default_location.allowed_methods[Method::GET] = true;
 
 	configs[0].default_location.root = "./www/clicker";
 	configs[1].default_location.root = "./www/platformer";
@@ -42,10 +46,13 @@ std::vector<t_server_config> init_testing_configs()
 	configs[1].default_location.client_max_body_size = 1000;
 	configs[2].default_location.client_max_body_size = 1000000;
 
-	configs[1].error_pages.push_back((t_error_page){404, (t_location){std::vector<Method>(), "./www/platformer/404", "404.html", false, 0, false}});
+	configs[1].error_pages.push_back((t_error_page){404, (t_location){std::unordered_map<Method, bool>(), "./www/platformer/404", "404.html", false, 0}});
 
-	configs[0].locations.push_back((t_location){std::vector<Method>(), "./www/clicker/assets", "", true, 0, false});
-	configs[0].locations.back().allowed_methods.push_back(Method::GET);
+	configs[0].locations = std::vector<t_location>(2);
+	configs[0].locations[0] = (t_location){std::unordered_map<Method, bool>(), "./www/clicker/assets", "", true, 0};
+	configs[0].locations[0].allowed_methods[Method::GET] = false;
+	configs[0].locations[1] = (t_location){std::unordered_map<Method, bool>(), "./www/clicker/assets/particles", "", true, 0};
+	configs[0].locations[1].allowed_methods[Method::GET] = true;
 
 	return configs;
 }

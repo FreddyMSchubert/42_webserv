@@ -3,21 +3,35 @@
 #include "Enums.hpp"
 #include <cstddef>
 #include <iostream>
+#include <unordered_map>
 #include <vector>
+#include <string>
 
 typedef struct s_location t_location;
 
 typedef struct s_location 
 {
-	std::vector<Method> allowed_methods;
+	std::unordered_map<Method, bool> allowed_methods;
 	std::string root;
 	std::string index;
 	bool directory_listing;
 	size_t client_max_body_size;
-	bool autoindex;
 	// std::vector<t_location> locations; // TODO: add this back later
 	bool empty() { return root.empty(); }
 } t_location;
+
+inline std::ostream &operator<<(std::ostream &os, const t_location &location)
+{
+	os << "Root: " << location.root << std::endl;
+	os << "Index: " << location.index << std::endl;
+	os << "Directory listing: " << location.directory_listing << std::endl;
+	os << "Client max body size: " << location.client_max_body_size << std::endl;
+	os << "Allowed methods: ";
+	for (auto &noolean : location.allowed_methods)
+		os << noolean.first << "(" << noolean.second << ")" << " ";
+	os << std::endl;
+	return os;
+}
 
 typedef struct s_error_page
 {

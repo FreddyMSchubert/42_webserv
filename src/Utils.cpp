@@ -28,10 +28,30 @@ bool isFileInDirectory(const std::string& path, const std::string& file)
 	return false;
 }
 
-bool isAllowedMethodAt(t_location &location, Method method)
+bool isAllowedMethodAt(t_server_config &config, std::string path, Method method)
 {
-	return (std::find(location.allowed_methods.begin(), location.allowed_methods.end(), method)
-		!= location.allowed_methods.end());
+	while (true)
+	{
+		std::cout << "Attempting to find method " << method << " at " << path << std::endl;
+
+		t_location location = get_location(config, path);
+		if (location.root == "/" || location.root.empty())
+			break;
+		auto methodPair = location.allowed_methods.find(method);
+		if (methodPair != location.allowed_methods.end())
+			return methodPair->second;
+
+		if (path.back() == '/')
+			path.pop_back();
+		path = path.substr(0, path.find_last_of('/'));
+		if (path.empty() || path == config.default_location.root)
+			break;
+	};
+
+	auto foundLoc = config.default_location.allowed_methods.find(method);
+	if (foundLoc != config.default_location.allowed_methods.end())
+		return foundLoc->second;
+	return false; // default for all methods if no rule is defined
 }
 
 std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::string& path)
@@ -42,19 +62,32 @@ std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::str
 	return entries;
 }
 
-// TODO: This function is not correct (we return empty location when going into a sub sub route)
+bool isSubroute(const std::string& route, const std::string& subroute)
+{
+	return subroute.find(route) == 0;
+}
+
+std::string getFilePathAsURLPath(std::string path, t_server_config &config)
+{
+	std::string urlPath = path;
+	urlPath.replace(0, config.default_location.root.size(), "");
+	if (urlPath == "")
+		urlPath = "/";
+	return urlPath;
+}
+
+// Gets the location config of the path, respecting subdirs
 t_location get_location(t_server_config &config, std::string path)
 {
-	if (path[path.length() - 1] == '/')
-		path = path.substr(0, path.length() - 1);
+	t_location loc = (t_location){{}, "", "", false, 0};
 
-	if (config.default_location.root.length() >= path.length() && config.default_location.root.substr(config.default_location.root.length() - path.length(), config.default_location.root.length()) == path)
-		return config.default_location;
+	if (getFilePathAsURLPath(config.default_location.root, config) == path && std::filesystem::exists(config.default_location.root))
+		loc = config.default_location;
 
 	for (t_location &location : config.locations)
-	{
-		if (location.root.length() >= path.length() && location.root.substr(location.root.length() - path.length(), location.root.length()) == path)
-			return location;
-	}
-	return (t_location){{}, "", "", false, 0, false};
+		if (isSubroute(getFilePathAsURLPath(location.root, config), path) && std::filesystem::exists(location.root))
+			if (loc.root.size() < location.root.size())
+				loc = location;
+
+	return loc;
 }
