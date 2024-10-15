@@ -10,24 +10,6 @@ std::string getFileAsString(const std::string& path)
 	return buffer.str();
 }
 
-bool isFileInDirectory(const std::string& path, const std::string& file)
-{
-	try
-	{
-		for (const auto& entry : std::filesystem::directory_iterator(path))
-		{
-			if (entry.is_regular_file() && entry.path().filename() == file)
-				return true;
-		}
-	}
-	catch (const std::filesystem::filesystem_error& e)
-	{
-		// Handle the error (e.g., log it)
-		std::cerr << "Filesystem error: " << e.what() << std::endl;
-	}
-	return false;
-}
-
 bool isAllowedMethodAt(t_server_config &config, std::string path, Method method)
 {
 	while (true)

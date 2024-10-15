@@ -14,5 +14,4 @@ std::string getFileAsString(const std::string& path);
 bool isAllowedMethodAt(t_server_config &config, std::string path, Method method);
 std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::string& path);
 t_location get_location(t_server_config &config, std::string path);
-bool isFileInDirectory(const std::string& path, const std::string& file);
 bool isSubroute(const std::string& route, const std::string& subroute);
