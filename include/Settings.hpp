@@ -4,5 +4,5 @@
 	#define LOG_INCOMING_PACKETS true
 #endif
 #ifndef LOG_OUTGOING_PACKETS
-	#define LOG_OUTGOING_PACKETS true
+	#define LOG_OUTGOING_PACKETS false
 #endif

@@ -3,8 +3,8 @@
 void Response::handle_file_req(t_server_config &config, Request &req)
 {
 	std::string path = req.getPath();
-	if (path == std::string("/"))
-		setPath(config.default_location.index); // TODO: i think we should loop trough all the paths and pick the first one to exist
+	if (path == "/")
+		setPath(config.default_location.index); // TODO: consider looping through all possible index files
 	else
 		setPath(path);
 
@@ -18,8 +18,9 @@ void Response::handle_file_req(t_server_config &config, Request &req)
 	{
 		std::string file = getFileAsString(std::string(config.default_location.root) + path);
 		addHeader("Content-Length", std::to_string(file.size()));
+		std::string fileName = path.substr(path.find_last_of('/') + 1);
+		addHeader("Content-Type", getMimeType(fileName) + "; charset=UTF-8");
 		setStatus(Status::OK);
-		addHeader("Content-Type", "text/" + path.substr(path.find_last_of('.') + 1) + "; charset=UTF-8");
 		setBody(file);
 	}
 	catch (std::exception &e)
@@ -30,9 +31,26 @@ void Response::handle_file_req(t_server_config &config, Request &req)
 	}
 }
 
-static std::string get_dir_list_html(std::vector<std::filesystem::directory_entry> &entries)
+static std::string get_dir_list_html(const std::string &current_path, const std::vector<std::filesystem::directory_entry> &entries)
 {
-	std::string body = "<html><head><title>Directory Listing</title></head><body><div class=\"floating\"><h1>Directory listing</h1><ul>";
+	std::string body = "<html><head><title>Directory Listing</title></head><body><div class=\"floating\"><h1>Directory Listing</h1><ul>";
+
+	body += "<li>🏠 <a href=\"/\">Root</a></li>";
+
+	if (current_path != "/")
+	{
+		std::string up_path = current_path;
+		if (up_path.back() == '/')
+			up_path.pop_back();
+		size_t pos = up_path.find_last_of('/');
+		if (pos != std::string::npos)
+			up_path = up_path.substr(0, pos + 1);
+		else
+			up_path = "/";
+		body += "<li>⬆️ <a href=\"" + up_path + "\">..</a></li>";
+	}
+
+	body += "<br>";
 
 	for (std::filesystem::directory_entry entry : entries)
 	{
@@ -104,7 +122,7 @@ void Response::handle_dir_req(t_server_config &config, Request &req)
 
 	std::vector<std::filesystem::directory_entry> entries = getDirectoryEntries(std::string(config.default_location.root) + req.getPath());
 
-	std::string body = get_dir_list_html(entries);
+	std::string body = get_dir_list_html(req.getPath(), entries);
 
 	addHeader("Content-Length", std::to_string(body.size()));
 	setStatus(Status::OK);
