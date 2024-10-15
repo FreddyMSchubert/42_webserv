@@ -34,9 +34,11 @@ bool isAllowedMethodAt(t_server_config &config, const t_location location, Metho
 
 	do
 	{
+		std::cout << "Attempting to find method " << method << " at " << loc.root << std::endl;
 
-		if (std::find(loc.allowed_methods.begin(), loc.allowed_methods.end(), method) != loc.allowed_methods.end())
-			return true;
+		auto methodPair = loc.allowed_methods.find(method);
+		if (methodPair != loc.allowed_methods.end())
+			return methodPair->second;
 
 		std::string parentPath = loc.root.substr(0, loc.root.find_last_of('/'));
 		if (parentPath.empty() || loc.root == config.default_location.root)
@@ -44,9 +46,15 @@ bool isAllowedMethodAt(t_server_config &config, const t_location location, Metho
 
 		loc = get_location(config, parentPath);
 
+		if (loc.root == "/" || loc.root.empty())
+			break;
+
 	} while (true);
 
-	return (std::find(config.default_location.allowed_methods.begin(), config.default_location.allowed_methods.end(), method) != config.default_location.allowed_methods.end());
+	auto foundLoc = config.default_location.allowed_methods.find(method);
+	if (foundLoc != config.default_location.allowed_methods.end())
+		return foundLoc->second;
+	return false; // default for all methods if no rule is defined
 }
 
 std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::string& path)
