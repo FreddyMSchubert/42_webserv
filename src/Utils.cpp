@@ -46,18 +46,28 @@ std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::str
 	return entries;
 }
 
+bool isSubroute(const std::string& route, const std::string& subroute)
+{
+	if (route.length() < subroute.length())
+		return false;
+	std::string sub = route.substr(0, subroute.length());
+	if (sub == subroute)
+		return std::filesystem::exists(route) && (std::filesystem::is_directory(route) || std::filesystem::is_regular_file(route));
+	return false;
+}
+
 // TODO: This function is not correct (we return empty location when going into a sub sub route)
 t_location get_location(t_server_config &config, std::string path)
 {
 	if (path[path.length() - 1] == '/')
 		path = path.substr(0, path.length() - 1);
 
-	if (config.default_location.root.length() >= path.length() && config.default_location.root.substr(config.default_location.root.length() - path.length(), config.default_location.root.length()) == path)
+	if (isSubroute(config.default_location.root, path))
 		return config.default_location;
 
 	for (t_location &location : config.locations)
 	{
-		if (location.root.length() >= path.length() && location.root.substr(location.root.length() - path.length(), location.root.length()) == path)
+		if (isSubroute(location.root, path))
 			return location;
 	}
 	return (t_location){{}, "", "", false, 0, false};

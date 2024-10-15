@@ -76,7 +76,7 @@ static void handle_dir_req(t_server_config &config, Response &response, Request 
 		return;
 	}
 
-	if (req.getPath().find(location.root) == 0)
+	if (isSubroute(location.root, req.getPath()))
 	{
 		if (!isAllowedMethodAt(location, Method::GET))
 		{
@@ -91,6 +91,13 @@ static void handle_dir_req(t_server_config &config, Response &response, Request 
 			return;
 		}
 	}
+	else
+	{
+		Logger::Log(LogLevel::WARNING, "GET: Not valid subroute");
+		response.setStatus(Status::NotFound);
+		return ;
+	}
+
 
 	std::cout << "Root: " << location.root << std::endl;
 
