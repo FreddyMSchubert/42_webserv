@@ -2,8 +2,8 @@
 
 #include "Enums.hpp"
 #include "Socket.hpp"
-#include "../include/Config.hpp"
-#include "../include/Logger.hpp"
+#include "Config.hpp"
+#include "Logger.hpp"
 
 #include <iostream>
 #include <vector>

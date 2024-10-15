@@ -11,6 +11,7 @@ enum class Method
 };
 
 enum class Status {
+	UNKNOWN = 0,
 	Continue = 100,
 	SwitchingProtocols = 101,
 	Processing = 102,

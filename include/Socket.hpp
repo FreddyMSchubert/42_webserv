@@ -14,11 +14,18 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <vector>
+#include <poll.h>
+#include <cstring>
+#include <algorithm>
+#include <exception>
+#include <string>
+
 #include "Packets/Response.hpp"
 #include "Packets/Request.hpp"
 #include "Settings.hpp"
-#include <poll.h>
-#include "../include/Config.hpp"
+#include "Config.hpp"
+#include "Logger.hpp"
+#include "Utils.hpp"
 
 class Socket
 {

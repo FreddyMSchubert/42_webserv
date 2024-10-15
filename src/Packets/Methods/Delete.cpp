@@ -1,8 +1,8 @@
-#include "../../../include/Packets/Request.hpp"
+#include "Response.hpp"
 
-void Request::handleDelete(t_server_config &config, Response &response)
+void Response::handleDelete(Request& req, t_server_config &config)
 {
 	(void)config;
-	(void)response;
+	(void)req;
 	std::cout << "DELETE request received" << std::endl;
 }

@@ -1,8 +1,8 @@
-#include "../../../include/Packets/Request.hpp"
+#include "Response.hpp"
 
-void Request::handlePost(t_server_config &config, Response &response)
+void Response::handlePost(Request& req, t_server_config &config)
 {
 	(void)config;
-	(void)response;
+	(void)req;
 	std::cout << "Handling POST request" << std::endl;
 }

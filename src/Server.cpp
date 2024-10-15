@@ -1,4 +1,4 @@
-#include "../include/Server.hpp"
+#include "Server.hpp"
 
 // TODO: function parameter configs are always const.. yes / no?
 

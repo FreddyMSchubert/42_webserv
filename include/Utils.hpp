@@ -1,11 +1,14 @@
 #pragma once
 
 #include "Config.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <exception>
 #include <filesystem>
+#include <algorithm>
+#include <vector>
 
 std::string getFileAsString(const std::string& path);
 bool isAllowedMethodAt(t_location &location, Method method);
