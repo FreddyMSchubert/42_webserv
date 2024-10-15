@@ -46,13 +46,13 @@ std::vector<t_server_config> init_testing_configs()
 	configs[1].default_location.client_max_body_size = 1000;
 	configs[2].default_location.client_max_body_size = 1000000;
 
-	configs[1].error_pages.push_back((t_error_page){404, (t_location){std::unordered_map<Method, bool>(), "./www/platformer/404", "404.html", false, 0, false}});
+	configs[1].error_pages.push_back((t_error_page){404, (t_location){std::unordered_map<Method, bool>(), "./www/platformer/404", "404.html", false, 0}});
 
 	configs[0].locations = std::vector<t_location>(2);
-	configs[0].locations[0] = (t_location){std::unordered_map<Method, bool>(), "./www/clicker/assets", "", true, 0, false};
-	configs[0].locations[0].allowed_methods[Method::GET] = true;
-	configs[0].locations[1] = (t_location){std::unordered_map<Method, bool>(), "./www/clicker/assets/particles", "", true, 0, false};
-	configs[0].locations[1].allowed_methods[Method::POST] = false;
+	configs[0].locations[0] = (t_location){std::unordered_map<Method, bool>(), "./www/clicker/assets", "", true, 0};
+	configs[0].locations[0].allowed_methods[Method::GET] = false;
+	configs[0].locations[1] = (t_location){std::unordered_map<Method, bool>(), "./www/clicker/assets/particles", "", true, 0};
+	configs[0].locations[1].allowed_methods[Method::GET] = true;
 
 	return configs;
 }

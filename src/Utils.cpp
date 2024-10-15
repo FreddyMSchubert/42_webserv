@@ -79,7 +79,7 @@ std::string getFilePathAsURLPath(std::string path, t_server_config &config)
 // Gets the location config of the path, respecting subdirs
 t_location get_location(t_server_config &config, std::string path)
 {
-	t_location loc = (t_location){{}, "", "", false, 0, false};
+	t_location loc = (t_location){{}, "", "", false, 0};
 
 	if (getFilePathAsURLPath(config.default_location.root, config) == path && std::filesystem::exists(config.default_location.root))
 		loc = config.default_location;

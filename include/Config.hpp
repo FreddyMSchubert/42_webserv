@@ -16,7 +16,6 @@ typedef struct s_location
 	std::string index;
 	bool directory_listing;
 	size_t client_max_body_size;
-	bool autoindex;
 	// std::vector<t_location> locations; // TODO: add this back later
 	bool empty() { return root.empty(); }
 } t_location;
@@ -27,7 +26,6 @@ inline std::ostream &operator<<(std::ostream &os, const t_location &location)
 	os << "Index: " << location.index << std::endl;
 	os << "Directory listing: " << location.directory_listing << std::endl;
 	os << "Client max body size: " << location.client_max_body_size << std::endl;
-	os << "Autoindex: " << location.autoindex << std::endl;
 	os << "Allowed methods: ";
 	for (auto &noolean : location.allowed_methods)
 		os << noolean.first << "(" << noolean.second << ")" << " ";

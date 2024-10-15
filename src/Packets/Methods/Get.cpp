@@ -62,7 +62,7 @@ static std::string get_dir_list_html(const std::string &current_path, const std:
 		if (entry.is_directory())
 			body += "<li>📂 <a href=\"" + entry.path().filename().string() + "/\">" + entry.path().filename().string() + "/</a></li>";
 		else
-			body += "<li>📄 <a href=\"" + entry.path().filename().string() + "\">" + entry.path().filename().string() + "</a></li>";
+			body += "<li>📄 <a target=\"_blank\" href=\"" + entry.path().filename().string() + "\">" + entry.path().filename().string() + "</a></li>";
 	}
 
 	body += R"(</ul></div><style>
