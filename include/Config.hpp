@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Enums.hpp"
+#include "Path.hpp"
 #include <cstddef>
 #include <iostream>
 #include <unordered_map>
@@ -12,13 +13,21 @@ typedef struct s_location t_location;
 typedef struct s_location 
 {
 	std::unordered_map<Method, bool> allowed_methods;
-	std::string root;
+	Path root;
 	std::string index;
 	bool directory_listing;
 	size_t client_max_body_size;
 	// std::vector<t_location> locations; // TODO: add this back later
-	bool empty() { return root.empty(); }
+	bool empty() { return root.getPathAs(Path::Type::FILESYSTEM).empty(); }
 } t_location;
+
+t_location LOCATION_EMPTY = {
+	.allowed_methods = std::unordered_map<Method, bool>(),
+	.root = Path(),
+	.index = "",
+	.directory_listing = false,
+	.client_max_body_size = 0
+};
 
 inline std::ostream &operator<<(std::ostream &os, const t_location &location)
 {

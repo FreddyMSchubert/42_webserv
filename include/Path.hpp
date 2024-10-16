@@ -5,11 +5,11 @@
 
 #include "Config.hpp"
 
-class Path
+class Path 
 {
 	private:
 		std::string		_path; // saved as URL type
-		t_server_config	_config;
+		t_server_config	&_config;
 
 	public:
 		enum class Type
@@ -18,10 +18,11 @@ class Path
 			URL
 		};
 
-		Path(const std::string& path, Type type, t_server_config config);
+		Path();
+		Path(std::string path, Type type, t_server_config &config);
 		~Path() = default;
-		Path(const Path& other) = default;
-		Path& operator=(const Path& other) = default;
+		Path(const Path& other);
+		Path& operator=(const Path& other);
 
 		std::string getPathAs(const Type& type) const;
 		std::vector<std::filesystem::directory_entry> getDirectoryEntries();
@@ -29,6 +30,15 @@ class Path
 		void goUpOneDir();
 		void goDownIntoDir(const std::string& dir);
 
+		size_t size() const;
+		bool empty() const;
+
+		static std::string combinePaths(const std::string& path1, const std::string& path2);
+
+		std::string operator+(const std::string& other) const;
+		bool operator==(const Path& other) const;
+		bool operator!=(const Path& other) const;
 };
 
-std::string combinePaths(const std::string& path1, const std::string& path2);
+std::ostream &operator<<(std::ostream &os, const Path &path);
+
