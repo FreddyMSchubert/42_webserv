@@ -57,6 +57,14 @@ std::vector<t_server_config> init_testing_configs()
 	return configs;
 }
 
+bool run = true;
+
+void signalHandler(int signum)
+{
+	Logger::Log(LogLevel::INFO, "Interrupt signal (" + std::to_string(signum) + ") received. Exiting...");
+	run = false;
+}
+
 int main(int argc, char *argv[])
 {
 	if (argc > 2)
@@ -67,6 +75,10 @@ int main(int argc, char *argv[])
 
 	srand(time(NULL));
 
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
+
+
 	std::vector<t_server_config> configs = init_testing_configs(); // TODO: config parsing
 	std::vector<Server> servers;
 
@@ -75,7 +87,7 @@ int main(int argc, char *argv[])
 		for (auto &config : configs)
 			servers.emplace_back(config);
 
-		while (true)
+		while (run)
 			for (auto &server : servers)
 				server.Run();
 	}
