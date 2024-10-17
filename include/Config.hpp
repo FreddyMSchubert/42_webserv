@@ -3,9 +3,52 @@
 #include "Enums.hpp"
 #include <cstddef>
 #include <iostream>
-#include <unordered_map>
 #include <vector>
+#include <map>
+#include <unordered_map>
 #include <string>
+
+typedef struct s_llocation
+{
+	std::string					path;					// The URI path for the location (e.g., "/", "/upload", "/kapouet")
+	std::string					root_dir;				// The root directory for file search (e.g., /var/www/html or /tmp/www)
+	std::vector<std::string>	allowed_methods;		// List of accepted HTTP methods (e.g., {"GET", "POST"})
+	bool						autoindex;				// Flag to enable or disable directory listing (e.g., true/false)
+	std::string					index_file;				// Default file to serve if the path is a directory (e.g., "index.html")
+	std::map<int, std::string>	cgi_extensions;			// Map of file extensions and the corresponding handler (e.g., ".php" -> "/path/to/php-cgi")
+	std::string					cgi_pass;				// CGI handler or FastCGI socket (e.g., "unix:/var/run/php/php-fpm.sock")
+	std::string					redirect_url;			// URL for redirection if applicable (e.g., "/new-path")
+	int							redirect_code;			// HTTP status code for redirection (e.g., 301)
+	size_t						max_body_size;			// Maximum body size for uploads (e.g., 10MB)
+	std::string					upload_dir;				// Directory to save uploaded files (e.g., "/var/www/uploads")
+	bool						limit_except_enabled;	// Flag to enable/disable method restriction (e.g., true/false)
+}   t_llocation;
+
+
+typedef struct s_eerror_pages
+{
+	std::map<int, std::string>	error_pages;
+}	t_eerror_pages;
+
+typedef struct s_sserver
+{
+	int							port;
+	std::vector<std::string> 	server_name;
+	std::string					root_dir;
+	std::vector<std::string>	index_files;
+	size_t						client_max_body_size;
+	t_eerror_pages				error_pages;
+	std::vector<t_llocation>		location;
+}	t_sserver;
+
+typedef struct s_sserver_config
+{
+	std::vector<t_sserver> server_list;
+}	t_sserver_config;
+
+
+std::vector<t_sserver_config>    get_config(bool use_own_conf, char *argv[]);
+//----------------------------------------------------------------
 
 typedef struct s_location t_location;
 

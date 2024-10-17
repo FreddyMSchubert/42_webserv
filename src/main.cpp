@@ -67,35 +67,34 @@ void signalHandler(int signum)
 
 int main(int argc, char *argv[])
 {
-	if (argc > 2)
-	{
-		std::cerr << "Usage: " << argv[0] << " [config_file]" << std::endl;
-		return 1;
-	}
+	if (argc == 1)
+		std::vector<t_sserver_config> configs = get_config(true, argv);
+	else if (argc == 2)
+		std::vector<t_sserver_config> configs = get_config(true, argv);
+	else
+		std::cerr << "Either use ./webserv to use the default.conf or ./webserv <your_conf>" << std::endl;
 
 	srand(time(NULL));
 
-	signal(SIGINT, signalHandler);
-	signal(SIGTERM, signalHandler);
+	// signal(SIGINT, signalHandler);
+	// signal(SIGTERM, signalHandler);
 
+	// std::vector<Server> servers;
 
-	std::vector<t_server_config> configs = init_testing_configs(); // TODO: config parsing
-	std::vector<Server> servers;
+	// try
+	// {
+	// 	for (auto &config : configs)
+	// 		servers.emplace_back(config);
 
-	try
-	{
-		for (auto &config : configs)
-			servers.emplace_back(config);
-
-		while (run)
-			for (auto &server : servers)
-				server.Run();
-	}
-	catch(const std::exception& e)
-	{
-		Logger::Log(LogLevel::ERROR, e.what());
-		return 1;
-	}
+	// 	while (run)
+	// 		for (auto &server : servers)
+	// 			server.Run();
+	// }
+	// catch(const std::exception& e)
+	// {
+	// 	Logger::Log(LogLevel::ERROR, e.what());
+	// 	return 1;
+	// }
 
 	return 0;
 }
