@@ -1,8 +1,9 @@
 #include "Path.hpp"
 #include "Config.hpp"
+#include <stdexcept>
 
-Path::Path(std::string path, Type type, t_server_config &config)
-	: _path(""), _config(config)
+Path::Path(std::string path, Type type, t_server_config *config)
+	: _config(config)
 {
 	if (path.find("./") != std::string::npos)
 		throw std::runtime_error("Path: Path contains ./");
@@ -25,18 +26,20 @@ Path::Path(std::string path, Type type, t_server_config &config)
 		throw std::runtime_error("Path: Path does not exist");
 }
 
-std::string Path::getPathAs(const Type& type) const
+std::string Path::url() const
 {
-	if (type == Type::URL)
-		return _path;
-	else
-		return _config.default_location.root + _path;
+	return _path;
+}
+
+std::string Path::path() const
+{
+	return _config.default_location.root + _path;
 }
 
 std::vector<std::filesystem::directory_entry> Path::getDirectoryEntries()
 {
 	std::vector<std::filesystem::directory_entry> entries;
-	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(getPathAs(Type::FILESYSTEM)))
+	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path()))
 		entries.push_back(entry);
 	return entries;
 }
@@ -52,6 +55,9 @@ void Path::goUpOneDir()
 
 void Path::goDownIntoDir(const std::string& dir)
 {
+	if (!config)
+		throw std::runtime_error("Path: goDownIntoDir: config is nullptr");
+
 	if (dir.find('/') != std::string::npos)
 		throw std::runtime_error("Path: goDownIntoDir: dir contains /");
 
@@ -73,6 +79,13 @@ std::string Path::combinePaths(const std::string& path1, const std::string& path
 		return path1 + path2;
 }
 
+void Path::setConfig(t_server_config *config)
+{
+	_config = config;
+	if (!config)
+		Logger::Log(LogType::WARNING, "Path: setConfig: config set as nullptr");
+}
+
 Path::Path(const Path& other) : _path(other._path), _config(other._config) { }
 
 Path& Path::operator=(const Path& other)
@@ -84,14 +97,9 @@ Path& Path::operator=(const Path& other)
 	return *this;
 }
 
-size_t Path::size() const
-{
-	return _path.size();
-}
-
 std::ostream &operator<<(std::ostream &os, const Path &path)
 {
-	return (os << path.getPathAs(Path::Type::URL));
+	return (os << path.url());
 }
 
 std::string Path::operator+(const std::string& other) const
@@ -114,4 +122,5 @@ bool Path::operator!=(const Path& other) const
 	return _path != other._path;
 }
 
-Path::Path() : _path(""), _config({}) { }
+Path::Path() : _path(""), _config(nullptr) { }
+

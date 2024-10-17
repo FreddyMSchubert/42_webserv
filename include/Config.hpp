@@ -21,7 +21,7 @@ typedef struct s_location
 	bool empty() { return root.getPathAs(Path::Type::FILESYSTEM).empty(); }
 } t_location;
 
-t_location LOCATION_EMPTY = {
+static t_location LOCATION_EMPTY = {
 	.allowed_methods = std::unordered_map<Method, bool>(),
 	.root = Path(),
 	.index = "",
