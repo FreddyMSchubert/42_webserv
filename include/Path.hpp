@@ -21,7 +21,7 @@ class Path : public std::string
 		};
 
 		Path();
-		Path(std::string path, Type type, t_server_config &config);
+		Path(std::string path, Type type, t_server_config *config);
 		~Path() = default;
 		Path(const Path& other);
 		Path& operator=(const Path& other);

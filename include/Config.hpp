@@ -8,7 +8,7 @@
 #include <vector>
 #include <string>
 
-typedef struct s_location t_location;
+// typedef struct s_location t_location;
 
 typedef struct s_location 
 {
@@ -18,7 +18,7 @@ typedef struct s_location
 	bool directory_listing;
 	size_t client_max_body_size;
 	// std::vector<t_location> locations; // TODO: add this back later
-	bool empty() { return root.getPathAs(Path::Type::FILESYSTEM).empty(); }
+	bool empty() { return root.path().empty(); }
 } t_location;
 
 static t_location LOCATION_EMPTY = {

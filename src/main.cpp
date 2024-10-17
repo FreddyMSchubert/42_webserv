@@ -27,9 +27,9 @@ std::vector<t_server_config> init_testing_configs()
 	configs[1].default_location.allowed_methods[Method::POST] = true;
 	configs[2].default_location.allowed_methods[Method::GET] = true;
 
-	configs[0].default_location.root = Path("./www/clicker", Path::Type::FILESYSTEM, configs[0]);
-	configs[1].default_location.root = Path("./www/platformer", Path::Type::FILESYSTEM, configs[1]);
-	configs[2].default_location.root = Path("./www/tetris", Path::Type::FILESYSTEM, configs[2]);
+	configs[0].default_location.root = Path("./www/clicker", Path::Type::FILESYSTEM, &(configs[0]));
+	configs[1].default_location.root = Path("./www/platformer", Path::Type::FILESYSTEM, &(configs[1]));
+	configs[2].default_location.root = Path("./www/tetris", Path::Type::FILESYSTEM, &(configs[2]));
 
 	configs[0].default_location.index = "/index.html";
 	configs[1].default_location.index = "/index.html";
@@ -43,13 +43,13 @@ std::vector<t_server_config> init_testing_configs()
 	configs[1].default_location.client_max_body_size = 1000;
 	configs[2].default_location.client_max_body_size = 1000000;
 
-	configs[1].error_pages.push_back((t_error_page){404, (t_location){std::unordered_map<Method, bool>(), Path("./www/platformer/404", Path::Type::FILESYSTEM, configs[1]), "404.html", false, 0}});
+	configs[1].error_pages.push_back((t_error_page){404, (t_location){std::unordered_map<Method, bool>(), Path("./www/platformer/404", Path::Type::FILESYSTEM, &(configs[1])), "404.html", false, 0}});
 
 	configs[0].locations = std::vector<t_location>(2);
 
-	configs[0].locations[0] = (t_location){std::unordered_map<Method, bool>(), Path("./www/clicker/assets", Path::Type::FILESYSTEM, configs[0]), "", true, 0};
+	configs[0].locations[0] = (t_location){std::unordered_map<Method, bool>(), Path("./www/clicker/assets", Path::Type::FILESYSTEM, &(configs[0])), "", true, 0};
 	configs[0].locations[0].allowed_methods[Method::GET] = false;
-	configs[0].locations[1] = (t_location){std::unordered_map<Method, bool>(), Path("./www/clicker/assets/particles", Path::Type::FILESYSTEM, configs[0]), "", true, 0};
+	configs[0].locations[1] = (t_location){std::unordered_map<Method, bool>(), Path("./www/clicker/assets/particles", Path::Type::FILESYSTEM, &(configs[0])), "", true, 0};
 	configs[0].locations[1].allowed_methods[Method::GET] = true;
 
 	return configs;

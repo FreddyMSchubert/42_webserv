@@ -21,7 +21,7 @@ void Response::handle_file_req(t_server_config &config, Request &req)
 
 	try
 	{
-		std::string file = getFileAsString(config.default_location.root.getPathAs(Path::Type::FILESYSTEM) + path);
+		std::string file = getFileAsString(config.default_location.root.path() + path);
 		addHeader("Content-Length", std::to_string(file.size()));
 		std::string fileName = path.substr(path.find_last_of('/') + 1);
 		addHeader("Content-Type", getMimeType(fileName) + "; charset=UTF-8");
@@ -110,7 +110,7 @@ void Response::handle_dir_req(t_server_config &config, Request &req)
 		return;
 	}
 
-	if (!isAllowedMethodAt(config, location.root.getPathAs(Path::Type::URL), Method::GET))
+	if (!isAllowedMethodAt(config, location.root.url(), Method::GET))
 	{
 		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
 		setStatus(Status::MethodNotAllowed);
@@ -126,7 +126,7 @@ void Response::handle_dir_req(t_server_config &config, Request &req)
 
 	std::cout << "Root: " << location.root << std::endl;
 
-	std::vector<std::filesystem::directory_entry> entries = getDirectoryEntries(config.default_location.root.getPathAs(Path::Type::FILESYSTEM) + req.getPath());
+	std::vector<std::filesystem::directory_entry> entries = getDirectoryEntries(config.default_location.root.path() + req.getPath());
 
 	std::string body = get_dir_list_html(req.getPath(), entries);
 
