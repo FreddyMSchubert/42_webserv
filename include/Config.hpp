@@ -7,6 +7,8 @@
 #include <map>
 #include <unordered_map>
 #include <string>
+#include <fstream>
+#include <regex>
 
 typedef struct s_llocation
 {
@@ -24,7 +26,6 @@ typedef struct s_llocation
 	bool						limit_except_enabled;	// Flag to enable/disable method restriction (e.g., true/false)
 }   t_llocation;
 
-
 typedef struct s_eerror_pages
 {
 	std::map<int, std::string>	error_pages;
@@ -32,22 +33,23 @@ typedef struct s_eerror_pages
 
 typedef struct s_sserver
 {
+	std::vector<std::string>	each_server;
 	int							port;
 	std::vector<std::string> 	server_name;
 	std::string					root_dir;
 	std::vector<std::string>	index_files;
 	size_t						client_max_body_size;
 	t_eerror_pages				error_pages;
-	std::vector<t_llocation>		location;
+	std::vector<t_llocation>	location;
 }	t_sserver;
 
-typedef struct s_sserver_config
+typedef struct s_sserver_configs
 {
 	std::vector<t_sserver> server_list;
-}	t_sserver_config;
+}	t_sserver_configs;
 
 
-std::vector<t_sserver_config>    get_config(bool use_own_conf, char *argv[]);
+t_sserver_configs    get_config(bool use_own_conf, char *argv[]);
 //----------------------------------------------------------------
 
 typedef struct s_location t_location;
