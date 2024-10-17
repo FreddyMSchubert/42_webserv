@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <vector>
 
-#include "Config.hpp"
+struct s_server_config typedef t_server_config;
 
 class Path : public std::string
 {

@@ -39,7 +39,7 @@ std::string Path::path() const
 {
 	if (!_config)
 		throw std::runtime_error("Path: path: config is nullptr");
-	return _config->default_location.root + _path;
+	return combinePaths(_config->default_location.root, _path);
 }
 
 std::vector<std::filesystem::directory_entry> Path::getDirectoryEntries()
