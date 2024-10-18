@@ -28,12 +28,15 @@ typedef struct s_llocation
 
 typedef struct s_eerror_pages
 {
-	std::map<int, std::string>	error_pages;
+	std::map<int, std::string>	error_pages_100;
+	std::map<int, std::string>	error_pages_200;
+	std::map<int, std::string>	error_pages_300;
+	std::map<int, std::string>	error_pages_400;
+	std::map<int, std::string>	error_pages_500;
 }	t_eerror_pages;
 
 typedef struct s_sserver
 {
-	std::vector<std::string>	each_server;
 	int							port;
 	std::vector<std::string> 	server_name;
 	std::string					root_dir;
@@ -49,7 +52,7 @@ typedef struct s_sserver_configs
 }	t_sserver_configs;
 
 
-t_sserver_configs    get_config(bool use_own_conf, char *argv[]);
+t_sserver_configs    get_config(char *argv[]);
 //----------------------------------------------------------------
 
 typedef struct s_location t_location;

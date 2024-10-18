@@ -15,10 +15,8 @@ void signalHandler(int signum)
 
 int main(int argc, char *argv[])
 {
-	if (argc == 1)
-		t_sserver_configs configs = get_config(true, argv);
-	else if (argc == 2)
-		t_sserver_configs configs = get_config(false, argv);
+	if (argc == 1 || argc == 2)
+		t_sserver_configs configs = get_config(argv);
 	else
 		std::cerr << "Either use ./webserv to use the default.conf or ./webserv <your_conf>" << std::endl;
 
