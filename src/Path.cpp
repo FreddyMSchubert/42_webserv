@@ -1,8 +1,10 @@
 #include "Path.hpp"
 #include "Config.hpp"
 #include "Logger.hpp"
+#include <algorithm>
 #include <cstddef>
 #include <stdexcept>
+#include <string>
 
 Path::Path(std::string path, Type type, t_server_config *config)
 {
@@ -11,11 +13,21 @@ Path::Path(std::string path, Type type, t_server_config *config)
 	_config = config;
 
 	if (path.find("./") != std::string::npos)
-		throw std::runtime_error("Path: Path contains ./");
+		throw std::runtime_error("Path: Path contains ./ : " + path);
 	if (path.find_last_of('/') != path.size() - 1)
-		throw std::runtime_error("Path: Path does not end with /");
-	if (_path.find_first_of('/') != 0)
-		throw std::runtime_error("Path: Path does not start with /");
+		throw std::runtime_error("Path: Path does not end with / : " + path);
+	if (_path.std::find_first_of('/') != 0) // FIXME: this is weird becuase it flags the path as not starting with a / even if it clearly does
+	{
+		for (char &c : path)
+			std::cout << c;
+		std::cout << std::endl;
+		for (long unsigned int i = 0; i < _path.length(); i++)
+			std::cout << _path[i] << std::endl;
+		std::cout << std::endl;
+		std::cout << _path.find_first_of('/') << std::endl;
+		std::cout << std::string::npos << std::endl;
+		throw std::runtime_error("Path: Path does not start with / : " + path);
+	}
 
 	if (type == Type::URL)
 		_path = path;
