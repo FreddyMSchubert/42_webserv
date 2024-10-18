@@ -6,40 +6,26 @@
 #include <stdexcept>
 #include <string>
 
-Path::Path(std::string path, Type type, t_server_config *config)
+Path::Path(std::string path, Type type, t_server_config &config) : _config(config)
 {
-	if (!config)
-		throw std::runtime_error("Path: config is nullptr");
-	_config = config;
-
 	if (path.find("./") != std::string::npos)
 		throw std::runtime_error("Path: Path contains ./ : " + path);
 	if (path.find_last_of('/') != path.size() - 1)
 		throw std::runtime_error("Path: Path does not end with / : " + path);
-	if (_path.std::find_first_of('/') != 0) // FIXME: this is weird becuase it flags the path as not starting with a / even if it clearly does
-	{
-		for (char &c : path)
-			std::cout << c;
-		std::cout << std::endl;
-		for (long unsigned int i = 0; i < _path.length(); i++)
-			std::cout << _path[i] << std::endl;
-		std::cout << std::endl;
-		std::cout << _path.find_first_of('/') << std::endl;
-		std::cout << std::string::npos << std::endl;
+	if (path.find_first_of("/") != 0) // FIXME: this is weird becuase it flags the path as not starting with a / even if it clearly does
 		throw std::runtime_error("Path: Path does not start with / : " + path);
-	}
 
 	if (type == Type::URL)
 		_path = path;
 	else
 	{
 		// Convert filesystem path to URL
-		if (path.find(_config->default_location.root.path()) != 0)
+		if (path.find(_config.default_location.root.path()) != 0)
 			throw std::runtime_error("Path: Path is not in the configs root directory");
-		_path = path.substr(_config->default_location.root.size(), path.size());
+		_path = path.substr(_config.default_location.root.size(), path.size());
 	}
 
-	if (!std::filesystem::exists(Path::combinePaths(_config->default_location.root.path(), _path)))
+	if (!std::filesystem::exists(Path::combinePaths(_config.default_location.root.path(), _path)))
 		throw std::runtime_error("Path: Path does not exist");
 }
 
@@ -50,9 +36,9 @@ std::string Path::url() const
 
 std::string Path::path() const
 {
-	if (!_config)
-		throw std::runtime_error("Path: path: config is nullptr");
-	return combinePaths(_config->default_location.root.path(), _path);
+	// if (!_config)
+	// 	throw std::runtime_error("Path: path: config is nullptr");
+	return combinePaths(_config.default_location.root.url(), _path);
 }
 
 std::vector<std::filesystem::directory_entry> Path::getDirectoryEntries()
@@ -74,14 +60,11 @@ void Path::goUpOneDir()
 
 void Path::goDownIntoDir(const std::string& dir)
 {
-	if (!_config)
-		throw std::runtime_error("Path: goDownIntoDir: config is nullptr");
-
 	if (dir.find('/') != std::string::npos)
 		throw std::runtime_error("Path: goDownIntoDir: dir contains /");
 
 	std::string new_path = _path + dir + (dir.back() == '/' ? "" : "/");
-	std::string new_path_filesystem = Path::combinePaths(_config->default_location.root.path(), new_path);
+	std::string new_path_filesystem = Path::combinePaths(_config.default_location.root.path(), new_path);
 	if (!std::filesystem::exists(new_path_filesystem))
 		throw std::runtime_error("Path: goDownIntoDir: Directory does not exist");
 	_path = new_path;
@@ -98,17 +81,15 @@ std::string Path::combinePaths(const std::string& path1, const std::string& path
 		return path1 + path2;
 }
 
-void Path::setConfig(t_server_config *config)
+void Path::setConfig(t_server_config &config)
 {
 	_config = config;
-	if (!_config)
-		Logger::Log(LogLevel::WARNING, "Path: setConfig: config set as nullptr");
+	// if (!_config)
+	// 	Logger::Log(LogLevel::WARNING, "Path: setConfig: config set as nullptr");
 }
 
-Path::Path(const Path& other)
+Path::Path(const Path& other) : _path(std::string(other._path)), _config(*new t_server_config())
 {
-	_path = std::string(other._path);
-	_config = other._config;
 }
 
 Path& Path::operator=(const Path& other)
@@ -145,7 +126,9 @@ bool Path::operator!=(const Path& other) const
 	return _path != other._path;
 }
 
-Path::Path() : _path(""), _config(nullptr) { }
+Path::Path() : _path(""), _config(*new t_server_config())
+{
+}
 
 size_t Path::size() const
 {
