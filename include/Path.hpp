@@ -1,12 +1,13 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <filesystem>
 #include <vector>
 
 struct s_server_config typedef t_server_config;
 
-class Path : public std::string
+class Path
 {
 	private:
 		std::string		_path; // saved as URL type
@@ -35,6 +36,7 @@ class Path : public std::string
 		std::string raw() const;
 		std::string path() const;
 		std::string url() const;
+		size_t size() const;
 
 		void setConfig(t_server_config *config);
 

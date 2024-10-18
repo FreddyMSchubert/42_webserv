@@ -26,7 +26,7 @@ bool isAllowedMethodAt(t_server_config &config, std::string path, Method method)
 		if (path.back() == '/')
 			path.pop_back();
 		path = path.substr(0, path.find_last_of('/'));
-		if (path.empty() || path == config.default_location.root)
+		if (path.empty() || path == config.default_location.root.path())
 			break;
 	};
 

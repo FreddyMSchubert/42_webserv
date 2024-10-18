@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <vector>
+#include <signal.h>
 
 std::vector<t_server_config> init_testing_configs()
 {

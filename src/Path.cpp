@@ -1,6 +1,7 @@
 #include "Path.hpp"
 #include "Config.hpp"
 #include "Logger.hpp"
+#include <cstddef>
 #include <stdexcept>
 
 Path::Path(std::string path, Type type, t_server_config *config)
@@ -21,12 +22,12 @@ Path::Path(std::string path, Type type, t_server_config *config)
 	else
 	{
 		// Convert filesystem path to URL
-		if (path.find(_config->default_location.root) != 0)
+		if (path.find(_config->default_location.root.path()) != 0)
 			throw std::runtime_error("Path: Path is not in the configs root directory");
 		_path = path.substr(_config->default_location.root.size(), path.size());
 	}
 
-	if (!std::filesystem::exists(Path::combinePaths(_config->default_location.root, _path)))
+	if (!std::filesystem::exists(Path::combinePaths(_config->default_location.root.path(), _path)))
 		throw std::runtime_error("Path: Path does not exist");
 }
 
@@ -39,7 +40,7 @@ std::string Path::path() const
 {
 	if (!_config)
 		throw std::runtime_error("Path: path: config is nullptr");
-	return combinePaths(_config->default_location.root, _path);
+	return combinePaths(_config->default_location.root.path(), _path);
 }
 
 std::vector<std::filesystem::directory_entry> Path::getDirectoryEntries()
@@ -68,7 +69,7 @@ void Path::goDownIntoDir(const std::string& dir)
 		throw std::runtime_error("Path: goDownIntoDir: dir contains /");
 
 	std::string new_path = _path + dir + (dir.back() == '/' ? "" : "/");
-	std::string new_path_filesystem = Path::combinePaths(_config->default_location.root, new_path);
+	std::string new_path_filesystem = Path::combinePaths(_config->default_location.root.path(), new_path);
 	if (!std::filesystem::exists(new_path_filesystem))
 		throw std::runtime_error("Path: goDownIntoDir: Directory does not exist");
 	_path = new_path;
@@ -92,7 +93,11 @@ void Path::setConfig(t_server_config *config)
 		Logger::Log(LogLevel::WARNING, "Path: setConfig: config set as nullptr");
 }
 
-Path::Path(const Path& other) : _path(other._path), _config(other._config) { }
+Path::Path(const Path& other)
+{
+	_path = std::string(other._path);
+	_config = other._config;
+}
 
 Path& Path::operator=(const Path& other)
 {
@@ -129,4 +134,9 @@ bool Path::operator!=(const Path& other) const
 }
 
 Path::Path() : _path(""), _config(nullptr) { }
+
+size_t Path::size() const
+{
+	return _path.size();
+}
 
