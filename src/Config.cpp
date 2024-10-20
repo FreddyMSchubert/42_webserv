@@ -68,6 +68,11 @@ void split_conf_in_server(std::vector<std::vector<std::string>>& preprocessed_se
 
 			while (start_of_server <= end_of_server)
 			{
+				if (check_if_search_str_in_src_str(conf[start_of_server], " \t\n\r"))
+				{
+					start_of_server++;
+					continue ;
+				}
 				server_string.push_back(conf[start_of_server]);
 				start_of_server++;
 			}
@@ -78,8 +83,65 @@ void split_conf_in_server(std::vector<std::vector<std::string>>& preprocessed_se
 	}
 }
 
+void	parse_except(std::string cause)
+{
+	Parsing_Exception exception(cause);
+
+	std::cerr << exception.get_example_conf() << "\nTake this as a valid reference.\nError:" << std::endl;
+	throw exception;
+}
+
+void	init_location(std::vector<std::string> location_block, t_sserver& server)
+{
+	
+}
+
+void	init_error_pages(std::string str, t_sserver& server)
+{
+	(void)str;
+	(void)server;
+}
+
+void	init_client_max_body_size(std::string str, t_sserver& server)
+{
+	(void)str;
+	(void)server;
+}
+
+void	init_index_files(std::string str, t_sserver& server)
+{
+	(void)str;
+	(void)server;
+}
+
+void	init_root_dir(std::string str, t_sserver& server)
+{
+	(void)str;
+	(void)server;
+}
+
+void	init_server_name(std::string str, t_sserver& server)
+{
+	(void)str;
+	(void)server;
+}
+
+void	init_port(std::string str, t_sserver& server)
+{
+	std::regex pattern(R"(^listen\s+(\d+)\s+default_server;\s*$)");
+	std::cout << str << std::endl;
+	if (std::regex_match(str, pattern) == false)
+		parse_except("Expected 'listen <port> default' but didnt find it where it was expected!");
+	
+}
+
+// need to code all the other function
+//need location
+//check docker again!
 void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t_sserver_configs& tmp_serv_conf)
 {
+	std::vector<std::function<void(std::string, t_sserver&)>> init_functions = {init_port, init_server_name, init_root_dir, init_index_files, init_client_max_body_size, init_error_pages};
+
 	for (size_t server_idx = 0; server_idx < preprocessed_servers.size(); ++server_idx)
 	{
 		t_sserver server;
@@ -89,14 +151,17 @@ void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t
 		for (size_t i = 0; i < current_server.size(); ++i)
 		{
 			std::string& line = current_server[i];
-			if (check_if_search_str_in_src_str(line, "location /"))
+			if (i <= init_functions.size())
 			{
-				// location();
-				std::cout << "Found location block: " << line << std::endl;
-				continue;
+				init_functions[i](line, server);
+				continue ;
 			}
-			if (check_if_search_str_in_src_str(line, " \t\n\r"))
-				continue;
+			// if (check_if_search_str_in_src_str(line, "location /") == true)
+			// {
+			// 	// location();
+			// 	// std::cout << "Found location block: " << line << std::endl;
+			// 	continue;
+			// }
 		}
 		tmp_serv_conf.server_list.push_back(server);
 	}

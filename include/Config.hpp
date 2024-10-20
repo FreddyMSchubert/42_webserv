@@ -9,6 +9,58 @@
 #include <string>
 #include <fstream>
 #include <regex>
+#include <exception>
+
+class	Parsing_Exception : public std::exception
+{
+	private:
+		std::string error_message;
+
+		const std::string example_conf = R"(server {
+		listen 80 default_server;
+		server_name _;
+
+		root /var/www/html;
+		index index.html;
+
+		client_max_body_size 10M;
+
+		error_page 404 /404.html;
+		error_page 500 502 503 504 /50x.html;
+
+		location /
+		{
+			try_files $uri $uri/ =404;
+			limit_except GET POST { deny all }
+			autoindex off;
+			root /var/www/html;
+			fastcgi_pass unix:/var/run/php/php-fpm.sock;
+			client_max_body_size 10M;
+		}
+
+		location /upload
+		{
+			autoindex on;
+			client_max_body_size 20M;
+			root /var/www/uploads;
+			index index.html;
+		}
+	})";
+
+	public:
+
+		Parsing_Exception(const std::string& message) : error_message(message) {}
+
+		const char* what() const noexcept override
+		{
+			return (error_message.c_str());
+		}
+
+		const std::string& get_example_conf() const
+		{
+			return (example_conf);
+		}
+};
 
 typedef struct s_llocation
 {

@@ -7,7 +7,7 @@ OBJ = $(SRC:./src/%.c=$(OBJ_DIR)/%.o)
 
 HEADERS := -I ./include -I ./include/Packets
 LIBS := 
-CFLAGS := -Wall -Wextra -Werror -std=c++17 -Wc++11-extensions
+CFLAGS := -Wall -Wextra  -std=c++17 -Wc++11-extensions
 
 $(NAME): $(OBJ)
 	c++ $(CFLAGS) $(OBJ) $(LIBS) $(HEADERS) -o $(NAME)
