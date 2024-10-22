@@ -1,4 +1,8 @@
 #include "../include/Config.hpp"
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <cctype>
 
 std::vector<std::string> read_file(const std::string& path_to_conf)
 {
@@ -91,69 +95,165 @@ void	parse_except(std::string cause)
 	throw exception;
 }
 
-void	init_location(std::vector<std::string> location_block, t_sserver& server)
+std::string skip_until_value(std::string& original_str, std::string skip)
 {
-	
+    const char *c_original_str = original_str.c_str();
+    
+    while (*c_original_str && std::isspace(*c_original_str))
+        ++c_original_str;
+    if (std::strncmp(c_original_str, skip.c_str(), skip.length()) == 0)
+        c_original_str += skip.length();
+    while (*c_original_str && std::isspace(*c_original_str))
+        ++c_original_str;
+    size_t index = c_original_str - original_str.c_str();
+    return (original_str.substr(index));
 }
 
-void	init_error_pages(std::string str, t_sserver& server)
+void	init_location(std::vector<std::string> location_block, t_sserver& server, int& iter)
 {
-	(void)str;
+	(void)location_block;
+	(void)iter;
 	(void)server;
 }
 
-void	init_client_max_body_size(std::string str, t_sserver& server)
+void	init_error_pages(std::string str, t_sserver& server, int& iter)
 {
 	(void)str;
+	(void)iter;
 	(void)server;
 }
 
-void	init_index_files(std::string str, t_sserver& server)
+void	init_client_max_body_size(std::string str, t_sserver& server, int& iter)
 {
-	(void)str;
-	(void)server;
-}
+	std::regex pattern(R"(^\s*client_max_body_size\s+[^;]*;\s*$)");
 
-void	init_root_dir(std::string str, t_sserver& server)
-{
-	(void)str;
-	(void)server;
-}
-
-void	init_server_name(std::string str, t_sserver& server)
-{
-	(void)str;
-	(void)server;
-}
-
-void	init_port(std::string str, t_sserver& server)
-{
-	std::regex pattern(R"(^listen\s+(\d+)\s+default_server;\s*$)");
-	std::cout << str << std::endl;
 	if (std::regex_match(str, pattern) == false)
-		parse_except("Expected 'listen <port> default' but didnt find it where it was expected!");
+	{
+		server.client_max_body_size = 1;
+		iter--;
+		return ;
+	}
+	std::string tmp_size = skip_until_value(str, "client_max_body_size");
+	std::string	str_for_atoi;
+	for (char c : tmp_size)
+	{
+		if (std::isdigit(c))
+			str_for_atoi += c;
+		else
+			break ;
+	}
+	server.client_max_body_size = std::atoi(str_for_atoi.c_str());	
+}
+
+std::vector<std::string> split(const std::string& str, char delimiter)
+{
+    std::vector<std::string> tokens;
+    std::string token;
+    size_t start = 0, end = 0;
+
+    while ((end = str.find(delimiter, start)) != std::string::npos)
+	{
+        token = str.substr(start, end - start);
+        tokens.push_back(token);
+        start = end + 1;
+    }
+    
+    tokens.push_back(str.substr(start));
+    return (tokens);
+}
+
+void	init_index_files(std::string str, t_sserver& server, int& iter)
+{
+	std::regex pattern(R"(^\s*index\s+[^;]*;\s*$)");
+	(void)iter;
+	if (std::regex_match(str, pattern) == false)
+		parse_except("Expected 'index <indexfiles>;' but didnt find it where it was expected!");
 	
+	std::string					tmp_str = skip_until_value(str, "index");
+	std::vector<std::string>	tmp_index;
+	tmp_index = split(tmp_str, ' ');
+	tmp_index.erase(
+	std::remove_if(tmp_index.begin(), tmp_index.end(),
+					[](const std::string& name) {
+						return name.empty() || std::all_of(name.begin(), name.end(), ::isspace);
+					}),
+	tmp_index.end());
+	server.index_files = tmp_index;
+}
+
+void	init_root_dir(std::string str, t_sserver& server, int& iter)
+{
+	std::regex pattern(R"(^\s*root\s+[^;]*;\s*$)");
+	(void)iter;
+	if (std::regex_match(str, pattern) == false)
+		parse_except("Expected 'root <rootdirectory>;' but didnt find it where it was expected!");
+	
+	std::string tmp_root = skip_until_value(str, "root");
+	int			i = 0;
+	for (const auto& c : tmp_root)
+		if (isalpha(static_cast<unsigned char>(c)) || c == '/')
+			i++;
+	server.root_dir = tmp_root.substr(i);
+}
+
+void	init_server_name(std::string str, t_sserver& server, int& iter)
+{
+	std::regex pattern(R"(^\s*server_name\s+[^;]*;\s*$)");
+	(void)iter;
+	if (std::regex_match(str, pattern) == false)
+		parse_except("Expected 'server_name <variables>;' but didnt find it where it was expected!");
+	
+	std::string					tmp_str = skip_until_value(str, "server_name");
+	std::vector<std::string>	names;
+	names = split(tmp_str, ' ');
+	names.erase(
+	std::remove_if(names.begin(), names.end(),
+					[](const std::string& name) {
+						return name.empty() || std::all_of(name.begin(), name.end(), ::isspace);
+					}),
+	names.end());
+	server.server_name = names;
+}
+
+void	init_port(std::string str, t_sserver& server, int& iter)
+{
+	std::regex pattern(R"(^\s*listen\s+([0-5]?\d{1,4}|6[0-5]\d{3}|66[0-5]\d{2}|66000)\s+default_server;\s*$)");
+	(void)iter;
+	if (std::regex_match(str, pattern) == false)
+		parse_except("Expected 'listen <port> default_server' but didnt find it where it was expected!");
+
+	std::string	tmp_str = skip_until_value(str, "listen");
+	std::string str_for_atoi;
+	for (char c : tmp_str)
+	{
+		if (std::isdigit(c))
+			str_for_atoi += c;
+		else
+			break ;
+	}
+	server.port = std::atoi(str_for_atoi.c_str());
 }
 
 // need to code all the other function
 //need location
-//check docker again!
 void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t_sserver_configs& tmp_serv_conf)
 {
-	std::vector<std::function<void(std::string, t_sserver&)>> init_functions = {init_port, init_server_name, init_root_dir, init_index_files, init_client_max_body_size, init_error_pages};
+	std::vector<std::function<void(std::string, t_sserver&, int&)>> init_functions = {init_port, init_server_name, init_root_dir, init_index_files, init_client_max_body_size, init_error_pages};
+	int	counter = 0;
 
 	for (size_t server_idx = 0; server_idx < preprocessed_servers.size(); ++server_idx)
 	{
 		t_sserver server;
 
 		std::vector<std::string>& current_server = preprocessed_servers[server_idx];
-		
+
 		for (size_t i = 0; i < current_server.size(); ++i)
 		{
-			std::string& line = current_server[i];
-			if (i <= init_functions.size())
+			std::string& line = current_server[counter];
+			if (i < init_functions.size())
 			{
-				init_functions[i](line, server);
+				init_functions[i](line, server, counter);
+				counter++;
 				continue ;
 			}
 			// if (check_if_search_str_in_src_str(line, "location /") == true)
