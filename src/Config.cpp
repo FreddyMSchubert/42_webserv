@@ -109,6 +109,23 @@ std::string skip_until_value(std::string& original_str, std::string skip)
     return (original_str.substr(index));
 }
 
+std::vector<std::string> split(const std::string& str, char delimiter)
+{
+    std::vector<std::string> tokens;
+    std::string token;
+    size_t start = 0, end = 0;
+
+    while ((end = str.find(delimiter, start)) != std::string::npos)
+	{
+        token = str.substr(start, end - start);
+        tokens.push_back(token);
+        start = end + 1;
+    }
+    
+    tokens.push_back(str.substr(start));
+    return (tokens);
+}
+
 void	init_location(std::vector<std::string> location_block, t_sserver& server, int& iter)
 {
 	(void)location_block;
@@ -116,11 +133,56 @@ void	init_location(std::vector<std::string> location_block, t_sserver& server, i
 	(void)server;
 }
 
+std::string	replace_x_in_dir(int value, std::string& tmp_index)
+{
+	char last_int = (value % 10) + 0;
+	std::cout << "last_int: " << last_int << std::endl;
+	size_t pos = tmp_index.find('x');
+    if (pos != std::string::npos)
+        tmp_index.replace(pos, 1, 1, last_int);
+	std::cout << "tmp_index: " << tmp_index << std::endl;
+	return (tmp_index);
+}
+
 void	init_error_pages(std::string str, t_sserver& server, int& iter)
 {
-	(void)str;
+	std::regex pattern(R"(^\s*error_page\s+(?:(?:[1-5][0-9]{2}\s+)*[1-5][0-9]{2}\s+)?/\d{2}[a-zA-Z]+\.([a-zA-Z]+);\s*$)");
 	(void)iter;
-	(void)server;
+	if (std::regex_match(str, pattern) == false)
+		parse_except("Expected 'error_pages <HTTP response status codes> <directory>;' but didnt find it where it was expected!");
+
+	std::string tmp_error_pages = skip_until_value(str, "error_page");
+	std::vector<std::string>	tmp_index;
+	tmp_index = split(tmp_error_pages, ' ');
+	tmp_index.erase(
+	std::remove_if(tmp_index.begin(), tmp_index.end(),
+					[](const std::string& name) {
+						return name.empty() || std::all_of(name.begin(), name.end(), ::isspace);
+					}),
+	tmp_index.end());
+	for (size_t i = 0; i <= tmp_index.size(); i++)
+		std::cout << tmp_index[i] << std::endl;
+	int	last_item = tmp_index.size();
+	for (size_t i = 0; i <= tmp_index.size() - 1; i++)
+	{
+		std::string	str_for_atoi;
+		for (const auto& c : tmp_index[i])
+		{
+			if (std::isdigit(static_cast<unsigned char>(c)))
+				str_for_atoi += c;
+		}
+		int	atoi_value = std::atoi(str_for_atoi.c_str());
+		if (atoi_value >= 100 && atoi_value <= 199)
+			server.error_pages.error_pages_100.insert(std::make_pair(atoi_value, replace_x_in_dir(atoi_value, tmp_index[last_item])));
+		if (atoi_value >= 200 && atoi_value <= 299)
+			server.error_pages.error_pages_200.insert(std::make_pair(atoi_value, replace_x_in_dir(atoi_value, tmp_index[last_item])));
+		if (atoi_value >= 300 && atoi_value <= 399)
+			server.error_pages.error_pages_300.insert(std::make_pair(atoi_value, replace_x_in_dir(atoi_value, tmp_index[last_item])));
+		if (atoi_value >= 400 && atoi_value <= 499)
+			server.error_pages.error_pages_400.insert(std::make_pair(atoi_value, replace_x_in_dir(atoi_value, tmp_index[last_item])));
+		if (atoi_value >= 500 && atoi_value <= 599)
+			server.error_pages.error_pages_500.insert(std::make_pair(atoi_value, replace_x_in_dir(atoi_value, tmp_index[last_item])));
+	}
 }
 
 void	init_client_max_body_size(std::string str, t_sserver& server, int& iter)
@@ -143,23 +205,6 @@ void	init_client_max_body_size(std::string str, t_sserver& server, int& iter)
 			break ;
 	}
 	server.client_max_body_size = std::atoi(str_for_atoi.c_str());	
-}
-
-std::vector<std::string> split(const std::string& str, char delimiter)
-{
-    std::vector<std::string> tokens;
-    std::string token;
-    size_t start = 0, end = 0;
-
-    while ((end = str.find(delimiter, start)) != std::string::npos)
-	{
-        token = str.substr(start, end - start);
-        tokens.push_back(token);
-        start = end + 1;
-    }
-    
-    tokens.push_back(str.substr(start));
-    return (tokens);
 }
 
 void	init_index_files(std::string str, t_sserver& server, int& iter)
@@ -238,6 +283,7 @@ void	init_port(std::string str, t_sserver& server, int& iter)
 //need location
 void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t_sserver_configs& tmp_serv_conf)
 {
+	//need last function more than once
 	std::vector<std::function<void(std::string, t_sserver&, int&)>> init_functions = {init_port, init_server_name, init_root_dir, init_index_files, init_client_max_body_size, init_error_pages};
 	int	counter = 0;
 
@@ -250,12 +296,16 @@ void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t
 		for (size_t i = 0; i < current_server.size(); ++i)
 		{
 			std::string& line = current_server[counter];
+			//i would be size and then thats it
 			if (i < init_functions.size())
 			{
 				init_functions[i](line, server, counter);
 				counter++;
 				continue ;
 			}
+			//dunno if this works
+			// if (!check_if_search_str_in_src_str(line, "location /") == true)
+			// 	i -= 2;
 			// if (check_if_search_str_in_src_str(line, "location /") == true)
 			// {
 			// 	// location();
