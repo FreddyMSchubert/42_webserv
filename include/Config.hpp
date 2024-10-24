@@ -13,13 +13,14 @@
 typedef struct s_location 
 {
 	std::unordered_map<Method, bool> allowed_methods;
-	Path root;
+	std::string root;
 	std::string index;
 	bool directory_listing;
 	size_t client_max_body_size;
 	// std::vector<t_location> locations; // TODO: add this back later
-	bool empty() { return root.isEmpty(); }
+	bool empty() { return root.empty(); }
 } t_location;
+#define EMPTY_LOCATION (t_location){{}, "", "", false, 0}
 
 inline std::ostream &operator<<(std::ostream &os, const t_location &location)
 {

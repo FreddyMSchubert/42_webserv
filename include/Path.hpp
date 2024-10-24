@@ -37,13 +37,17 @@ class Path
 		std::string asUrl() const;
 		size_t size() const;
 
-		void setConfig(t_server_config &config);
 
 		static std::string combinePaths(const std::string& path1, const std::string& path2);
 
 		std::string operator+(const std::string& other) const;
 		bool operator==(const Path& other) const;
 		bool operator!=(const Path& other) const;
+
+		void hardSetPath(const std::string& path);
+		std::string getPath() const;
+		void setConfig(t_server_config &config);
+		t_server_config *getConfig() const;
 };
 
 std::ostream &operator<<(std::ostream &os, const Path &path);

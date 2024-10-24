@@ -4,11 +4,34 @@
 #include "Path.hpp"
 
 #include <exception>
+#include <execinfo.h>
+#include <csignal>
+#include <dlfcn.h>
 #include <iostream>
 #include <vector>
 #include <signal.h>
 
 #define LOCALHOST "127.0.0.1"
+
+bool run = true;
+
+void signalHandler(int signum)
+{
+	Logger::Log(LogLevel::INFO, "Interrupt signal (" + std::to_string(signum) + ") received. Exiting...");
+	run = false;
+
+	void *array[64];
+	int size = backtrace(array, 64);
+	Dl_info info;
+
+	for (int i = 0; i < size; ++i) {
+		if (dladdr(array[i], &info) && info.dli_sname) {
+			fprintf(stderr, "%-3d %s + %td\n", i, info.dli_sname, (char *)array[i] - (char *)info.dli_saddr);
+		} else {
+			fprintf(stderr, "%-3d %p\n", i, array[i]);
+		}
+	}
+}
 
 std::vector<t_server_config> init_testing_configs()
 {
@@ -34,9 +57,9 @@ std::vector<t_server_config> init_testing_configs()
 		configs[1].default_location.allowed_methods[Method::POST] = true;
 		configs[2].default_location.allowed_methods[Method::GET] = true;
 
-		configs[0].default_location.root = Path("/www/clicker/", Path::Type::FILESYSTEM, configs[0]);
-		configs[1].default_location.root = Path("/www/platformer/", Path::Type::FILESYSTEM, configs[1]);
-		configs[2].default_location.root = Path("/www/tetris/", Path::Type::FILESYSTEM, configs[2]);
+		configs[0].default_location.root = "/www/clicker/";
+		configs[1].default_location.root = "/www/platformer/";
+		configs[2].default_location.root = "/www/tetris/";
 
 		configs[0].default_location.index = "/index.html";
 		configs[1].default_location.index = "/index.html";
@@ -50,13 +73,13 @@ std::vector<t_server_config> init_testing_configs()
 		configs[1].default_location.client_max_body_size = 1000;
 		configs[2].default_location.client_max_body_size = 1000000;
 
-		configs[1].error_pages.push_back((t_error_page){404, (t_location){std::unordered_map<Method, bool>(), Path("/www/platformer/404/", Path::Type::FILESYSTEM, configs[1]), "404.html", false, 0}});
+		configs[1].error_pages.push_back((t_error_page){404, (t_location){std::unordered_map<Method, bool>(), "/www/platformer/404/", "404.html", false, 0}});
 
 		configs[0].locations = std::vector<t_location>(2);
 
-		configs[0].locations[0] = (t_location){std::unordered_map<Method, bool>(), Path("/www/clicker/assets/", Path::Type::FILESYSTEM, configs[0]), "", true, 0};
+		configs[0].locations[0] = (t_location){std::unordered_map<Method, bool>(), "/www/clicker/assets/", "", true, 0};
 		configs[0].locations[0].allowed_methods[Method::GET] = false;
-		configs[0].locations[1] = (t_location){std::unordered_map<Method, bool>(), Path("/www/clicker/assets/particles/", Path::Type::FILESYSTEM, configs[0]), "", true, 0};
+		configs[0].locations[1] = (t_location){std::unordered_map<Method, bool>(), "/www/clicker/assets/particles/", "", true, 0};
 		configs[0].locations[1].allowed_methods[Method::GET] = true;
 
 		return configs;
@@ -64,18 +87,9 @@ std::vector<t_server_config> init_testing_configs()
 	} catch (std::exception &e)
 	{
 		Logger::Log(LogLevel::ERROR, e.what());
+		signalHandler(SIGABRT);
 		return std::vector<t_server_config>(0);
 	}
-
-	
-}
-
-bool run = true;
-
-void signalHandler(int signum)
-{
-	Logger::Log(LogLevel::INFO, "Interrupt signal (" + std::to_string(signum) + ") received. Exiting...");
-	run = false;
 }
 
 int main(int argc, char *argv[])
@@ -90,7 +104,9 @@ int main(int argc, char *argv[])
 
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
+	signal(SIGABRT, signalHandler);
 
+	std::cout << "Signals successfully initialized!" << std::endl;
 
 	std::vector<t_server_config> configs = init_testing_configs(); // TODO: config parsing
 
