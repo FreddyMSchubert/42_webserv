@@ -26,7 +26,7 @@ class	Parsing_Exception : public std::exception
 		client_max_body_size 10M;
 
 		error_page 404 /404.html;
-		error_page 500 502 503 504 /50x.html;
+		error_page 418	/418.php;
 
 		location /
 		{
@@ -78,15 +78,6 @@ typedef struct s_llocation
 	bool						limit_except_enabled;	// Flag to enable/disable method restriction (e.g., true/false)
 }   t_llocation;
 
-typedef struct s_eerror_pages
-{
-	std::map<int, std::string>	error_pages_100;
-	std::map<int, std::string>	error_pages_200;
-	std::map<int, std::string>	error_pages_300;
-	std::map<int, std::string>	error_pages_400;
-	std::map<int, std::string>	error_pages_500;
-}	t_eerror_pages;
-
 typedef struct s_sserver
 {
 	int							port;
@@ -94,7 +85,7 @@ typedef struct s_sserver
 	std::string					root_dir;
 	std::vector<std::string>	index_files;
 	size_t						client_max_body_size;
-	t_eerror_pages				error_pages;
+	std::map<int, std::string>	error_pages;
 	std::vector<t_llocation>	location;
 }	t_sserver;
 
