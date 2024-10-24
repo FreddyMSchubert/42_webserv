@@ -11,7 +11,7 @@ class Path
 {
 	private:
 		std::string		_path; // saved as URL type
-		t_server_config	&_config;
+		t_server_config	*_config;
 
 	public:
 
@@ -32,9 +32,9 @@ class Path
 		void goUpOneDir();
 		void goDownIntoDir(const std::string& dir);
 
-		bool empty() const;
-		std::string path() const;
-		std::string url() const;
+		bool isEmpty() const;
+		std::string asFilePath() const;
+		std::string asUrl() const;
 		size_t size() const;
 
 		void setConfig(t_server_config &config);
@@ -47,4 +47,3 @@ class Path
 };
 
 std::ostream &operator<<(std::ostream &os, const Path &path);
-

@@ -18,16 +18,8 @@ typedef struct s_location
 	bool directory_listing;
 	size_t client_max_body_size;
 	// std::vector<t_location> locations; // TODO: add this back later
-	bool empty() { return root.path().empty(); }
+	bool empty() { return root.isEmpty(); }
 } t_location;
-
-static t_location LOCATION_EMPTY = {
-	.allowed_methods = std::unordered_map<Method, bool>(),
-	.root = Path(),
-	.index = "",
-	.directory_listing = false,
-	.client_max_body_size = 0
-};
 
 inline std::ostream &operator<<(std::ostream &os, const t_location &location)
 {

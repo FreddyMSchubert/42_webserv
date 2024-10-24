@@ -7,7 +7,7 @@ OBJ = $(SRC:./src/%.c=$(OBJ_DIR)/%.o)
 
 HEADERS := -I ./include -I ./include/Packets
 LIBS := 
-CFLAGS := -Wall -Wextra -Werror -std=c++17 -Wc++11-extensions
+CFLAGS := -Wall -Wextra -Werror -std=c++17 -Wc++11-extensions -g -fsanitize=address
 
 $(NAME): $(OBJ)
 	c++ $(CFLAGS) $(OBJ) $(LIBS) $(HEADERS) -o $(NAME)
@@ -28,7 +28,7 @@ re: fclean all
 run: all
 	./$(NAME)
 
-debug: CFLAGS += -g -O0 -fsanitize=address -g
-debug: CFLAGS += -DLOG_INCOMING_PACKETS -DLOG_OUTGOING_PACKETS
+debug: re
+	$(MAKE) CFLAGS+='-g -O0 -fsanitize=address -DLOG_INCOMING_PACKETS -DLOG_OUTGOING_PACKETS' $(NAME)
 
 .PHONY: all clean fclean re run debug

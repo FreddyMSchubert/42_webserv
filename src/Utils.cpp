@@ -17,7 +17,7 @@ bool isAllowedMethodAt(t_server_config &config, std::string path, Method method)
 		std::cout << "Attempting to find method " << method << " at " << path << std::endl;
 
 		t_location location = get_location(config, path);
-		if (location.root.url() == "/" || location.root.empty())
+		if (location.root.asUrl() == "/" || location.root.isEmpty())
 			break;
 		auto methodPair = location.allowed_methods.find(method);
 		if (methodPair != location.allowed_methods.end())
@@ -26,7 +26,7 @@ bool isAllowedMethodAt(t_server_config &config, std::string path, Method method)
 		if (path.back() == '/')
 			path.pop_back();
 		path = path.substr(0, path.find_last_of('/'));
-		if (path.empty() || path == config.default_location.root.path())
+		if (path.empty() || path == config.default_location.root.asFilePath())
 			break;
 	};
 
@@ -63,11 +63,11 @@ t_location get_location(t_server_config &config, std::string path)
 {
 	t_location loc = (t_location){{}, Path(), "", false, 0};
 
-	if (config.default_location.root.path() == path && std::filesystem::exists(config.default_location.root.path()))
+	if (config.default_location.root.asFilePath() == path && std::filesystem::exists(config.default_location.root.asFilePath()))
 		loc = config.default_location;
 
 	for (t_location &location : config.locations)
-		if (isSubroute(location.root.path(), path) && std::filesystem::exists(location.root.path()))
+		if (isSubroute(location.root.asFilePath(), path) && std::filesystem::exists(location.root.asFilePath()))
 			if (loc.root.size() < location.root.size())
 				loc = location;
 
