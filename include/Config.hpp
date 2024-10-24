@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Enums.hpp"
-#include "Path.hpp"
 #include <cstddef>
 #include <iostream>
 #include <unordered_map>

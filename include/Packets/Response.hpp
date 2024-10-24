@@ -3,6 +3,7 @@
 #include "Packet.hpp"
 #include "Request.hpp"
 #include "Config.hpp"
+#include "Path.hpp"
 
 #include <iostream>
 #include <exception>
