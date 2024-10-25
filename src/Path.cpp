@@ -15,9 +15,9 @@ Path::Path(std::string path, Type type, t_server_config &config) : _config(&conf
 	if (path.find("./") != std::string::npos)
 		throw std::runtime_error("Path: Path contains ./ : " + path);
 	if (path.find_last_of('/') != path.size() - 1)
-		throw std::runtime_error("Path: Path does not end with / : " + path);
+		path.push_back('/');
 	if (path.find_first_of("/") != 0) // FIXME: this is weird because it flags the path as not starting with a / even if it clearly does
-		throw std::runtime_error("Path: Path does not start with / : " + path);
+		path = "/" + path;
 
 	if (type == Type::URL)
 		_path = path;
@@ -88,6 +88,17 @@ std::string Path::combinePaths(const std::string& path1, const std::string& path
 	else
 		return path1 + path2;
 }
+std::variant<Path, FilePath> Path::createPath(const std::string &path, Path::Type type, t_server_config *config)
+{
+	std::string filePath = path;
+	if (type == Path::Type::URL)
+		filePath = Path::combinePaths(config->default_location.root, path);
+	if (!std::filesystem::exists(filePath))
+		throw std::runtime_error("Path does not exist");
+	if (std::filesystem::is_regular_file(filePath))
+		return FilePath(path, type, config);
+	return Path(path, type, *config);
+}
 
 Path& Path::operator=(const Path& other)
 {
@@ -114,12 +125,15 @@ bool Path::isEmpty() const
 {
 	return _path.empty();
 }
+bool Path::isRoot() const
+{
+	return _path == "/" || _path.empty();
+}
 
 bool Path::operator==(const Path& other) const
 {
 	return _path == other._path;
 }
-
 bool Path::operator!=(const Path& other) const
 {
 	return _path != other._path;

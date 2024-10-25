@@ -2,6 +2,8 @@
 
 #include <unordered_map>
 
+#define DEFAULT_MIMETYPE "application/octet-stream"
+
 // same mimes as nginx
 const std::unordered_map<std::string, std::string> mimeTypes = {
 	// text
@@ -129,20 +131,3 @@ const std::unordered_map<std::string, std::string> mimeTypes = {
 	{"wmv", "video/x-ms-wmv"},
 	{"avi", "video/x-msvideo"}
 };
-
-static std::string getFileExtension(std::string filename)
-{
-	size_t dotPos = filename.find_last_of('.');
-	if (dotPos == std::string::npos)
-		return "";
-	return filename.substr(dotPos + 1);
-}
-
-std::string Response::getMimeType(std::string filename)
-{
-	std::string extension = getFileExtension(filename);
-	auto it = mimeTypes.find(extension);
-	if (it == mimeTypes.end())
-		return "application/octet-stream";
-	return it->second;
-}

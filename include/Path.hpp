@@ -3,13 +3,16 @@
 #include <cstddef>
 #include <string>
 #include <filesystem>
+#include <variant>
 #include <vector>
+
+class FilePath;
 
 struct s_server_config typedef t_server_config;
 
 class Path
 {
-	private:
+	protected:
 		std::string		_path; // saved as URL type
 		t_server_config	*_config;
 
@@ -33,12 +36,14 @@ class Path
 		void goDownIntoDir(const std::string& dir);
 
 		bool isEmpty() const;
+		bool isRoot() const;
 		std::string asFilePath() const;
 		std::string asUrl() const;
 		size_t size() const;
 
 
 		static std::string combinePaths(const std::string& path1, const std::string& path2);
+		static std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, t_server_config *config);
 
 		std::string operator+(const std::string& other) const;
 		bool operator==(const Path& other) const;
@@ -51,3 +56,5 @@ class Path
 };
 
 std::ostream &operator<<(std::ostream &os, const Path &path);
+
+#include "FilePath.hpp"

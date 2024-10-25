@@ -1,32 +1,20 @@
 #include "Utils.hpp"
 
-std::string getFileAsString(const std::string& path)
-{
-	std::ifstream file(path);
-	if (!file.is_open() || !file.good())
-		throw std::runtime_error(std::string("Couldn't read file at ") + path);
-	std::stringstream buffer;
-	buffer << file.rdbuf();
-	return buffer.str();
-}
-
-bool isAllowedMethodAt(t_server_config &config, std::string path, Method method)
+bool isAllowedMethodAt(t_server_config &config, Path path, Method method)
 {
 	while (true)
 	{
 		std::cout << "Attempting to find method " << method << " at " << path << std::endl;
 
-		t_location location = get_location(config, path);
+		t_location location = get_location(config, path.asFilePath());
 		if (location.root == "/" || location.root.empty())
 			break;
 		auto methodPair = location.allowed_methods.find(method);
 		if (methodPair != location.allowed_methods.end())
 			return methodPair->second;
 
-		if (path.back() == '/')
-			path.pop_back();
-		path = path.substr(0, path.find_last_of('/'));
-		if (path.empty() || path == config.default_location.root)
+		path.goUpOneDir();
+		if (path.isRoot())
 			break;
 	};
 
