@@ -105,7 +105,7 @@ void Response::handle_dir_req(t_server_config &config, Request &req)
 
 	if (location.empty()) // invalid
 	{
-		Logger::Log(LogLevel::WARNING, "GET: Invalid location");
+		Logger::Log(LogLevel::WARNING, "GET: Invalid location \"" + req.getPath() + "\"");
 		setStatus(Status::NotFound);
 		return;
 	}

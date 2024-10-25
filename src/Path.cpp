@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <string>
 
+// Path class shall never represent a non-present path
+
 Path::Path(std::string path, Type type, t_server_config &config) : _config(&config)
 {
 	std::cout << "Path constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM) << " and config: " << config.host << std::endl;
@@ -23,7 +25,7 @@ Path::Path(std::string path, Type type, t_server_config &config) : _config(&conf
 	{
 		// Convert filesystem path to URL
 		if (!_config)
-			throw std::runtime_error("Path: Path: config is nullptr 1");
+			throw std::runtime_error("Path: Path: config is nullptr");
 		if (path.find(_config->default_location.root) != 0)
 			throw std::runtime_error("Path: Path " + path + " is not in the configs root directory " + _config->default_location.root);
 		_path = path.substr(_config->default_location.root.size(), path.size());
@@ -41,7 +43,7 @@ std::string Path::asUrl() const
 std::string Path::asFilePath() const
 {
 	if (!_config)
-		throw std::runtime_error("Path: path: config is nullptr 2");
+		throw std::runtime_error("Path: path: config is nullptr");
 	return combinePaths(_config->default_location.root, _path);
 }
 
@@ -68,7 +70,7 @@ void Path::goDownIntoDir(const std::string& dir)
 		throw std::runtime_error("Path: goDownIntoDir: dir contains /");
 
 	if (!_config)
-		throw std::runtime_error("Path: goDownIntoDir: config is nullptr 3");
+		throw std::runtime_error("Path: goDownIntoDir: config is nullptr");
 	std::string new_path = _path + dir + (dir.back() == '/' ? "" : "/");
 	std::string new_path_filesystem = Path::combinePaths(_config->default_location.root, new_path);
 	if (!std::filesystem::exists(new_path_filesystem))
@@ -85,10 +87,6 @@ std::string Path::combinePaths(const std::string& path1, const std::string& path
 		return path1 + "/" + path2;
 	else
 		return path1 + path2;
-}
-
-Path::Path(const Path& other) : _path(std::string(other._path)), _config(other._config)
-{
 }
 
 Path& Path::operator=(const Path& other)
@@ -125,10 +123,6 @@ bool Path::operator==(const Path& other) const
 bool Path::operator!=(const Path& other) const
 {
 	return _path != other._path;
-}
-
-Path::Path() : _path(""), _config(nullptr)
-{
 }
 
 size_t Path::size() const

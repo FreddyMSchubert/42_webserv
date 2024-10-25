@@ -57,9 +57,9 @@ std::vector<t_server_config> init_testing_configs()
 		configs[1].default_location.allowed_methods[Method::POST] = true;
 		configs[2].default_location.allowed_methods[Method::GET] = true;
 
-		configs[0].default_location.root = "/www/clicker/";
-		configs[1].default_location.root = "/www/platformer/";
-		configs[2].default_location.root = "/www/tetris/";
+		configs[0].default_location.root = "./www/clicker/";
+		configs[1].default_location.root = "./www/platformer/";
+		configs[2].default_location.root = "./www/tetris/";
 
 		configs[0].default_location.index = "/index.html";
 		configs[1].default_location.index = "/index.html";
@@ -81,6 +81,10 @@ std::vector<t_server_config> init_testing_configs()
 		configs[0].locations[0].allowed_methods[Method::GET] = false;
 		configs[0].locations[1] = (t_location){std::unordered_map<Method, bool>(), "/www/clicker/assets/particles/", "", true, 0};
 		configs[0].locations[1].allowed_methods[Method::GET] = true;
+
+		configs[0].port = rand() % 1000 + 8000;
+		configs[1].port = rand() % 1000 + 8000;
+		configs[2].port = rand() % 1000 + 8000;
 
 		return configs;
 

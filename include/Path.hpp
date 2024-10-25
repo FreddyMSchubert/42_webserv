@@ -21,10 +21,10 @@ class Path
 			FILESYSTEM
 		};
 
-		Path();
+		Path() : _path("/"), _config(nullptr) {};
 		Path(std::string path, Type type, t_server_config &config);
 		~Path() = default;
-		Path(const Path& other);
+		Path(const Path& other)  : _path(std::string(other._path)), _config(other._config) {};
 		Path& operator=(const Path& other);
 
 		std::vector<std::filesystem::directory_entry> getDirectoryEntries();
