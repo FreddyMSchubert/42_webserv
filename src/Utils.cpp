@@ -1,50 +1,20 @@
 #include "Utils.hpp"
 
-std::string getFileAsString(const std::string& path)
-{
-	std::ifstream file(path);
-	if (!file.is_open() || !file.good())
-		throw std::runtime_error(std::string("Couldn't read file at ") + path);
-	std::stringstream buffer;
-	buffer << file.rdbuf();
-	return buffer.str();
-}
-
-bool isFileInDirectory(const std::string& path, const std::string& file)
-{
-	try
-	{
-		for (const auto& entry : std::filesystem::directory_iterator(path))
-		{
-			if (entry.is_regular_file() && entry.path().filename() == file)
-				return true;
-		}
-	}
-	catch (const std::filesystem::filesystem_error& e)
-	{
-		// Handle the error (e.g., log it)
-		std::cerr << "Filesystem error: " << e.what() << std::endl;
-	}
-	return false;
-}
-
-bool isAllowedMethodAt(t_server_config &config, std::string path, Method method)
+bool isAllowedMethodAt(t_server_config &config, Path path, Method method)
 {
 	while (true)
 	{
 		std::cout << "Attempting to find method " << method << " at " << path << std::endl;
 
-		t_location location = get_location(config, path);
+		t_location location = get_location(config, path.asFilePath());
 		if (location.root == "/" || location.root.empty())
 			break;
 		auto methodPair = location.allowed_methods.find(method);
 		if (methodPair != location.allowed_methods.end())
 			return methodPair->second;
 
-		if (path.back() == '/')
-			path.pop_back();
-		path = path.substr(0, path.find_last_of('/'));
-		if (path.empty() || path == config.default_location.root)
+		path.goUpOneDir();
+		if (path.isRoot())
 			break;
 	};
 
@@ -79,15 +49,28 @@ std::string getFilePathAsURLPath(std::string path, t_server_config &config)
 // Gets the location config of the path, respecting subdirs
 t_location get_location(t_server_config &config, std::string path)
 {
-	t_location loc = (t_location){{}, "", "", false, 0};
+	t_location loc = EMPTY_LOCATION;
 
-	if (getFilePathAsURLPath(config.default_location.root, config) == path && std::filesystem::exists(config.default_location.root))
-		loc = config.default_location;
+	std::cout << "Getting location for path: \"" << path << "\"" << " at root " << config.default_location.root << std::endl;
+	if (path == config.default_location.root)
+	{
+		std::cout << "The path is \"/\"." << std::endl;
+		if (std::filesystem::exists(config.default_location.root))
+		{
+			loc = config.default_location;
+			std::cout << "Default location is valid." << std::endl;
+		}
+	}
+
+	std::cout << "Initial location: " << loc.root << std::endl;
 
 	for (t_location &location : config.locations)
-		if (isSubroute(getFilePathAsURLPath(location.root, config), path) && std::filesystem::exists(location.root))
+	{
+		std::cout << "Current location: " << loc.root << " checking against " << location.root << std::endl;
+		if (isSubroute(location.root, path) && std::filesystem::exists(location.root))
 			if (loc.root.size() < location.root.size())
 				loc = location;
+	}
 
 	return loc;
 }
