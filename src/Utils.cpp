@@ -64,7 +64,7 @@ t_location get_location(t_server_config &config, std::string path)
 	t_location loc = EMPTY_LOCATION;
 
 	std::cout << "Getting location for path: \"" << path << "\"" << " at root " << config.default_location.root << std::endl;
-	if ("/" == path)
+	if (path == config.default_location.root)
 	{
 		std::cout << "The path is \"/\"." << std::endl;
 		if (std::filesystem::exists(config.default_location.root))
@@ -74,11 +74,11 @@ t_location get_location(t_server_config &config, std::string path)
 		}
 	}
 
-	std::cout << "Initial location: " << loc << std::endl;
+	std::cout << "Initial location: " << loc.root << std::endl;
 
 	for (t_location &location : config.locations)
 	{
-		std::cout << "Current location: " << loc << std::endl;
+		std::cout << "Current location: " << loc.root << " checking against " << location.root << std::endl;
 		if (isSubroute(location.root, path) && std::filesystem::exists(location.root))
 			if (loc.root.size() < location.root.size())
 				loc = location;

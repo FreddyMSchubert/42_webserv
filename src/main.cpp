@@ -77,9 +77,9 @@ std::vector<t_server_config> init_testing_configs()
 
 		configs[0].locations = std::vector<t_location>(2);
 
-		configs[0].locations[0] = (t_location){std::unordered_map<Method, bool>(), "/www/clicker/assets/", "", true, 0};
+		configs[0].locations[0] = (t_location){std::unordered_map<Method, bool>(), "./www/clicker/assets/", "", true, 0};
 		configs[0].locations[0].allowed_methods[Method::GET] = false;
-		configs[0].locations[1] = (t_location){std::unordered_map<Method, bool>(), "/www/clicker/assets/particles/", "", true, 0};
+		configs[0].locations[1] = (t_location){std::unordered_map<Method, bool>(), "./www/clicker/assets/particles/", "", true, 0};
 		configs[0].locations[1].allowed_methods[Method::GET] = true;
 
 		configs[0].port = rand() % 1000 + 8000;

@@ -29,7 +29,6 @@ inline std::ostream &operator<<(std::ostream &os, const t_location &location)
 	os << "Allowed methods: ";
 	for (auto &method : location.allowed_methods)
 		os << method.first << "(" << method.second << ")" << " ";
-	os << std::endl;
 	return os;
 }
 

@@ -101,7 +101,7 @@ static std::string get_dir_list_html(const std::string &current_path, const std:
 
 void Response::handle_dir_req(t_server_config &config, Request &req)
 {
-	t_location location = get_location(config, req.getPath());
+	t_location location = get_location(config, Path::combinePaths(config.default_location.root, req.getPath()));
 
 	if (location.empty()) // invalid
 	{
@@ -110,7 +110,7 @@ void Response::handle_dir_req(t_server_config &config, Request &req)
 		return;
 	}
 
-	if (!isAllowedMethodAt(config, "/", Method::GET))
+	if (!isAllowedMethodAt(config, Path::combinePaths(config.default_location.root, req.getPath()), Method::GET))
 	{
 		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
 		setStatus(Status::MethodNotAllowed);
@@ -143,8 +143,7 @@ static bool is_file_req(Request &req, t_server_config &config)
 		return true;
 
 	std::cout << req.getPath() << " is the path" << std::endl;
-	t_location loc = get_location(config, req.getPath());
-	std::cout << loc << std::endl;
+	t_location loc = get_location(config, Path::combinePaths(config.default_location.root, req.getPath()));
 	if (loc.empty())
 		return false;
 
