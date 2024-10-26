@@ -138,7 +138,7 @@ void Socket::sendData(const std::string &data, int socket_fd)
 	if (sent < 0)
 		throw std::runtime_error("Failed to send data");
 	else
-	 	Logger::Log(LogLevel::INFO, "Data sent!");
+		Logger::Log(LogLevel::INFO, "Data sent!");
 }
 
 void Socket::_connect()

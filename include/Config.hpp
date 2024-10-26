@@ -112,18 +112,18 @@ t_sserver_configs    get_config(char *argv[]);
 
 //----------------------------------------------------------------
 
-typedef struct s_location t_location;
+// typedef struct s_location t_location;
 
 typedef struct s_location 
 {
 	std::unordered_map<Method, bool> allowed_methods;
-	std::string root;
+	std::string root; // needs to be relative to project root & start with . otherwise mayhem
 	std::string index;
 	bool directory_listing;
 	size_t client_max_body_size;
-	// std::vector<t_location> locations; // TODO: add this back later
 	bool empty() { return root.empty(); }
 } t_location;
+#define EMPTY_LOCATION (t_location){{}, "", "", false, 0}
 
 // inline std::ostream &operator<<(std::ostream &os, const t_location &location)
 // {
@@ -137,6 +137,17 @@ typedef struct s_location
 // 	os << std::endl;
 // 	return os;
 // }
+inline std::ostream &operator<<(std::ostream &os, const t_location &location)
+{
+	os << "Root: " << location.root << std::endl;
+	os << "Index: " << location.index << std::endl;
+	os << "Directory listing: " << location.directory_listing << std::endl;
+	os << "Client max body size: " << location.client_max_body_size << std::endl;
+	os << "Allowed methods: ";
+	for (auto &method : location.allowed_methods)
+		os << method.first << "(" << method.second << ")" << " ";
+	return os;
+}
 
 typedef struct s_error_page
 {
