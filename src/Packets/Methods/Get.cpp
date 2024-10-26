@@ -144,7 +144,6 @@ static bool is_file_req(Request &req, t_server_config &config)
 
 	std::cout << req.getPath() << "is the path" << std::endl;
 	t_location loc = get_location(config, req.getPath());
-	std::cout << loc << std::endl;
 	if (loc.empty())
 		return false;
 
