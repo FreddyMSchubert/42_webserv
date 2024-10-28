@@ -29,5 +29,5 @@ class Response : public Packet
 
 		// methods
 		std::string getRawPacket();
-		std::string getMimeType(std::string filename);
+		static std::string getMimeType(std::string filename);
 };

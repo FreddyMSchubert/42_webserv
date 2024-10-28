@@ -34,11 +34,28 @@ void Response::handlePost(Request& req, t_server_config &config)
 		return ;
 	}
 
-	Path filepath = Path(req.getPath(), Path::Type::URL, config);
+	Path filepath;
+	
+	try {
+		filepath = Path(req.getPath(), Path::Type::URL, config);
+	}
+	catch (std::exception &e)
+	{
+		std::cerr << "Error parsing path" << std::endl;
+		setStatus(Status::Forbidden);
+		setBody("Error parsing path");
+		return ;
+	}
 
-	std::string filename = filepath.asFilePath() + "test.txt"; // TODO: get real filename and filetype
+	std::string filename;
+	if (req.getHeaders().find("X-Filename") != req.getHeaders().end())
+		filename = filepath.asFilePath() + req.getHeaders()["X-Filename"];
+	else
+		filename = filepath.asFilePath() + "default";
 
-	std::cout << "filename: " << filename << std::endl;
+	filename += ".txt"; // TODO: get the extension from the Content-Type header
+
+	std::cout << "Filename: " << filename << std::endl;
 
 	int fd = open(filename.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644); // TODO: check if the flags are correct
 
