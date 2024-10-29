@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "Utils.hpp"
+#include "./mimetypes.cpp"
 
 void Response::handlePost(Request& req, t_server_config &config)
 {
@@ -53,7 +54,25 @@ void Response::handlePost(Request& req, t_server_config &config)
 	else
 		filename = filepath.asFilePath() + "default";
 
-	filename += ".txt"; // TODO: get the extension from the Content-Type header
+	std::string extension = "txt";
+	try {
+		for (const auto &mimeType : mimeTypes)
+		{
+			if (mimeType.second == req.getHeaders()["Content-Type"])
+			{
+				extension = mimeType.first;
+				break ;
+			}
+		}
+	}
+	catch (std::exception &e)
+	{
+		std::cerr << "Error parsing Content-Type" << std::endl;
+		setStatus(Status::Forbidden);
+		setBody("Error parsing Content-Type");
+		return ;
+	}
+	filename += "." + extension;
 
 	std::cout << "Filename: " << filename << std::endl;
 
