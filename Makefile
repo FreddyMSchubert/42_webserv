@@ -3,7 +3,7 @@ NAME = webserv
 SRC = $(shell find ./src -name "*.cpp")
 HFL = $(shell find ./include -name "*.hpp")
 OBJ_DIR = ./obj
-OBJ = $(SRC:./src/%.c=$(OBJ_DIR)/%.o)
+OBJ = $(SRC:./src/%.cpp=$(OBJ_DIR)/%.o)
 
 HEADERS := -I ./include -I ./include/Packets
 LIBS := 
@@ -12,8 +12,9 @@ CFLAGS := -Wall -Wextra -Werror -std=c++17 -g -fsanitize=address
 $(NAME): $(OBJ)
 	c++ $(CFLAGS) $(OBJ) $(LIBS) $(HEADERS) -o $(NAME)
 
-%.o: %.cpp $(HFL)
-	c++ $(FLAGS) -c $< -o $@ $(HEADERS)
+$(OBJ_DIR)/%.o: ./src/%.cpp $(HFL)
+	@mkdir -p $(dir $@)
+	c++ $(CFLAGS) -c $< -o $@ $(HEADERS)
 
 all: $(NAME)
 	
