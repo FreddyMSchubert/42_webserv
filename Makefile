@@ -3,32 +3,75 @@ NAME = webserv
 SRC = $(shell find ./src -name "*.cpp")
 HFL = $(shell find ./include -name "*.hpp")
 OBJ_DIR = ./obj
-OBJ = $(SRC:./src/%.c=$(OBJ_DIR)/%.o)
+OBJ = $(patsubst ./src/%.cpp,$(OBJ_DIR)/%.o,$(SRC))
+TOTAL_FILES := $(words $(OBJ))
 
 HEADERS := -I ./include -I ./include/Packets
-LIBS := 
+LIBS :=
 CFLAGS := -Wall -Wextra -Werror -std=c++17 -g -fsanitize=address
 
-$(NAME): $(OBJ)
-	c++ $(CFLAGS) $(OBJ) $(LIBS) $(HEADERS) -o $(NAME)
+# Colors and Emojis 🌈✨
+RESET := \033[0m
+RED := \033[31m
+GREEN := \033[32m
+YELLOW := \033[33m
+BLUE := \033[34m
+MAGENTA := \033[35m
+CYAN := \033[36m
+WHITE := \033[37m
+BOLD := \033[1m
 
-%.o: %.cpp $(HFL)
-	c++ $(FLAGS) -c $< -o $@ $(HEADERS)
+EMOJI_STAGE := 🚀
+EMOJI_DONE := 🎉
+EMOJI_COMPILING := 🔨
+EMOJI_PROGRESS := 🟩
+EMOJI_REMAINING := ⬜
+
+$(NAME): $(OBJ)
+	@printf "$(BOLD)$(BLUE)$(EMOJI_STAGE) Starting compilation of $(NAME)...$(RESET)\n"
+	@c++ $(CFLAGS) $(OBJ) $(LIBS) $(HEADERS) -o $(NAME)
+	@printf "$(GREEN)$(EMOJI_DONE) Compilation of $(NAME) done!$(RESET)\n"
+
+$(OBJ_DIR)/%.o: ./src/%.cpp $(HFL)
+	@mkdir -p $(dir $@)
+	@c++ $(CFLAGS) -c $< -o $@ $(HEADERS)
+	@CURRENT_FILES=$$(find $(OBJ_DIR) -type f -name '*.o' | wc -l | tr -d ' '); \
+	BAR_LENGTH=22; \
+	if [ $$CURRENT_FILES -eq $(TOTAL_FILES) ]; then \
+		PROGRESS=100; \
+		BAR="$$(printf '$(EMOJI_PROGRESS)%.0s' $$(seq 1 $$BAR_LENGTH))"; \
+	else \
+		PROGRESS=$$((CURRENT_FILES * 100 / $(TOTAL_FILES))); \
+		FILLED=$$((BAR_LENGTH * CURRENT_FILES / $(TOTAL_FILES))); \
+		EMPTY=$$((BAR_LENGTH - FILLED)); \
+		BAR="$$(printf '$(EMOJI_PROGRESS)%.0s' $$(seq 1 $$FILLED))$$(printf '$(EMOJI_REMAINING)%.0s' $$(seq 1 $$EMPTY))"; \
+	fi; \
+	printf "\r$(YELLOW)%-100s$(RESET)" ""; \
+	printf "\r$(YELLOW)[%s] %d%% $(MAGENTA)$(EMOJI_COMPILING) %s $(RESET)" "$$BAR" "$$PROGRESS" "$<"; \
+	if [ $$CURRENT_FILES -eq $(TOTAL_FILES) ]; then printf "\n"; fi
 
 all: $(NAME)
-	
+
 clean:
-	rm -rf $(OBJ_DIR)
+	@printf "$(RED)🧹 Cleaning object files...$(RESET)\n"
+	@rm -rf $(OBJ_DIR)
 
 fclean: clean
-	rm -f $(NAME)
+	@printf "$(RED)🔥 Removing executable...$(RESET)\n"
+	@rm -f $(NAME)
 
 re: fclean all
 
 run: all
-	./$(NAME)
+	@printf "$(GREEN)🏃 Running $(NAME)...$(RESET)\n"
+	@./$(NAME)
 
 debug: re
-	$(MAKE) CFLAGS+='-g -O0 -fsanitize=address -DLOG_INCOMING_PACKETS -DLOG_OUTGOING_PACKETS' $(NAME)
+	@printf "$(CYAN)🐛 Debugging $(NAME)...$(RESET)\n"
+	@$(MAKE) CFLAGS+='-g -O0 -fsanitize=address -DLOG_INCOMING_PACKETS -DLOG_OUTGOING_PACKETS' $(NAME)
 
-.PHONY: all clean fclean re run debug
+parrot:
+	@printf "$(BOLD)$(GREEN)🦜 Parrot mode activated!$(RESET)\n"
+	@curl parrot.live
+
+.PHONY: all clean fclean re run debug parrot
