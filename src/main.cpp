@@ -53,6 +53,7 @@ std::vector<t_server_config> init_testing_configs()
 		configs[2].port = 4242;
 
 		configs[0].default_location.allowed_methods[Method::GET] = true;
+		configs[0].default_location.allowed_methods[Method::POST] = true;
 		configs[1].default_location.allowed_methods[Method::GET] = true;
 		configs[1].default_location.allowed_methods[Method::POST] = true;
 		configs[2].default_location.allowed_methods[Method::GET] = true;
