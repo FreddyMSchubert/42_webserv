@@ -17,12 +17,30 @@ void Response::handlePost(Request& req, t_server_config &config)
 
 	setVersion("HTTP/1.1");
 
+	t_location location = get_location(config, Path(path, Path::Type::URL, config).asFilePath());
+
+	if (location.empty())
+	{
+		std::cerr << "Invalid location" << std::endl;
+		setStatus(Status::NotFound);
+		setBody("Invalid location");
+		return;
+	}
+
+	if (!isAllowedMethodAt(config, Path(path, Path::Type::URL, config), Method::POST))
+	{
+		std::cerr << "POST method not allowed" << std::endl;
+		setStatus(Status::Forbidden);
+		setBody("POST method not allowed");
+		return;
+	}
+
 	if (req.getHeaders().find("Content-Length") == req.getHeaders().end())
 	{
 		std::cerr << "No Content-Length header" << std::endl;
 		setStatus(Status::Forbidden);
 		setBody("No Content-Length header");
-		return ;
+		return;
 	}
 
 	content_length = std::stoi(req.getHeaders()["Content-Length"]);
@@ -98,6 +116,7 @@ void Response::handlePost(Request& req, t_server_config &config)
 	}
 
 	setStatus(Status::OK);
+	setBody("File uploaded successfully");
 	close(fd);
 
 	std::cout << "Handling POST request" << std::endl;
