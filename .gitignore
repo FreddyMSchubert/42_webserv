@@ -4,6 +4,7 @@ vscode/
 ./obsidian/
 
 webserv
+obj/
 
 .DS_Store
 
