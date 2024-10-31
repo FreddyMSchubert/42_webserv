@@ -74,3 +74,12 @@ t_location get_location(t_server_config &config, std::string path)
 
 	return loc;
 }
+
+void setNonBlocking(int fd)
+{
+	int flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1)
+		throw std::runtime_error("Failed to get socket flags");
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+		throw std::runtime_error("Failed to set non-blocking mode");
+}
