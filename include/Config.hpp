@@ -17,34 +17,26 @@ class	Parsing_Exception : public std::exception
 		std::string error_message;
 
 		const std::string example_conf = R"(server {
-		listen 80 default_server;
-		server_name _;
+    listen 4242;
+    server_name example.com yourumu.de;
 
-		root /var/www/html;
-		index index.html;
+    root ./var/www/html;
+    index index.html index.php index.deinemutter;
 
-		client_max_body_size 10M;
+    client_max_body_size 10MB;
 
-		error_page 418	/418.php;
+    error_page 404 /404.html;
+    error_page 418 /418.html;
 
-		location /example_route {
-
-		allowed_methods GET POST; 
-
-		redirection 301 ./new-location;
-
-		root ./tmp/www;
-
-		autoindex on;
-
-		index index.html;
-
-		cgi_extension .php ./path/to/php-cgi;
-
-		upload_dir ./var/www/uploads;
-		
-		max_body_size 10MB;
-		}
+    location /example_route {
+    root ./tmp/www;
+    allowed_methods GET POST; 
+    autoindex on;
+    index index.html index.php;
+    cgi_extension .php ./path/to/php-cgi;
+    redirection 301 ./new-location;
+    upload_dir ./var/www/uploads;
+    }
 	})";
 
 	public:
@@ -62,107 +54,30 @@ class	Parsing_Exception : public std::exception
 		}
 };
 
-typedef struct s_llocation
+typedef struct s_location
 {
-	std::string					path;					// The URI path for the location (e.g., "/", "/upload", "/kapouet")
-	std::string					root_dir;				// The root directory for file search (e.g., /var/www/html or /tmp/www)
-	std::vector<std::string>	allowed_methods;		// List of accepted HTTP methods (e.g., {"GET", "POST"})
-	bool						autoindex;				// Flag to enable or disable directory listing (e.g., true/false)
-	std::vector<std::string>	index_files;				// Default file to serve if the path is a directory (e.g., "index.html")
-	std::vector<std::string>	cgi_extensions;			// Map of file extensions and the corresponding handler (e.g., ".php" -> "/path/to/php-cgi")
-	std::string					cgi_pass;				// CGI handler or FastCGI socket (e.g., "unix:/var/run/php/php-fpm.sock")
-	std::map<int, std::string>	redirections;			// URL for redirection if applicable (e.g., "/new-path") HTTP status code for redirection (e.g., 301)
-	size_t						max_body_size;			// Maximum body size for uploads (e.g., 10MB)
-	std::string					upload_dir;				// Directory to save uploaded files (e.g., "/var/www/uploads")
-	bool						limit_except_enabled;	// Flag to enable/disable method restriction (e.g., true/false)
-	bool empty() const
-	{
-		return path.empty() && 
-			root_dir.empty() && 
-			allowed_methods.empty() && 
-			!autoindex && 
-			index_files.empty() && 
-			cgi_extensions.empty() && 
-			cgi_pass.empty() && 
-			redirections.empty() && 
-			max_body_size == 0 && 
-			upload_dir.empty() && 
-			!limit_except_enabled;
-	}
-}   t_llocation;
+	std::string							path;					// line 13: specifies the path of the location ./example_route
+	std::string							root_dir;				// line 14: specifies the root dir for the location
+	std::unordered_map<Method, bool>	allowed_methods;		// line 15: specifies the allowed Methods, <Method (GET, POST)><allowed(true, false)>
+	bool								directory_listing;		// line 16: specifies if the directorys should be shown or not
+	std::vector<std::string>			index_files;			// line 17: specifies the index files, each index file is one string in the vector
+	std::vector<std::string>			cgi_extensions;			// line 18: specifies the cgi extentions. Argument 1 is telling the server to handle files with example .php as cgi scripts. Argument 2 defines the path to the php executable 
+	std::map<int, std::string>			redirections;			// line 19: no error handling needed just redirect to a new location (which is saved in the string) with the status code (which is saved in the int)
+	std::string							upload_dir;				// line 20: specifies the upload directory of this location
+	bool empty() const { return path.empty(); }
+}   t_location;
 
-typedef struct s_sserver
+typedef struct s_server_block
 {
-	int							port;
-	std::vector<std::string> 	server_names;
-	std::string					root_dir;
-	std::vector<std::string>	index_files;
-	size_t						client_max_body_size;
-	std::map<int, std::string>	error_pages;
-	std::vector<t_llocation>	locations;
-}	t_sserver;
+	std::unordered_map<std::string, int>	port;					// line 2: specifies the port
+	std::vector<std::string> 				server_names;			// line 3: specifies the server_names in a vector of strings
+	std::string								root_dir;				// line 4: specifies the root directory for this server
+	std::vector<std::string>				index_files;			// line 5: specifies the index files, each index file is one string in the vector
+	size_t									client_max_body_size;	// line 6: specifies the client max body size in MB
+	std::map<int, std::string>				error_pages;			// line 10/11: specifies what errorpages should be displayed for what http error code
+	std::vector<t_location>					locations;				// line 13-21: for more info look into t_location
+}	t_server_block;
 
-typedef struct s_sserver_configs
-{
-	std::vector<t_sserver> server_list;
-}	t_sserver_configs;
+typedef std::vector<t_server_block> t_server_configs;
 
-
-t_sserver_configs    get_config(char *argv[]);
-
-//----------------------------------------------------------------
-
-// typedef struct s_location t_location;
-
-typedef struct s_location 
-{
-	std::unordered_map<Method, bool> allowed_methods;
-	std::string root; // needs to be relative to project root & start with . otherwise mayhem
-	std::string index;
-	bool directory_listing;
-	size_t client_max_body_size;
-	bool empty() { return root.empty(); }
-} t_location;
-#define EMPTY_LOCATION (t_location){{}, "", "", false, 0}
-
-// inline std::ostream &operator<<(std::ostream &os, const t_location &location)
-// {
-// 	os << "Root: " << location.root << std::endl;
-// 	os << "Index: " << location.index << std::endl;
-// 	os << "Directory listing: " << location.directory_listing << std::endl;
-// 	os << "Client max body size: " << location.client_max_body_size << std::endl;
-// 	os << "Allowed methods: ";
-// 	for (auto &noolean : location.allowed_methods)
-// 		os << noolean.first << "(" << noolean.second << ")" << " ";
-// 	os << std::endl;
-// 	return os;
-// }
-inline std::ostream &operator<<(std::ostream &os, const t_location &location)
-{
-	os << "Root: " << location.root << std::endl;
-	os << "Index: " << location.index << std::endl;
-	os << "Directory listing: " << location.directory_listing << std::endl;
-	os << "Client max body size: " << location.client_max_body_size << std::endl;
-	os << "Allowed methods: ";
-	for (auto &method : location.allowed_methods)
-		os << method.first << "(" << method.second << ")" << " ";
-	return os;
-}
-
-typedef struct s_error_page
-{
-	int error_code;
-	t_location path;
-} t_error_page;
-
-typedef struct s_server_config
-{
-	std::vector<std::string> server_names;
-	std::string host;
-	int port; // below 1024 require root
-
-	t_location default_location;
-	std::vector<t_location> locations;
-	std::vector<t_error_page> error_pages;
-
-} t_server_config;
+t_server_configs    get_config(char *argv[]);

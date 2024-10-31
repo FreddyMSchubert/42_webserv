@@ -127,7 +127,9 @@ std::vector<std::string> split(const std::string& str, char delimiter)
     return (tokens);
 }
 
-void	init_location(std::vector<std::string> location_block, t_sserver& server, int& iter)
+
+//why empty
+void	init_location(std::vector<std::string> location_block, t_server_configs& server, int& iter)
 {
 	(void)location_block;
 	(void)iter;
@@ -146,7 +148,7 @@ std::string	replace_x_in_dir(int value, std::string& tmp_index)
 	return (tmp_index);
 }
 
-void	init_error_pages(std::string str, t_sserver& server, int& iter)
+void	init_error_pages(std::string str, t_server_block& server, int& iter)
 {
 	std::regex pattern(R"(^\s*error_page\s+[1-5][0-9]{2}\s+/[1-5][0-9]{2}\.[a-zA-Z]+;\s*$)");
 	(void)iter;
@@ -173,7 +175,7 @@ void	init_error_pages(std::string str, t_sserver& server, int& iter)
 	}
 }
 
-void	init_client_max_body_size(std::string str, t_sserver& server, int& iter)
+void	init_client_max_body_size(std::string str, t_server_block& server, int& iter)
 {
 	std::regex pattern(R"(^\s*client_max_body_size\s+[^;]*;\s*$)");
 
@@ -195,7 +197,7 @@ void	init_client_max_body_size(std::string str, t_sserver& server, int& iter)
 	server.client_max_body_size = std::atoi(str_for_atoi.c_str());	
 }
 
-void	init_index_files(std::string str, t_sserver& server, int& iter)
+void	init_index_files(std::string str, t_server_block& server, int& iter)
 {
 	std::regex pattern(R"(^\s*index\s+[^;]*;\s*$)");
 	(void)iter;
@@ -219,7 +221,7 @@ void	init_index_files(std::string str, t_sserver& server, int& iter)
 	server.index_files = tmp_index;
 }
 
-void	init_root_dir(std::string str, t_sserver& server, int& iter)
+void	init_root_dir(std::string str, t_server_block& server, int& iter)
 {
 	std::regex pattern(R"(^\s*root\s+(\./[^\s;]+)\s*;\s*$)");
 	(void)iter;
@@ -234,7 +236,7 @@ void	init_root_dir(std::string str, t_sserver& server, int& iter)
 	server.root_dir = tmp_root.substr(0, i);
 }
 
-void	init_server_name(std::string str, t_sserver& server, int& iter)
+void	init_server_name(std::string str, t_server_block& server, int& iter)
 {
 	std::regex pattern(R"(^\s*server_name\s+[^;]*;\s*$)");
 	(void)iter;
@@ -255,11 +257,13 @@ void	init_server_name(std::string str, t_sserver& server, int& iter)
 	server.server_names = names;
 }
 
-void	init_port(std::string str, t_sserver& server, int& iter)
+void	init_port(std::string str, t_server_block& server, int& iter)
 {
-	std::regex pattern(R"(^\s*listen\s+([0-5]?\d{1,4}|6[0-5]\d{3}|66[0-5]\d{2}|66000)\s+default_server;\s*$)");
+	std::regex only_port(R"(^\s*listen\s+([0-5]?\d{1,4}|6[0-5]\d{3}|66[0-5]\d{2}|66000)\s*;\s*$)");
+	std::regex only_host(R"([\s\t]*listen[\s\t]*host\s*\(?\d{1,3}(?:\.\d{1,3}){3}\)?[\s\t]*;?)");
+	std::regex both(R"(^\s*listen\s+([0-5]?\d{1,4}|6[0-5]\d{3}|66[0-5]\d{2}|66000)\s*;\s*$)");
 	(void)iter;
-	if (std::regex_match(str, pattern) == false)
+	if (std::regex_match(str, only_port) == false && std::regex_match(str, only_host) == false && std::regex_match(str, both))
 		parse_except("Expected 'listen <port> default_server' but didnt find it where it was expected!");
 
 	std::string	tmp_str = skip_until_value(str, "listen");
@@ -271,19 +275,29 @@ void	init_port(std::string str, t_sserver& server, int& iter)
 		else
 			break ;
 	}
-	server.port = std::atoi(str_for_atoi.c_str());
+	if (std::atoi(str_for_atoi.c_str()) >= 0 && std::atoi(str_for_atoi.c_str()) <= 65535)
+		server.port = std::atoi(str_for_atoi.c_str());
+	else
+		parse_except("Port is outside of the allowed range!");
 }
 
-void	init_allowed_methods(t_llocation& location, std::string str)
+void	init_allowed_methods(t_location& location, std::string str)
 {
 	std::string					pre_processed_methods = skip_until_value(str, "allowed_methods");
 	std::vector<std::string>	post_processed_methods = split(pre_processed_methods, ' ');
 	for (auto& method : post_processed_methods)
 		method.erase(std::remove(method.begin(), method.end(), ';'), method.end());
-	location.allowed_methods = post_processed_methods;
+	location.allowed_methods[Method::GET] = false;
+	location.allowed_methods[Method::POST] = false;
+	for (const auto& method : post_processed_methods)
+		if (method.find("GET") != std::string::npos)
+			location.allowed_methods[Method::GET] = true;
+	for (const auto& method : post_processed_methods)
+		if (method.find("POST") != std::string::npos)
+			location.allowed_methods[Method::POST] = true;
 }
 
-void	init_redirection(t_llocation& location, std::string str)
+void	init_redirection(t_location& location, std::string str)
 {
 	std::string					pre_processed_redirection = skip_until_value(str, "redirection");
 	std::vector<std::string>	post_processed_redirection = split(pre_processed_redirection, ' ');
@@ -300,7 +314,7 @@ void	init_redirection(t_llocation& location, std::string str)
 	location.redirections.insert(std::make_pair(std::atoi(str_for_atoi.c_str()), post_processed_redirection[post_processed_redirection.size() - 1]));		
 }
 
-void	init_root(t_llocation& location, std::string str)
+void	init_root(t_location& location, std::string str)
 {
 	std::string pre_processed_root = skip_until_value(str, "root");
 	int			i = 0;
@@ -310,19 +324,19 @@ void	init_root(t_llocation& location, std::string str)
 	location.root_dir = pre_processed_root.substr(0, i);
 }
 
-void	init_autoindex(t_llocation& location, std::string str)
+void	init_directory_listing(t_location& location, std::string str)
 {
 	std::string	preprocessed_autoindex = skip_until_value(str, "autoindex");
 	
 	if (str.find("on") != std::string::npos)
-		location.autoindex = true;
+		location.directory_listing = true;
 	else if (str.find("off") != std::string::npos)
-		location.autoindex = false;
+		location.directory_listing = false;
 	else
 		parse_except("Autoindex does not have on or off!");
 }
 
-void	init_index(t_llocation& location, std::string str)
+void	init_index(t_location& location, std::string str)
 {
 	std::string					tmp_str = skip_until_value(str, "index");
 	std::vector<std::string>	tmp_index;
@@ -341,7 +355,7 @@ void	init_index(t_llocation& location, std::string str)
 	location.index_files = tmp_index;
 }
 
-void	init_cgi_extention(t_llocation& location, std::string str)
+void	init_cgi_extention(t_location& location, std::string str)
 {
 	std::string					pre_processed_cgi = skip_until_value(str, "cgi_extension");
 	std::vector<std::string>	splited_cgi = split(pre_processed_cgi, ' ');
@@ -350,7 +364,7 @@ void	init_cgi_extention(t_llocation& location, std::string str)
 	location.cgi_extensions = splited_cgi;
 }
 
-void	init_upload_dir(t_llocation& location, std::string str)
+void	init_upload_dir(t_location& location, std::string str)
 {
 	std::string pre_processed_root = skip_until_value(str, "upload_dir");
 	int			i = 0;
@@ -360,56 +374,39 @@ void	init_upload_dir(t_llocation& location, std::string str)
 	location.root_dir = pre_processed_root.substr(0, i);
 }
 
-void	init_max_body_size(t_llocation& location, std::string str)
-{
-	std::string tmp_size = skip_until_value(str, "max_body_size");
-	std::string	str_for_atoi;
-	for (char c : tmp_size)
-	{
-		if (std::isdigit(c))
-			str_for_atoi += c;
-		else
-			break ;
-	}
-	location.max_body_size = std::atoi(str_for_atoi.c_str());	
-}
 
-void	read_location(t_sserver& server, std::vector<std::string>& current_server, size_t start_of_location, size_t end_of_location, std::string location_str)
+void	read_location(t_server_block& server, std::vector<std::string>& current_server, size_t start_of_location, size_t end_of_location, std::string location_str)
 {
-	t_llocation location;
+	t_location location;
 	std::string loc = skip_until_value(location_str, "location");
 	loc.erase(std::remove(loc.begin(), loc.end(), '{'), loc.end());
 	loc.erase(std::remove(loc.begin(), loc.end(), ' '), loc.end());
 	location.path = loc;
 
-	std::regex allowed_methods(R"(^\s*allowed_methods\s+([A-Z]+\s*){1,2};\s*$)"); //not testd
-	std::regex redirection(R"(^\s*redirection\s+(3[0-5][0-9]|[1-4][0-9]{2}|5[0-9]{2})\s+\.\/[^\s;]+\s*;\s*$)"); //not testd
+	std::regex allowed_methods(R"(^\s*allowed_methods\s+([A-Z]+\s*){1,2};\s*$)");
+	std::regex redirection(R"(^\s*redirection\s+(3[0-5][0-9]|[1-4][0-9]{2}|5[0-9]{2})\s+\.\/[^\s;]+\s*;\s*$)");
 	std::regex root(R"(^\s*root\s+(\./[^\s;]+)\s*;\s*$)");
-	std::regex autoindex(R"(^\s*autoindex\s+(on|off)\s*;\s*$)"); //not testd
+	std::regex directory_listing(R"(^\s*autoindex\s+(on|off)\s*;\s*$)");
 	std::regex index(R"(^\s*index\s+[^;]*;\s*$)");
-	std::regex cgi_extension(R"(^\s*cgi_extension\s+\.\w+\s+\.\/[^\s;]+;\s*$)"); //not testd
-	std::regex upload_dir(R"(^\s*upload_dir\s+\./[^\s]*\s*;\s*$)"); //not testd
-	std::regex max_body_size(R"(^\s*max_body_size\s+[^;]*;\s*$)");
+	std::regex cgi_extension(R"(^\s*cgi_extension\s+\.\w+\s+\.\/[^\s;]+;\s*$)");
+	std::regex upload_dir(R"(^\s*upload_dir\s+\./[^\s]*\s*;\s*$)");
 
 	while (start_of_location < end_of_location && start_of_location < current_server.size())
 	{
-		// std::cout << "here: " << current_server[start_of_location] << std::endl;
 		if (std::regex_match(current_server[start_of_location], allowed_methods))
 			init_allowed_methods(location, current_server[start_of_location]);
 		else if (std::regex_match(current_server[start_of_location], redirection))
 			init_redirection(location, current_server[start_of_location]);
 		else if (std::regex_match(current_server[start_of_location], root))
 			init_root(location, current_server[start_of_location]);
-		else if (std::regex_match(current_server[start_of_location], autoindex))
-			init_autoindex(location, current_server[start_of_location]);
+		else if (std::regex_match(current_server[start_of_location], directory_listing))
+			init_directory_listing(location, current_server[start_of_location]);
 		else if (std::regex_match(current_server[start_of_location], index))
 			init_index(location, current_server[start_of_location]);
 		else if (std::regex_match(current_server[start_of_location], cgi_extension))
 			init_cgi_extention(location, current_server[start_of_location]);
 		else if (std::regex_match(current_server[start_of_location], upload_dir))
 			init_upload_dir(location, current_server[start_of_location]);
-		else if (std::regex_match(current_server[start_of_location], max_body_size))
-			init_max_body_size(location, current_server[start_of_location]);
 		else
 			parse_except("Could not process: " + current_server[start_of_location] + " ! Please check the valid reference.");
 		start_of_location++;
@@ -417,10 +414,10 @@ void	read_location(t_sserver& server, std::vector<std::string>& current_server, 
 	server.locations.push_back(location);
 }
 
-void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t_sserver_configs& tmp_serv_conf)
+void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t_server_configs& tmp_serv_conf)
 {
-    std::vector<std::function<void(std::string, t_sserver&, int&)>> init_functions = {
-        init_port, init_server_name, init_root_dir, init_index_files, 
+    std::vector<std::function<void(std::string, t_server_block&, int&)>> init_functions = {
+        init_port, init_server_name, init_root_dir, init_index_files,
         init_client_max_body_size, init_error_pages
     };
 
@@ -428,7 +425,7 @@ void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t
 	std::regex server_end(R"(^\s*\}\s*$)");
     for (size_t server_idx = 0; server_idx < preprocessed_servers.size(); ++server_idx)
     {
-        t_sserver server;
+        t_server_block	server;
         std::vector<std::string>& current_server = preprocessed_servers[server_idx];
         int counter = 0;
 
@@ -479,13 +476,13 @@ void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t
 				read_location(server, current_server, start_of_location, end_of_location, location_str);
 			}
         }
-        tmp_serv_conf.server_list.push_back(server);
+        tmp_serv_conf.push_back(server);
     }
 }
 
-t_sserver_configs	get_config(char *argv[])
+t_server_configs	get_config(char *argv[])
 {
-	t_sserver_configs						tmp_serv_conf;
+	t_server_configs						tmp_serv_conf;
 	std::vector<std::vector<std::string>>	preprocessed_servers;
 
 	if (!argv[1])

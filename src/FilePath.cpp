@@ -1,12 +1,13 @@
+#include "Config.hpp"
 #include "FilePath.hpp"
 
 #include "./Packets/Methods/mimetypes.cpp"
 
-FilePath::FilePath(const std::string &path, Path::Type type, t_server_config *config)
+FilePath::FilePath(const std::string &path, Path::Type type, t_server_configs &config)
 {
 	std::string filePath = path;
 	if (type == Path::Type::URL)
-		filePath = Path::combinePaths(config->default_location.root, path);
+		filePath = Path::combinePaths(config, path);
 
 	int lastSlash = filePath.find_last_of('/');
 	std::string folder = filePath.substr(0, lastSlash + 1);

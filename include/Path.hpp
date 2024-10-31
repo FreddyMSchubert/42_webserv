@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <variant>
 #include <vector>
+#include "Config.hpp"
 
 class FilePath;
 
