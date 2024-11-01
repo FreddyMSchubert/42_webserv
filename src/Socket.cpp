@@ -19,6 +19,7 @@ Socket::Socket(t_server_config config) : _socket_pid(-1), config(config)
 }
 
 // TODO: handle protocols other then HTTP (probably not) that dont send \r\n\r\n in the end
+// TODO: anything but support non-http that sounds like pain
 std::string Socket::_receiveData(int client_fd)
 {
 	std::string data;

@@ -129,14 +129,39 @@ void Response::handle_dir_req(t_server_config &config, Path &path)
 void Response::handleGet(Request& req, t_server_config &config)
 {
 	Logger::Log(LogLevel::INFO, "GET: Handling request");
+	setVersion("HTTP/1.1");
 
 	std::string reqTarget = req.getPath();
 	std::cout << "reqTarget: \"" << reqTarget << "\"" << std::endl;
+	std::variant<Path, FilePath> path;
 	if (reqTarget == "/")
-		reqTarget = config.index_files[0]; // TODO: u had : configs.default_location.index here which was just a string and not a vector, please check again if that works for u!!
-	std::variant<Path, FilePath> path = Path::createPath(reqTarget, Path::Type::URL, &config);
-
-	setVersion("HTTP/1.1");
+	{
+		for (size_t i = 0; i < config.index_files.size(); i++)
+		{
+			if (std::holds_alternative<FilePath>(path))
+				break;
+			reqTarget = config.index_files[i];
+			try
+			{
+				path = Path::createPath(reqTarget, Path::Type::URL, &config);
+			}
+			catch (std::exception &e)
+			{
+				continue;
+			}
+		}
+		if (std::holds_alternative<FilePath>(path) == false)
+		{
+			Logger::Log(LogLevel::ERROR, "GET: No valid index file found");
+			setStatus(Status::NotFound);
+			return;
+		}
+	}
+	else
+	{
+		path = Path::createPath(reqTarget, Path::Type::URL, &config);
+	}
+	std::cout << "Found path: " << std::get<Path>(path).asUrl() << std::endl;
 
 	if (std::holds_alternative<FilePath>(path))
 	{
