@@ -134,8 +134,8 @@ std::string	replace_x_in_dir(int value, std::string& tmp_index)
 		return (tmp_index);
 	int	test = value % 10;
 	char last_int = test + '0';
-    if (pos != std::string::npos)
-        tmp_index.replace(pos, 1, 1, last_int);
+	if (pos != std::string::npos)
+		tmp_index.replace(pos, 1, 1, last_int);
 	return (tmp_index);
 }
 
