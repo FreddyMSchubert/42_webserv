@@ -12,11 +12,11 @@
 class Server
 {
 	private:
-		t_server_configs config;
+		t_server_config config;
 		std::vector<Socket> _sockets;
 
 	public:
-		Server(t_server_block config);
+		Server(t_server_config config);
 		Server(Server const &src) = delete;
 		Server &operator=(Server const &src) = delete;
 		Server(Server&& other) noexcept = default;

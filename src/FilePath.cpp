@@ -3,11 +3,11 @@
 
 #include "./Packets/Methods/mimetypes.cpp"
 
-FilePath::FilePath(const std::string &path, Path::Type type, t_server_configs &config)
+FilePath::FilePath(const std::string &path, Path::Type type, t_server_config *config)
 {
 	std::string filePath = path;
 	if (type == Path::Type::URL)
-		filePath = Path::combinePaths(config, path);
+		filePath = Path::combinePaths(config->root_dir, path);
 
 	int lastSlash = filePath.find_last_of('/');
 	std::string folder = filePath.substr(0, lastSlash + 1);

@@ -7,7 +7,7 @@ bool isAllowedMethodAt(t_server_config &config, Path path, Method method)
 		std::cout << "Attempting to find method " << method << " at " << path << std::endl;
 
 		t_location location = get_location(config, path.asFilePath());
-		if (location.root == "/" || location.root.empty())
+		if (location.root_dir == "/" || location.root_dir.empty())
 			break;
 		auto methodPair = location.allowed_methods.find(method);
 		if (methodPair != location.allowed_methods.end())
@@ -17,9 +17,9 @@ bool isAllowedMethodAt(t_server_config &config, Path path, Method method)
 		if (path.isRoot())
 			break;
 	};
-
-	auto foundLoc = config.default_location.allowed_methods.find(method);
-	if (foundLoc != config.default_location.allowed_methods.end())
+	//TODO: just for info there might be more then one location so i think it makes sense to make it more dynamic
+	auto foundLoc = config.locations[0].allowed_methods.find(method);
+	if (foundLoc != config.locations[0].allowed_methods.end())
 		return foundLoc->second;
 	return false; // default for all methods if no rule is defined
 }
@@ -40,35 +40,37 @@ bool isSubroute(const std::string& route, const std::string& subroute)
 std::string getFilePathAsURLPath(std::string path, t_server_config &config)
 {
 	std::string urlPath = path;
-	urlPath.replace(0, config.default_location.root.size(), "");
+	urlPath.replace(0, config.root_dir.size(), "");
 	if (urlPath == "")
 		urlPath = "/";
 	return urlPath;
 }
 
 // Gets the location config of the path, respecting subdirs
+// TODO: please check this!!
 t_location get_location(t_server_config &config, std::string path)
 {
-	t_location loc = EMPTY_LOCATION;
+	// t_location loc = EMPTY_LOCATION; //what are u doing here @freddy?
+	t_location loc;
 
-	std::cout << "Getting location for path: \"" << path << "\"" << " at root " << config.default_location.root << std::endl;
-	if (path == config.default_location.root)
+	std::cout << "Getting location for path: \"" << path << "\"" << " at root " << config.root_dir << std::endl;
+	if (path == config.root_dir)
 	{
 		std::cout << "The path is \"/\"." << std::endl;
-		if (std::filesystem::exists(config.default_location.root))
+		if (std::filesystem::exists(config.root_dir))
 		{
-			loc = config.default_location;
+			loc = config.locations[0]; //TODO: i changed it but im very sure that is not what you want
 			std::cout << "Default location is valid." << std::endl;
 		}
 	}
 
-	std::cout << "Initial location: " << loc.root << std::endl;
+	std::cout << "Initial location: " << loc.root_dir << std::endl;
 
 	for (t_location &location : config.locations)
 	{
-		std::cout << "Current location: " << loc.root << " checking against " << location.root << std::endl;
-		if (isSubroute(location.root, path) && std::filesystem::exists(location.root))
-			if (loc.root.size() < location.root.size())
+		std::cout << "Current location: " << loc.root_dir << " checking against " << location.root_dir << std::endl;
+		if (isSubroute(location.root_dir, path) && std::filesystem::exists(location.root_dir))
+			if (loc.root_dir.size() < location.root_dir.size())
 				loc = location;
 	}
 

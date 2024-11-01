@@ -133,7 +133,7 @@ void Response::handleGet(Request& req, t_server_config &config)
 	std::string reqTarget = req.getPath();
 	std::cout << "reqTarget: \"" << reqTarget << "\"" << std::endl;
 	if (reqTarget == "/")
-		reqTarget = config.default_location.index;
+		reqTarget = config.index_files[0]; // TODO: u had : configs.default_location.index here which was just a string and not a vector, please check again if that works for u!!
 	std::variant<Path, FilePath> path = Path::createPath(reqTarget, Path::Type::URL, &config);
 
 	setVersion("HTTP/1.1");

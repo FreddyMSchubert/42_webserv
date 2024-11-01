@@ -35,7 +35,7 @@ void signalHandler(int signum)
 
 int main(int argc, char *argv[])
 {
-	t_server_configs	configs;
+	std::vector<t_server_config>	configs;
 
 	if (argc == 1 || argc == 2)
 		configs = get_config(argv);

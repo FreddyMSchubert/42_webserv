@@ -127,15 +127,6 @@ std::vector<std::string> split(const std::string& str, char delimiter)
     return (tokens);
 }
 
-
-//why empty
-void	init_location(std::vector<std::string> location_block, t_server_configs& server, int& iter)
-{
-	(void)location_block;
-	(void)iter;
-	(void)server;
-}
-
 std::string	replace_x_in_dir(int value, std::string& tmp_index)
 {
 	size_t pos = tmp_index.find('x');
@@ -148,7 +139,7 @@ std::string	replace_x_in_dir(int value, std::string& tmp_index)
 	return (tmp_index);
 }
 
-void	init_error_pages(std::string str, t_server_block& server, int& iter)
+void	init_error_pages(std::string str, t_server_config& server, int& iter)
 {
 	std::regex pattern(R"(^\s*error_page\s+[1-5][0-9]{2}\s+/[1-5][0-9]{2}\.[a-zA-Z]+;\s*$)");
 	(void)iter;
@@ -175,7 +166,7 @@ void	init_error_pages(std::string str, t_server_block& server, int& iter)
 	}
 }
 
-void	init_client_max_body_size(std::string str, t_server_block& server, int& iter)
+void	init_client_max_body_size(std::string str, t_server_config& server, int& iter)
 {
 	std::regex pattern(R"(^\s*client_max_body_size\s+[^;]*;\s*$)");
 
@@ -197,7 +188,7 @@ void	init_client_max_body_size(std::string str, t_server_block& server, int& ite
 	server.client_max_body_size = std::atoi(str_for_atoi.c_str());	
 }
 
-void	init_index_files(std::string str, t_server_block& server, int& iter)
+void	init_index_files(std::string str, t_server_config& server, int& iter)
 {
 	std::regex pattern(R"(^\s*index\s+[^;]*;\s*$)");
 	(void)iter;
@@ -221,7 +212,7 @@ void	init_index_files(std::string str, t_server_block& server, int& iter)
 	server.index_files = tmp_index;
 }
 
-void	init_root_dir(std::string str, t_server_block& server, int& iter)
+void	init_root_dir(std::string str, t_server_config& server, int& iter)
 {
 	std::regex pattern(R"(^\s*root\s+(\./[^\s;]+)\s*;\s*$)");
 	(void)iter;
@@ -236,7 +227,7 @@ void	init_root_dir(std::string str, t_server_block& server, int& iter)
 	server.root_dir = tmp_root.substr(0, i);
 }
 
-void	init_server_name(std::string str, t_server_block& server, int& iter)
+void	init_server_name(std::string str, t_server_config& server, int& iter)
 {
 	std::regex pattern(R"(^\s*server_name\s+[^;]*;\s*$)");
 	(void)iter;
@@ -257,28 +248,20 @@ void	init_server_name(std::string str, t_server_block& server, int& iter)
 	server.server_names = names;
 }
 
-void	init_port(std::string str, t_server_block& server, int& iter)
+void init_port(std::string str, t_server_config& server, int& iter)
 {
-	std::regex only_port(R"(^\s*listen\s+([0-5]?\d{1,4}|6[0-5]\d{3}|66[0-5]\d{2}|66000)\s*;\s*$)");
-	std::regex only_host(R"([\s\t]*listen[\s\t]*host\s*\(?\d{1,3}(?:\.\d{1,3}){3}\)?[\s\t]*;?)");
-	std::regex both(R"(^\s*listen\s+([0-5]?\d{1,4}|6[0-5]\d{3}|66[0-5]\d{2}|66000)\s*;\s*$)");
-	(void)iter;
-	if (std::regex_match(str, only_port) == false && std::regex_match(str, only_host) == false && std::regex_match(str, both))
-		parse_except("Expected 'listen <port> default_server' but didnt find it where it was expected!");
+    std::regex host_and_port(R"(^\s*listen\s+((\d{1,3}(?:\.\d{1,3}){3}):([0-5]?\d{1,4}|6[0-5]\d{3}|66[0-5]\d{2}|66000))\s*;\s*$)");
+    (void)iter;
+	std::cout << str << std::endl;
+    if (!std::regex_match(str, host_and_port))
+        parse_except("Expected 'listen <host>:<port>' but didn't find it where it was expected!");
 
-	std::string	tmp_str = skip_until_value(str, "listen");
-	std::string str_for_atoi;
-	for (char c : tmp_str)
-	{
-		if (std::isdigit(c))
-			str_for_atoi += c;
-		else
-			break ;
-	}
-	if (std::atoi(str_for_atoi.c_str()) >= 0 && std::atoi(str_for_atoi.c_str()) <= 65535)
-		server.port = std::atoi(str_for_atoi.c_str());
-	else
-		parse_except("Port is outside of the allowed range!");
+    std::string tmp_str = skip_until_value(str, "listen");
+    std::vector<std::string> splitted_tmp_str = split(tmp_str, ':');
+	server.host = splitted_tmp_str[0];
+	for (auto& str : splitted_tmp_str)
+		str.erase(std::remove(str.begin(), str.end(), ';'), str.end());
+	server.port = std::atoi(splitted_tmp_str[1].c_str());
 }
 
 void	init_allowed_methods(t_location& location, std::string str)
@@ -375,7 +358,7 @@ void	init_upload_dir(t_location& location, std::string str)
 }
 
 
-void	read_location(t_server_block& server, std::vector<std::string>& current_server, size_t start_of_location, size_t end_of_location, std::string location_str)
+void	read_location(t_server_config& server, std::vector<std::string>& current_server, size_t start_of_location, size_t end_of_location, std::string location_str)
 {
 	t_location location;
 	std::string loc = skip_until_value(location_str, "location");
@@ -414,9 +397,9 @@ void	read_location(t_server_block& server, std::vector<std::string>& current_ser
 	server.locations.push_back(location);
 }
 
-void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t_server_configs& tmp_serv_conf)
+void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, std::vector<t_server_config>& tmp_serv_conf)
 {
-    std::vector<std::function<void(std::string, t_server_block&, int&)>> init_functions = {
+    std::vector<std::function<void(std::string, t_server_config&, int&)>> init_functions = {
         init_port, init_server_name, init_root_dir, init_index_files,
         init_client_max_body_size, init_error_pages
     };
@@ -425,7 +408,7 @@ void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t
 	std::regex server_end(R"(^\s*\}\s*$)");
     for (size_t server_idx = 0; server_idx < preprocessed_servers.size(); ++server_idx)
     {
-        t_server_block	server;
+        t_server_config	server;
         std::vector<std::string>& current_server = preprocessed_servers[server_idx];
         int counter = 0;
 
@@ -480,9 +463,9 @@ void fill_structs(std::vector<std::vector<std::string>>& preprocessed_servers, t
     }
 }
 
-t_server_configs	get_config(char *argv[])
+std::vector<t_server_config>	get_config(char *argv[])
 {
-	t_server_configs						tmp_serv_conf;
+	std::vector<t_server_config>			tmp_serv_conf;
 	std::vector<std::vector<std::string>>	preprocessed_servers;
 
 	if (!argv[1])

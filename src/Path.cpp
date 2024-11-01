@@ -26,12 +26,12 @@ Path::Path(std::string path, Type type, t_server_config &config) : _config(&conf
 		// Convert filesystem path to URL
 		if (!_config)
 			throw std::runtime_error("Path: Path: config is nullptr");
-		if (path.find(_config->default_location.root) != 0)
-			throw std::runtime_error("Path: Path " + path + " is not in the configs root directory " + _config->default_location.root);
-		_path = path.substr(_config->default_location.root.size(), path.size());
+		if (path.find(_config->root_dir) != 0)
+			throw std::runtime_error("Path: Path " + path + " is not in the configs root directory " + _config->root_dir);
+		_path = path.substr(_config->root_dir.size(), path.size());
 	}
 
-	if (!std::filesystem::exists(Path::combinePaths(_config->default_location.root, _path)))
+	if (!std::filesystem::exists(Path::combinePaths(_config->root_dir, _path)))
 		throw std::runtime_error("Path: Path does not exist");
 }
 
@@ -44,7 +44,7 @@ std::string Path::asFilePath() const
 {
 	if (!_config)
 		throw std::runtime_error("Path: path: config is nullptr");
-	return combinePaths(_config->default_location.root, _path);
+	return combinePaths(_config->root_dir, _path);
 }
 
 std::vector<std::filesystem::directory_entry> Path::getDirectoryEntries()
@@ -72,7 +72,7 @@ void Path::goDownIntoDir(const std::string& dir)
 	if (!_config)
 		throw std::runtime_error("Path: goDownIntoDir: config is nullptr");
 	std::string new_path = _path + dir + (dir.back() == '/' ? "" : "/");
-	std::string new_path_filesystem = Path::combinePaths(_config->default_location.root, new_path);
+	std::string new_path_filesystem = Path::combinePaths(_config->root_dir, new_path);
 	if (!std::filesystem::exists(new_path_filesystem))
 		throw std::runtime_error("Path: goDownIntoDir: Directory does not exist");
 	_path = new_path;
@@ -92,7 +92,7 @@ std::variant<Path, FilePath> Path::createPath(const std::string &path, Path::Typ
 {
 	std::string filePath = path;
 	if (type == Path::Type::URL)
-		filePath = Path::combinePaths(config->default_location.root, path);
+		filePath = Path::combinePaths(config->root_dir, path);
 	if (!std::filesystem::exists(filePath))
 		throw std::runtime_error("Path does not exist");
 	if (std::filesystem::is_regular_file(filePath))

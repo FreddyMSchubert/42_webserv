@@ -17,7 +17,7 @@ class	Parsing_Exception : public std::exception
 		std::string error_message;
 
 		const std::string example_conf = R"(server {
-    listen 4242;
+    listen 127.0.0.1:4242;
     server_name example.com yourumu.de;
 
     root ./var/www/html;
@@ -67,17 +67,23 @@ typedef struct s_location
 	bool empty() const { return path.empty(); }
 }   t_location;
 
-typedef struct s_server_block
+typedef struct s_server_config
 {
-	std::unordered_map<std::string, int>	port;					// line 2: specifies the port
-	std::vector<std::string> 				server_names;			// line 3: specifies the server_names in a vector of strings
-	std::string								root_dir;				// line 4: specifies the root directory for this server
-	std::vector<std::string>				index_files;			// line 5: specifies the index files, each index file is one string in the vector
-	size_t									client_max_body_size;	// line 6: specifies the client max body size in MB
-	std::map<int, std::string>				error_pages;			// line 10/11: specifies what errorpages should be displayed for what http error code
-	std::vector<t_location>					locations;				// line 13-21: for more info look into t_location
-}	t_server_block;
+	std::string						host;					// line 2: specifies the host
+	int								port;					// line 2: specifies the port
+	std::vector<std::string> 		server_names;			// line 3: specifies the server_names in a vector of strings
+	std::string						root_dir;				// line 4: specifies the root directory for this server
+	std::vector<std::string>		index_files;			// line 5: specifies the index files, each index file is one string in the vector
+	size_t							client_max_body_size;	// line 6: specifies the client max body size in MB
+	std::map<int, std::string>		error_pages;			// line 10/11: specifies what errorpages should be displayed for what http error code
+	std::vector<t_location>			locations;				// line 13-21: for more info look into t_location
+	t_location & default_location()
+	{
+		for (auto & loc : locations)
+			if (loc.path == "/")
+				return loc;
+		throw std::runtime_error("noel fucked up, there is no root location. please kindly make him aware of the fact he is a dumb idiot child.");
+	}
+}	t_server_config;
 
-typedef std::vector<t_server_block> t_server_configs;
-
-t_server_configs    get_config(char *argv[]);
+std::vector<t_server_config>    get_config(char *argv[]);

@@ -13,7 +13,7 @@ class FilePath : public Path
 		std::string _file;
 
 	public:
-		FilePath(const std::string &path, Path::Type type, t_server_configs &config);
+		FilePath(const std::string &path, Path::Type type, t_server_config *config);
 		~FilePath() = default;
 
 		std::string getFileContents() const;
