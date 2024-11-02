@@ -36,6 +36,7 @@ class Path
 
 		bool isEmpty() const;
 		bool isRoot() const;
+		bool isSubrouteOf(Path & other) const;
 		std::string asFilePath() const;
 		std::string asUrl() const;
 		size_t size() const;

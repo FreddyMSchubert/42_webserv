@@ -124,6 +124,10 @@ bool Path::isRoot() const
 {
 	return _path == "/" || _path.empty();
 }
+bool Path::isSubrouteOf(Path & other) const
+{
+	return _path.find(other._path) == 0;
+}
 
 bool Path::operator==(const Path& other) const
 {
