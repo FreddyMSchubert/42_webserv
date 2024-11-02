@@ -207,7 +207,8 @@ void	init_index_files(std::string str, t_server_config& server, int& iter)
     tmp_index.end());
 	for (auto& name : tmp_index)
 		name.erase(std::remove(name.begin(), name.end(), ';'), name.end());
-	server.index_files = tmp_index;
+	for (const auto& name : tmp_index)
+		server.index_files.push_back(std::filesystem::path(name));
 }
 
 void	init_root_dir(std::string str, t_server_config& server, int& iter)
@@ -333,7 +334,8 @@ void	init_index(t_location& location, std::string str)
     tmp_index.end());
 	for (auto& name : tmp_index)
 		name.erase(std::remove(name.begin(), name.end(), ';'), name.end());
-	location.index_files = tmp_index;
+	for (const auto& name : tmp_index)
+		location.index_files.push_back(std::filesystem::path(name));
 }
 
 void	init_cgi_extention(t_location& location, std::string str)
@@ -342,7 +344,8 @@ void	init_cgi_extention(t_location& location, std::string str)
 	std::vector<std::string>	splited_cgi = split(pre_processed_cgi, ' ');
 	for (auto& str : splited_cgi)
 		str.erase(std::remove(str.begin(), str.end(), ';'), str.end());
-	location.cgi_extensions = splited_cgi;
+	for (const auto& name : splited_cgi)
+		location.cgi_extensions.push_back(std::filesystem::path(name));
 }
 
 void	init_upload_dir(t_location& location, std::string str)

@@ -32,7 +32,7 @@ bool isSubroute(const std::string& route, const std::string& subroute)
 std::string getFilePathAsURLPath(std::string path, t_server_config &config)
 {
 	std::string urlPath = path;
-	urlPath.replace(0, config.root_dir.size(), "");
+	urlPath.replace(0, config.root_dir.string().size(), "");
 	if (urlPath == "")
 		urlPath = "/";
 	return urlPath;
@@ -62,7 +62,7 @@ t_location get_location(t_server_config &config, std::string path)
 	{
 		std::cout << "Current location: " << loc.root_dir << " checking against " << location.root_dir << std::endl;
 		if (isSubroute(location.root_dir, path) && std::filesystem::exists(location.root_dir))
-			if (loc.root_dir.size() < location.root_dir.size())
+			if (loc.root_dir.string().size() < location.root_dir.string().size())
 				loc = location;
 	}
 

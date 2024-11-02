@@ -35,9 +35,10 @@ Path::Path(std::string path, Type type, t_server_config *config) : _config(confi
 
 std::string Path::asUrl() const
 {
+	std::cout << "here" << std::endl;
 	if (_path.find(_config->root_dir) != 0)
 		throw std::runtime_error("Path: asUrl: path does not start with root_dir");
-	return _path.substr(_config->root_dir.size());
+	return _path.substr(_config->root_dir.string().size());
 }
 
 std::string Path::asFilePath() const
