@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        .digit {
+            position: absolute;
+            font-size: 15vw;
+            font-weight: bold;
+            user-select: none;
+            mix-blend-mode: screen;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+    </style>
+</head>
+<body>
+    <script>
+        let errorCode = '404';
+        let digits = errorCode.toString().split('');
+
+        let digitObjects = [];
+        const colors = ['#FF006E', '#8338EC', '#3A86FF', '#FB5607', '#FFBE0B', '#00F5D4', '#9B5DE5'];
+        
+        const baseSpeed = 3;
+        const speedBoost = 3;
+        const speedDecay = 0.995;
+
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const spacing = window.innerWidth * 0.15 * 1.2;
+
+        digits.forEach((num, index) => {
+            let digitEl = document.createElement('div');
+            digitEl.className = 'digit';
+            digitEl.innerText = num;
+            digitEl.style.color = colors[Math.floor(Math.random() * colors.length)];
+            document.body.appendChild(digitEl);
+
+            let digitObj = {
+                el: digitEl,
+                x: centerX + (index - (digits.length - 1) / 2) * spacing,
+                y: centerY,
+                vx: (Math.random() * baseSpeed + 1) * (Math.random() < 0.5 ? -1 : 1),
+                vy: (Math.random() * baseSpeed + 1) * (Math.random() < 0.5 ? -1 : 1),
+                size: window.innerWidth * 0.15,
+                currentSpeed: baseSpeed
+            };
+
+            digitEl.style.fontSize = digitObj.size + 'px';
+
+            digitObjects.push(digitObj);
+        });
+
+        function animate() {
+            digitObjects.forEach((digit, i) => {
+                digit.x += digit.vx * digit.currentSpeed;
+                digit.y += digit.vy * digit.currentSpeed;
+
+                if (digit.x <= 0 || digit.x + digit.size >= window.innerWidth) {
+                    digit.vx *= -1;
+                    changeColor(digit);
+                    digit.x = Math.max(0, Math.min(digit.x, window.innerWidth - digit.size)); 
+                    digit.currentSpeed = baseSpeed * speedBoost;
+                }
+                if (digit.y <= 0 || digit.y + digit.size >= window.innerHeight) {
+                    digit.vy *= -1;
+                    changeColor(digit);
+                    digit.y = Math.max(0, Math.min(digit.y, window.innerHeight - digit.size));
+                    digit.currentSpeed = baseSpeed * speedBoost;
+                }
+
+                for (let j = i + 1; j < digitObjects.length; j++) {
+                    let otherDigit = digitObjects[j];
+                    let dx = digit.x - otherDigit.x;
+                    let dy = digit.y - otherDigit.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < digit.size * 0.8) {
+                        [digit.vx, otherDigit.vx] = [otherDigit.vx, digit.vx];
+                        [digit.vy, otherDigit.vy] = [otherDigit.vy, digit.vy];
+                        changeColor(digit);
+                        changeColor(otherDigit);
+                        
+                        digit.currentSpeed = baseSpeed * speedBoost;
+                        otherDigit.currentSpeed = baseSpeed * speedBoost;
+                    }
+                }
+
+                if (digit.currentSpeed > baseSpeed) {
+                    digit.currentSpeed *= speedDecay;
+                }
+
+                digit.el.style.transform = `translate(${digit.x}px, ${digit.y}px)`;
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        function changeColor(digit) {
+            digit.el.style.color = colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            digitObjects.forEach(digit => {
+                digit.size = window.innerWidth * 0.15;
+                digit.el.style.fontSize = digit.size + 'px';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -8,9 +8,9 @@
 
 // Path class shall never represent a non-present path
 
-Path::Path(std::string path, Type type, t_server_config &config) : _config(&config)
+Path::Path(std::string path, Type type, t_server_config *config) : _config(config)
 {
-	std::cout << "Path constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM) << " and config: " << config.host << std::endl;
+	std::cout << "Path constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM) << std::endl;
 
 	if (path.find("./") != std::string::npos)
 		throw std::runtime_error("Path: Path contains ./ : " + path);
@@ -19,32 +19,30 @@ Path::Path(std::string path, Type type, t_server_config &config) : _config(&conf
 	if (path.find_first_of("/") != 0) // FIXME: this is weird because it flags the path as not starting with a / even if it clearly does
 		path = "/" + path;
 
-	if (type == Type::URL)
+	if (type == Type::FILESYSTEM)
 		_path = path;
 	else
 	{
 		// Convert filesystem path to URL
 		if (!_config)
 			throw std::runtime_error("Path: Path: config is nullptr");
-		if (path.find(_config->root_dir) != 0)
-			throw std::runtime_error("Path: Path " + path + " is not in the configs root directory " + _config->root_dir);
-		_path = path.substr(_config->root_dir.size(), path.size());
+		_path = Path::combinePaths(_config->root_dir, path);
 	}
 
-	if (!std::filesystem::exists(Path::combinePaths(_config->root_dir, _path)))
+	if (!std::filesystem::exists(_path))
 		throw std::runtime_error("Path: Path does not exist");
 }
 
 std::string Path::asUrl() const
 {
-	return _path;
+	if (_path.find(_config->root_dir) != 0)
+		throw std::runtime_error("Path: asUrl: path does not start with root_dir");
+	return _path.substr(_config->root_dir.size());
 }
 
 std::string Path::asFilePath() const
 {
-	if (!_config)
-		throw std::runtime_error("Path: path: config is nullptr");
-	return combinePaths(_config->root_dir, _path);
+	return _path;
 }
 
 std::vector<std::filesystem::directory_entry> Path::getDirectoryEntries()
@@ -69,11 +67,8 @@ void Path::goDownIntoDir(const std::string& dir)
 	if (dir.find('/') != std::string::npos)
 		throw std::runtime_error("Path: goDownIntoDir: dir contains /");
 
-	if (!_config)
-		throw std::runtime_error("Path: goDownIntoDir: config is nullptr");
 	std::string new_path = _path + dir + (dir.back() == '/' ? "" : "/");
-	std::string new_path_filesystem = Path::combinePaths(_config->root_dir, new_path);
-	if (!std::filesystem::exists(new_path_filesystem))
+	if (!std::filesystem::exists(new_path))
 		throw std::runtime_error("Path: goDownIntoDir: Directory does not exist");
 	_path = new_path;
 }
@@ -97,7 +92,7 @@ std::variant<Path, FilePath> Path::createPath(const std::string &path, Path::Typ
 		throw std::runtime_error("Path does not exist");
 	if (std::filesystem::is_regular_file(filePath))
 		return FilePath(path, type, config);
-	return Path(path, type, *config);
+	return Path(path, type, config);
 }
 
 Path& Path::operator=(const Path& other)

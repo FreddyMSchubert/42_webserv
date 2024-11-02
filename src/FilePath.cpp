@@ -36,6 +36,22 @@ std::string FilePath::getFileContents() const
 	buffer << file.rdbuf();
 	return buffer.str();
 }
+std::vector<std::string> FilePath::getFileContentsListed() const
+{
+	std::string filepath = Path::combinePaths(_path, _file);
+	if (!std::filesystem::exists(filepath))
+		throw std::runtime_error("File does not exist");
+	if (!std::filesystem::is_regular_file(filepath))
+		throw std::runtime_error("Path is not a file");
+	std::ifstream file(filepath);
+	if (!file.is_open() || !file.good())
+		throw std::runtime_error("Failed to open file");
+	std::vector<std::string> lines;
+	std::string line;
+	while (std::getline(file, line))
+		lines.push_back(line);
+	return lines;
+}
 std::string FilePath::getFileName() const
 {
 	return _file;

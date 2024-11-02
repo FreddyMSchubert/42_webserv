@@ -1,6 +1,10 @@
 #pragma once
 
 #include "Enums.hpp"
+#include "Path.hpp"
+#include "FilePath.hpp"
+#include "Path.hpp"
+#include "Logger.hpp"
 #include <cstddef>
 #include <iostream>
 #include <vector>

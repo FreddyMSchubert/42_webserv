@@ -17,6 +17,7 @@ class FilePath : public Path
 		~FilePath() = default;
 
 		std::string getFileContents() const;
+		std::vector<std::string> getFileContentsListed() const;
 		std::string getFileName() const;
 		std::string getFileExtension() const;
 		std::string getMimeType() const;

@@ -24,14 +24,6 @@ bool isAllowedMethodAt(t_server_config &config, Path path, Method method)
 	return false; // default for all methods if no rule is defined
 }
 
-std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::string& path)
-{
-	std::vector<std::filesystem::directory_entry> entries;
-	for (const auto& entry : std::filesystem::directory_iterator(path))
-		entries.push_back(entry);
-	return entries;
-}
-
 bool isSubroute(const std::string& route, const std::string& subroute)
 {
 	return subroute.find(route) == 0;

@@ -6,18 +6,16 @@
 
 std::vector<std::string> read_file(const std::string& path_to_conf)
 {
-	std::vector<std::string> result_str;
-	std::ifstream conf(path_to_conf);
-	std::string line;
-
-	if (conf.is_open() == false || conf.good() == false)
-		throw std::runtime_error(std::string("Couldn't read file at ") + path_to_conf);
-
-	while (std::getline(conf, line))
-		result_str.push_back(line);
-
-	conf.close();
-	return (result_str);
+	try
+	{
+		FilePath configPath = FilePath(path_to_conf, Path::Type::FILESYSTEM, nullptr);
+		return (configPath.getFileContentsListed());
+	}
+	catch (const std::exception& e)
+	{
+		Logger::Log(LogLevel::ERROR, e.what());
+		exit(1);
+	}
 }
 
 

@@ -5,16 +5,14 @@
 #include <filesystem>
 #include <variant>
 #include <vector>
-#include "Config.hpp"
 
 class FilePath;
-
 struct s_server_config typedef t_server_config;
 
 class Path
 {
 	protected:
-		std::string		_path; // saved as URL type
+		std::string		_path; // saved as FILESYSTEM type
 		t_server_config	*_config;
 
 	public:
@@ -26,7 +24,7 @@ class Path
 		};
 
 		Path() : _path("/"), _config(nullptr) {};
-		Path(std::string path, Type type, t_server_config &config);
+		Path(std::string path, Type type, t_server_config *config);
 		~Path() = default;
 		Path(const Path& other)  : _path(std::string(other._path)), _config(other._config) {};
 		Path& operator=(const Path& other);
@@ -59,3 +57,4 @@ class Path
 std::ostream &operator<<(std::ostream &os, const Path &path);
 
 #include "FilePath.hpp"
+#include "Config.hpp"

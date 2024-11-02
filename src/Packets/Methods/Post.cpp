@@ -17,7 +17,7 @@ void Response::handlePost(Request& req, t_server_config &config)
 
 	setVersion("HTTP/1.1");
 
-	t_location location = get_location(config, Path(path, Path::Type::URL, config).asFilePath());
+	t_location location = get_location(config, Path(path, Path::Type::URL, &config).asFilePath());
 
 	if (location.empty())
 	{
@@ -27,7 +27,7 @@ void Response::handlePost(Request& req, t_server_config &config)
 		return;
 	}
 
-	if (!isAllowedMethodAt(config, Path(path, Path::Type::URL, config), Method::POST))
+	if (!isAllowedMethodAt(config, Path(path, Path::Type::URL, &config), Method::POST))
 	{
 		std::cerr << "POST method not allowed" << std::endl;
 		setStatus(Status::Forbidden);
@@ -56,7 +56,7 @@ void Response::handlePost(Request& req, t_server_config &config)
 	Path filepath;
 	
 	try {
-		filepath = Path(req.getPath(), Path::Type::URL, config);
+		filepath = Path(req.getPath(), Path::Type::URL, &config);
 	}
 	catch (std::exception &e)
 	{
