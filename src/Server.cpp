@@ -2,7 +2,7 @@
 
 // TODO: function parameter configs are always const.. yes / no?
 
-Server::Server(t_server_config config) : config(config)
+Server::Server(t_server_config config, std::vector<struct pollfd> &pollfds) : config(config), _pollfds(pollfds)
 {
 	_sockets.reserve(1); // TODO: resize accoding to the config how many ips or ports we have to listen to
 

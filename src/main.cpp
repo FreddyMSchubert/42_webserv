@@ -120,11 +120,12 @@ int main(int argc, char *argv[])
 	if (configs.size() == 0) return 1;
 
 	std::vector<Server> servers;
+	std::vector<struct pollfd> pollfds;
 
 	try
 	{
 		for (auto &config : configs)
-			servers.emplace_back(config);
+			servers.emplace_back(config, *pollfds);
 
 		while (run)
 			for (auto &server : servers)
