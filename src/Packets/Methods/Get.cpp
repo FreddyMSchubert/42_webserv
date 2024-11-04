@@ -161,16 +161,17 @@ void Response::handleGet(Request& req, t_server_config &config)
 	{
 		path = Path::createPath(reqTarget, Path::Type::URL, &config);
 	}
-	std::cout << "Found path: " << std::get<Path>(path).asUrl() << std::endl;
 
 	if (std::holds_alternative<FilePath>(path))
 	{
 		Logger::Log(LogLevel::INFO, "GET: Handling file request");
+		std::cout << "Found path: " << std::get<FilePath>(path).asUrl() << std::endl;
 		handle_file_req(config, std::get<FilePath>(path));
 	}
 	else
 	{
 		Logger::Log(LogLevel::INFO, "GET: Handling directory request");
+		std::cout << "Found path: " << std::get<Path>(path).asUrl() << std::endl;
 		handle_dir_req(config, std::get<Path>(path));
 	}
 	
