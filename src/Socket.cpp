@@ -58,6 +58,8 @@ std::string Socket::_receiveData(int client_fd)
 	return data;
 }
 
+// TODO: maybe make the pollfds from main loop global over the project and maybe define it differently in another structure so that it can save the right server right away
+// TODO: always make sure when closing a socket that exact index is being removed from the socket index vec
 void Socket::Run(std::vector<struct pollfd> &clients)
 {
 	_clients.push_back({_socket_pid, POLLIN | POLLOUT, 0});
