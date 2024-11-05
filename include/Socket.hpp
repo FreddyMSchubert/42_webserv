@@ -32,7 +32,8 @@ class Socket
 	private:
 		int _socket_pid;
 		struct sockaddr_in _socket;
-		std::vector<struct pollfd> _clients;
+		std::vector<struct pollfd> &_clients;
+		std::vector<int> _clients_index;
 		t_server_config config;
 		void _connect();
 		void _close();
@@ -48,7 +49,7 @@ class Socket
 		~Socket();
 		void sendData(Response &response, int socket_fd);
 		void sendData(const std::string &data, int socket_fd);
-		void Run();
+		void Run(std::vector<struct pollfd> &clients);
 		void closeSocket(int socket);
 		void redirectToError(int client_fd, int error_code);
 		void sendRedirect(int client_fd, const std::string& new_url);

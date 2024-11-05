@@ -128,8 +128,15 @@ int main(int argc, char *argv[])
 			servers.emplace_back(config, *pollfds);
 
 		while (run)
+		{
+			int activity = poll(pollfds.data(), pollfds.size(), 1000);
+			if (activity < 0)
+				throw std::runtime_error("poll() failed");
 			for (auto &server : servers)
-				server.Run();
+			{
+				server.Run(*pollfds);
+			}
+		}
 	}
 	catch(const std::exception& e)
 	{

@@ -1,4 +1,6 @@
 #include "Socket.hpp"
+#include <sys/poll.h>
+#include <sys/socket.h>
 
 Socket::Socket(t_server_config config) : _socket_pid(-1), config(config)
 {
@@ -56,16 +58,13 @@ std::string Socket::_receiveData(int client_fd)
 	return data;
 }
 
-void Socket::Run()
+void Socket::Run(std::vector<struct pollfd> &clients)
 {
-	_clients.push_back({_socket_pid, POLLIN, 0});
+	_clients.push_back({_socket_pid, POLLIN | POLLOUT, 0});
 
-	int activity = poll(_clients.data(), _clients.size(), 100);
-	if (activity < 0 && errno != EINTR)
-		throw std::runtime_error("poll error");
-
-	for (auto &client : _clients)
+	for (int &i : _clients_index)
 	{
+		struct pollfd &client = clients[i];
 
 		if (client.revents & (POLLHUP | POLLERR | POLLNVAL))
 		{
@@ -84,6 +83,8 @@ void Socket::Run()
 				try
 				{
 					_setNonBlocking(new_socket);
+					_clients.push_back({new_socket, POLLIN | POLLOUT, 0});
+					_clients_index.push_back(_clients.size() - 1); // XXX: this is the vector of indexes in the overall pollfds vec but those in here only belong to this server
 				}
 				catch(const std::exception &e)
 				{
@@ -91,7 +92,8 @@ void Socket::Run()
 					closeSocket(new_socket);
 					break;
 				}
-				_clients.push_back({new_socket, POLLIN, 0});
+				_clients.push_back({new_socket, POLLIN | POLLOUT, 0});
+
 				Logger::Log(LogLevel::INFO, "New connection accepted!");
 			}
 			continue;
@@ -120,7 +122,11 @@ void Socket::Run()
 			Logger::Log(LogLevel::INFO, "Response sent and connection closed!");
 			break;
 		}
+
+		// add same if again but with POLLOUT
+
 	}
+
 }
 
 
@@ -141,7 +147,7 @@ void Socket::sendData(const std::string &data, int socket_fd)
 		Logger::Log(LogLevel::INFO, "Data sent!");
 }
 
-void Socket::_connect()
+void Socket::_connect() // TODO: check if this is correct
 {
 	std::memset(&_socket, 0, sizeof(_socket));
 	_socket.sin_family = AF_INET;
@@ -176,6 +182,8 @@ void Socket::_close()
 	Logger::Log(LogLevel::INFO, "Closing socket...");
 	for (auto &client : _clients)
 		close(client.fd);
+	close(_socket_pid);
+	shutdown(_socket_pid, SHUT_RDWR);
 	_socket_pid = -1;
 	_clients.clear();
 	Logger::Log(LogLevel::INFO, "Socket closed!");
