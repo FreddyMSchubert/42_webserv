@@ -7,7 +7,7 @@ FilePath::FilePath(const std::string &path, Path::Type type, t_server_config *co
 {
 	std::string filePath = path;
 	if (type == Path::Type::URL)
-		filePath = Path::combinePaths(config->root_dir, path);
+		filePath = Path::combinePaths(config->root_dir.asFilePath(), path);
 
 	int lastSlash = filePath.find_last_of('/');
 	std::string folder = filePath.substr(0, lastSlash + 1);

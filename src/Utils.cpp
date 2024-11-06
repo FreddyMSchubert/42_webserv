@@ -7,7 +7,7 @@ bool isAllowedMethodAt(t_server_config &config, Path path, Method method)
 		std::cout << "Attempting to find method " << method << " at " << path << std::endl;
 
 		t_location location = get_location(config, path.asFilePath());
-		if (location.root_dir == "/" || location.root_dir.empty())
+		if (location.root_dir.asFilePath() == "/" || location.root_dir.asFilePath().empty())
 			break;
 		auto methodPair = location.allowed_methods.find(method);
 		if (methodPair != location.allowed_methods.end())
@@ -42,14 +42,14 @@ std::string getFilePathAsURLPath(std::string path, t_server_config &config)
 // TODO: please check this!!
 t_location get_location(t_server_config &config, std::string path)
 {
-	// t_location loc = EMPTY_LOCATION; //what are u doing here @freddy?
+	// t_location loc = EMPTY_LOCATION; //FIXME: what are u doing here @freddy?
 	t_location loc;
 
-	std::cout << "Getting location for path: \"" << path << "\"" << " at root " << config.root_dir << std::endl;
-	if (path == config.root_dir)
+	std::cout << "Getting location for path: \"" << path << "\"" << " at root |" << config.root_dir.asUrl() << "|" << std::endl;
+	if (path == config.root_dir.asUrl())
 	{
 		std::cout << "The path is \"/\"." << std::endl;
-		if (std::filesystem::exists(config.root_dir))
+		if (std::filesystem::exists(config.root_dir.asUrl()))
 		{
 			loc = config.locations[0]; //TODO: i changed it but im very sure that is not what you want
 			std::cout << "Default location is valid." << std::endl;
@@ -61,7 +61,7 @@ t_location get_location(t_server_config &config, std::string path)
 	for (t_location &location : config.locations)
 	{
 		std::cout << "Current location: " << loc.root_dir << " checking against " << location.root_dir << std::endl;
-		if (isSubroute(location.root_dir, path) && std::filesystem::exists(location.root_dir))
+		if (isSubroute(location.root_dir.asFilePath(), path) && std::filesystem::exists(location.root_dir.asFilePath()))
 			if (loc.root_dir.size() < location.root_dir.size())
 				loc = location;
 	}

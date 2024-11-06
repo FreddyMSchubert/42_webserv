@@ -23,6 +23,7 @@ class Path
 			FILESYSTEM
 		};
 
+		Path(const std::string& path) : _path(path) {}
 		Path() : _path("/"), _config(nullptr) {};
 		Path(std::string path, Type type, t_server_config *config);
 		~Path() = default;

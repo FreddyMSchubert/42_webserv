@@ -1,4 +1,6 @@
 #include "../include/Config.hpp"
+#include "../include/Path.hpp"
+#include "../include/FilePath.hpp"
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -208,7 +210,7 @@ void	init_index_files(std::string str, t_server_config& server, int& iter)
 	for (auto& name : tmp_index)
 		name.erase(std::remove(name.begin(), name.end(), ';'), name.end());
 	for (const auto& name : tmp_index)
-		server.index_files.push_back(std::filesystem::path(name));
+		server.index_files.push_back(Path(name));
 }
 
 void	init_root_dir(std::string str, t_server_config& server, int& iter)
@@ -223,7 +225,7 @@ void	init_root_dir(std::string str, t_server_config& server, int& iter)
 	for (const auto& c : tmp_root)
 		if (isalpha(static_cast<unsigned char>(c)) || c == '/' || c == '.')
 			i++;
-	server.root_dir = tmp_root.substr(0, i);
+	server.root_dir = Path(tmp_root.substr(0, i));
 }
 
 void	init_server_name(std::string str, t_server_config& server, int& iter)
@@ -303,7 +305,7 @@ void	init_root(t_location& location, std::string str)
 	for (const auto& c : pre_processed_root)
 		if (isalpha(static_cast<unsigned char>(c)) || c == '/' || c == '.')
 			i++;
-	location.root_dir = pre_processed_root.substr(0, i);
+	location.root_dir = Path(pre_processed_root.substr(0, i));
 }
 
 void	init_directory_listing(t_location& location, std::string str)
@@ -335,7 +337,7 @@ void	init_index(t_location& location, std::string str)
 	for (auto& name : tmp_index)
 		name.erase(std::remove(name.begin(), name.end(), ';'), name.end());
 	for (const auto& name : tmp_index)
-		location.index_files.push_back(std::filesystem::path(name));
+		location.index_files.push_back(Path(name));
 }
 
 void	init_cgi_extention(t_location& location, std::string str)
@@ -345,7 +347,7 @@ void	init_cgi_extention(t_location& location, std::string str)
 	for (auto& str : splited_cgi)
 		str.erase(std::remove(str.begin(), str.end(), ';'), str.end());
 	for (const auto& name : splited_cgi)
-		location.cgi_extensions.push_back(std::filesystem::path(name));
+		location.cgi_extensions.push_back(name);
 }
 
 void	init_upload_dir(t_location& location, std::string str)
@@ -355,7 +357,7 @@ void	init_upload_dir(t_location& location, std::string str)
 	for (const auto& c : pre_processed_root)
 		if (isalpha(static_cast<unsigned char>(c)) || c == '/' || c == '.')
 			i++;
-	location.root_dir = pre_processed_root.substr(0, i);
+	location.root_dir = Path(pre_processed_root.substr(0, i));
 }
 
 
@@ -365,7 +367,7 @@ void	read_location(t_server_config& server, std::vector<std::string>& current_se
 	std::string loc = skip_until_value(location_str, "location");
 	loc.erase(std::remove(loc.begin(), loc.end(), '{'), loc.end());
 	loc.erase(std::remove(loc.begin(), loc.end(), ' '), loc.end());
-	location.path = loc;
+	location.path = Path(loc);
 
 	std::regex allowed_methods(R"(^\s*allowed_methods\s+([A-Z]+\s*){1,2};\s*$)");
 	std::regex redirection(R"(^\s*redirection\s+(3[0-5][0-9]|[1-4][0-9]{2}|5[0-9]{2})\s+\.\/[^\s;]+\s*;\s*$)");

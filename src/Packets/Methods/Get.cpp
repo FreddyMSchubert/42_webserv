@@ -140,7 +140,7 @@ void Response::handleGet(Request& req, t_server_config &config)
 		{
 			if (std::holds_alternative<FilePath>(path))
 				break;
-			reqTarget = config.index_files[i];
+			reqTarget = config.index_files[i].asFilePath();
 			try
 			{
 				path = Path::createPath(reqTarget, Path::Type::URL, &config);
