@@ -20,13 +20,13 @@ class Path
 		enum class Type
 		{
 			URL,
-			FILESYSTEM
+			FILESYSTEM,
+			EMPTY
 		};
 
-		Path(const std::string& path) : _path(path) {}
-		Path() : _path("/"), _config(nullptr) {};
+		Path() : _path(""), _config(nullptr) {};
 		Path(std::string path, Type type, t_server_config *config);
-		~Path() = default;
+		virtual ~Path() = default;
 		Path(const Path& other)  : _path(std::string(other._path)), _config(other._config) {};
 		Path& operator=(const Path& other);
 
@@ -38,8 +38,8 @@ class Path
 		bool isEmpty() const;
 		bool isRoot() const;
 		bool isSubrouteOf(Path & other) const;
-		std::string asFilePath() const;
-		std::string asUrl() const;
+		virtual std::string asFilePath() const;
+		virtual std::string asUrl() const;
 		size_t size() const;
 
 

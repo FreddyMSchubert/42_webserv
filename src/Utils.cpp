@@ -4,9 +4,9 @@ bool isAllowedMethodAt(t_server_config &config, Path path, Method method)
 {
 	while (true)
 	{
-		std::cout << "Attempting to find method " << method << " at " << path << std::endl;
+		std::cout << "Attempting to find method " << method << " at " << path.asFilePath() << " at " << config.host << std::endl;
 
-		t_location location = get_location(config, path.asFilePath());
+		t_location location = get_location(config, path.asUrl());
 		if (location.root_dir.asFilePath() == "/" || location.root_dir.asFilePath().empty())
 			break;
 		auto methodPair = location.allowed_methods.find(method);
@@ -45,11 +45,15 @@ t_location get_location(t_server_config &config, std::string path)
 	// t_location loc = EMPTY_LOCATION; //FIXME: what are u doing here @freddy?
 	t_location loc;
 
-	std::cout << "Getting location for path: \"" << path << "\"" << " at root |" << config.root_dir.asUrl() << "|" << std::endl;
-	if (path == config.root_dir.asUrl())
+	std::cout << "hier" << std::endl;
+	std::cout << "Getting location for path: \"" << path << "\"";
+	std::cout << "hier1.5" << std::endl;
+	std::cout << " at root |" << config.root_dir << "|" << std::endl;
+	std::cout << "hier2" << std::endl;
+	if (path == config.root_dir)
 	{
 		std::cout << "The path is \"/\"." << std::endl;
-		if (std::filesystem::exists(config.root_dir.asUrl()))
+		if (std::filesystem::exists(config.root_dir))
 		{
 			loc = config.locations[0]; //TODO: i changed it but im very sure that is not what you want
 			std::cout << "Default location is valid." << std::endl;

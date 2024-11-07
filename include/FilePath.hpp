@@ -13,7 +13,7 @@ class FilePath : public Path
 		std::string _file;
 
 	public:
-		FilePath(const std::string& file) : _file(file) {}
+		FilePath() : Path(), _file("") {};
 		FilePath(const std::string &path, Path::Type type, t_server_config *config);
 		~FilePath() = default;
 
@@ -22,4 +22,6 @@ class FilePath : public Path
 		std::string getFileName() const;
 		std::string getFileExtension() const;
 		std::string getMimeType() const;
+		std::string asUrl() const override;
+		std::string asFilePath() const override;
 };

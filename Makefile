@@ -64,7 +64,7 @@ re: fclean all
 
 run: all
 	@printf "$(GREEN)🏃 Running $(NAME)...$(RESET)\n"
-	@./$(NAME) ./config/www.conf
+	@./$(NAME) /config/www.conf
 
 debug: re
 	@printf "$(CYAN)🐛 Debugging $(NAME)...$(RESET)\n"

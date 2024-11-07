@@ -7,7 +7,7 @@ Server::Server(t_server_config config) : config(config)
 {
 	_sockets.reserve(1); // TODO: resize accoding to the config how many ips or ports we have to listen to
 
-	Logger::Log(LogLevel::INFO, "Initializing new Webserv at \"" + config.host.asFilePath() + ":" + std::to_string(config.port) + "\".");
+	Logger::Log(LogLevel::INFO, "Initializing new Webserv at \"" + config.host + ":" + std::to_string(config.port) + "\".");
 
 	_sockets.emplace_back(config);
 }

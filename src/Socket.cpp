@@ -148,10 +148,10 @@ void Socket::_connect()
 	_socket.sin_family = AF_INET;
 	_socket.sin_port = htons(config.port);
 
-	if (inet_pton(AF_INET, config.host.asFilePath().c_str(), &_socket.sin_addr) <= 0)
+	if (inet_pton(AF_INET, config.host.c_str(), &_socket.sin_addr) <= 0)
 	{
 		close(_socket_pid);
-		throw std::runtime_error("Invalid IP address: " + config.host.asFilePath());
+		throw std::runtime_error("Invalid IP address: " + config.host);
 	}
 	
 	if (bind(_socket_pid, (struct sockaddr *)&_socket, sizeof(_socket)) == -1)

@@ -37,16 +37,17 @@ int main(int argc, char *argv[])
 {
 	std::vector<t_server_config>	configs;
 
-	if (argc == 1 || argc == 2)
-		configs = get_config(argv);
-	else
-		std::cerr << "Either use ./webserv to use the default.conf or ./webserv <your_conf>" << std::endl;
-
 	srand(time(NULL));
 
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
 	signal(SIGABRT, signalHandler);
+
+	if (argc == 1 || argc == 2)
+		configs = get_config(argv, configs);
+	else
+		std::cerr << "Either use ./webserv to use the default.conf or ./webserv <your_conf>" << std::endl;
+
 
 	std::cout << "Signals successfully initialized!" << std::endl;
 
@@ -66,6 +67,7 @@ int main(int argc, char *argv[])
 	catch(const std::exception& e)
 	{
 		Logger::Log(LogLevel::ERROR, e.what());
+		signalHandler(69);
 		return 1;
 	}
 

@@ -4,7 +4,9 @@ void Response::handle_file_req(t_server_config &config, FilePath &path)
 {
 	setPath(path.asUrl());
 
-	if (isAllowedMethodAt(config, path, Method::GET) == false)
+	std::cout << "handle file req received path " << path.asFilePath() << std::endl;
+
+	if (isAllowedMethodAt(config, static_cast<Path>(path), Method::GET) == false)
 	{
 		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
 		setStatus(Status::MethodNotAllowed);
@@ -135,32 +137,9 @@ void Response::handleGet(Request& req, t_server_config &config)
 	std::cout << "reqTarget: \"" << reqTarget << "\"" << std::endl;
 	std::variant<Path, FilePath> path;
 	if (reqTarget == "/")
-	{
-		for (size_t i = 0; i < config.index_files.size(); i++)
-		{
-			if (std::holds_alternative<FilePath>(path))
-				break;
-			reqTarget = config.index_files[i].asFilePath();
-			try
-			{
-				path = Path::createPath(reqTarget, Path::Type::URL, &config);
-			}
-			catch (std::exception &e)
-			{
-				continue;
-			}
-		}
-		if (std::holds_alternative<FilePath>(path) == false)
-		{
-			Logger::Log(LogLevel::ERROR, "GET: No valid index file found");
-			setStatus(Status::NotFound);
-			return;
-		}
-	}
+		path = config.index_file;
 	else
-	{
 		path = Path::createPath(reqTarget, Path::Type::URL, &config);
-	}
 
 	if (std::holds_alternative<FilePath>(path))
 	{

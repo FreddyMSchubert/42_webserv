@@ -4,18 +4,19 @@
 #include <algorithm>
 #include <cstddef>
 #include <stdexcept>
+#include <exception>
 #include <string>
 
 // Path class shall never represent a non-present path
 
 Path::Path(std::string path, Type type, t_server_config *config) : _config(config)
 {
-	std::cout << "Path constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM) << std::endl;
+	std::cout << "Path constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM) << " and config " << (config == nullptr ? " is nullptr" : "isnt nullptr") << std::endl;
 
 	if (path.find("./") != std::string::npos)
 		throw std::runtime_error("Path: Path contains ./ : " + path);
-	// if (path.find_last_of('/') != path.size() - 1)
-	// 	path.push_back('/');
+	if (path.find_last_of('/') != path.size() - 1)
+		path.push_back('/');
 	if (path.find_first_of("/") != 0) // FIXME: this is weird because it flags the path as not starting with a / even if it clearly does
 		path = "/" + path;
 
@@ -25,12 +26,12 @@ Path::Path(std::string path, Type type, t_server_config *config) : _config(confi
 	{
 		// Convert filesystem path to URL
 		if (!_config)
-			throw std::runtime_error("Path: Path: config is nullptr");
-		_path = Path::combinePaths(_config->root_dir.asFilePath(), path);
+			throw std::runtime_error("Path: \"" + path + "\" Path: config is nullptr");
+		_path = Path::combinePaths(_config->root_dir, path);
 	}
 
-	if (!std::filesystem::exists(_path))
-		throw std::runtime_error("Path: Path does not exist");
+	if (!std::filesystem::exists("." + _path))
+		throw std::runtime_error("Path: Path " + _path + "does not exist");
 }
 
 std::string Path::asFilePath() const
@@ -40,11 +41,17 @@ std::string Path::asFilePath() const
 
 std::string Path::asUrl() const
 {
-	std::cout << "here: " << _config->root_dir.asFilePath() << std::endl;
-	std::cout << "here2: " << _path << std::endl;
-	if (_path.find(_config->root_dir.asFilePath()) != 0)
+	if (!_config)
+		throw std::runtime_error("my penis is tengineligninglegnigngiengl");
+	std::cout << "_path " << _path << " rootdir " << _config->root_dir << _path.find(_config->root_dir) << std::endl;
+	if (_path.find(_config->root_dir) != 0)
 		throw std::runtime_error("Path: asUrl: path does not start with root_dir");
-	return _path.substr(_config->root_dir.asFilePath().size());
+	if (_path == _config->root_dir)
+	{
+		std::cout << "returning nothing for you " << std::endl;
+		return "/";
+	}
+	return _path.substr(_config->root_dir.size());
 }
 
 std::vector<std::filesystem::directory_entry> Path::getDirectoryEntries()
@@ -89,10 +96,10 @@ std::variant<Path, FilePath> Path::createPath(const std::string &path, Path::Typ
 {
 	std::string filePath = path;
 	if (type == Path::Type::URL)
-		filePath = Path::combinePaths(config->root_dir.asFilePath(), path);
-	if (!std::filesystem::exists(filePath))
+		filePath = Path::combinePaths(config->root_dir, path);
+	if (!std::filesystem::exists("." + filePath))
 		throw std::runtime_error("Path does not exist");
-	if (std::filesystem::is_regular_file(filePath))
+	if (std::filesystem::is_regular_file("." + filePath))
 		return FilePath(path, type, config);
 	return Path(path, type, config);
 }

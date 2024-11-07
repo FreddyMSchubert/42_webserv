@@ -2,7 +2,6 @@
 
 #include "Enums.hpp"
 #include "Path.hpp"
-#include "FilePath.hpp"
 #include "Path.hpp"
 #include "Logger.hpp"
 #include <cstddef>
@@ -15,6 +14,8 @@
 #include <regex>
 #include <exception>
 #include <filesystem>
+
+class FilePath;
 
 class	Parsing_Exception : public std::exception
 {
@@ -65,7 +66,6 @@ typedef struct s_location
 	Path root_dir;                                    // specifies the root dir for the location
 	std::unordered_map<Method, bool> allowed_methods;  // specifies the allowed Methods, <Method (GET, POST)><allowed(true, false)>
 	bool directory_listing;                             // specifies if the directories should be shown or not
-	std::vector<Path> index_files;                    // specifies the index files, each index file is one Path
 	std::vector<std::string> cgi_extensions;                 // specifies the cgi extensions as Path
 	std::map<int, Path> redirections;                 // redirect to a new location (saved in Path) with the status code (saved in int)
 	Path upload_dir;                                   // specifies the upload directory of this location
@@ -74,13 +74,13 @@ typedef struct s_location
 
 typedef struct s_server_config
 {
-	Path host;                                   // specifies the host
+	std::string host;                                   // specifies the host
 	int port;                                     // specifies the port
 	std::vector<std::string> server_names;         // specifies the server_names in a vector of Path
-	Path root_dir;                               // specifies the root directory for this server
-	std::vector<Path> index_files;               // specifies the index files, each index file is one Path
+	std::string root_dir;                               // specifies the root directory for this server
+	FilePath index_file;               				// specifies the index file
 	size_t client_max_body_size;                  // specifies the client max body size in MB
-	std::map<int, Path> error_pages;             // specifies what error pages should be displayed for what HTTP error code
+	std::map<int, FilePath> error_pages;             // specifies what error pages should be displayed for what HTTP error code
 	std::vector<t_location> locations;           // for more info look into t_location
 	// t_location & default_location()
 	// {
@@ -91,4 +91,6 @@ typedef struct s_server_config
 	// }
 } t_server_config;
 
-std::vector<t_server_config>    get_config(char *argv[]);
+std::vector<t_server_config>    get_config(char *argv[], std::vector<t_server_config> & tmp_serv_conf);
+
+#include "FilePath.hpp"
