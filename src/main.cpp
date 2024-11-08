@@ -35,12 +35,12 @@ void signalHandler(int signum)
 
 void	print_configs(std::vector<t_server_config> configs)
 {
-	for (size_t i = 0; i < configs.size();)
+	for (size_t i = 0; i < configs.size(); i++)
 	{
 		std::cout << "host: " << configs[i].host << std::endl;
 		std::cout << "port: "<< configs[i].port << std::endl;
-		for (size_t j = 0; j < configs[i].server_names.size(); i++)
-			std::cout << "server_names: " << configs[i].server_names[i] << std::endl;
+		for (size_t j = 0; j < configs[i].server_names.size(); j++)
+			std::cout << "server_names: " << configs[i].server_names[j] << std::endl;
 		std::cout << "root_dir: " << configs[i].root_dir << std::endl;
 		std::cout << "index_file: " << configs[i].index_file << std::endl;
 		std::cout << "client_max_body_size: " << configs[i].client_max_body_size << std::endl;
@@ -55,7 +55,6 @@ void	print_configs(std::vector<t_server_config> configs)
 			std::cout << "location_directory_listening" << configs[i].locations[m].directory_listing << std::endl;
 			std::cout << "location_upload_dir: " << configs[i].locations[m].upload_dir << std::endl;
 		}
-		i++;
 		std::cout << "===============================================================" << std::endl;
 	}
 }
@@ -80,7 +79,8 @@ int main(int argc, char *argv[])
 
 	if (configs.size() == 0) return 1;
 
-	print_configs(configs);
+	// print_configs(configs);
+	// sleep(2);
 	
 	std::vector<Server> servers;
 
