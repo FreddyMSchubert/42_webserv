@@ -1,3 +1,5 @@
+#ifndef REQUEST_HPP
+#define REQUEST_HPP
 #pragma once
 
 #include <iostream>
@@ -19,3 +21,5 @@ class Request : public Packet
 		Request(const std::string &rawPacket);
 		~Request() = default;
 };
+
+#endif

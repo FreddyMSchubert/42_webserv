@@ -1,3 +1,5 @@
+#ifndef PACKET_HPP
+#define PACKET_HPP
 #pragma once
 
 #include <iostream>
@@ -48,3 +50,5 @@ class Packet
 		void setStatus(Status status);
 		Status getStatus();
 };
+
+#endif

@@ -1,9 +1,13 @@
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
+
 #pragma once
 
 #include "Enums.hpp"
 #include "Path.hpp"
-#include "Path.hpp"
+#include "FilePath.hpp"
 #include "Logger.hpp"
+
 #include <cstddef>
 #include <iostream>
 #include <vector>
@@ -15,7 +19,7 @@
 #include <exception>
 #include <filesystem>
 
-class FilePath;
+// class FilePath;
 
 class	Parsing_Exception : public std::exception
 {
@@ -93,4 +97,4 @@ typedef struct s_server_config
 
 std::vector<t_server_config>    get_config(char *argv[], std::vector<t_server_config> & tmp_serv_conf);
 
-#include "FilePath.hpp"
+#endif

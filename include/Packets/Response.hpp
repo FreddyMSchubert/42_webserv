@@ -1,3 +1,5 @@
+#ifndef RESPONSE_HPP
+#define RESPONSE_HPP
 #pragma once
 
 #include "Packet.hpp"
@@ -31,3 +33,5 @@ class Response : public Packet
 		std::string getRawPacket();
 		static std::string getMimeType(std::string filename);
 };
+
+#endif

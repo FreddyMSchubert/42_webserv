@@ -1,3 +1,5 @@
+#ifndef UTILS_HPP
+#define UTILS_HPP
 #pragma once
 
 #include "Config.hpp"
@@ -17,3 +19,5 @@ bool isAllowedMethodAt(t_server_config &config, Path path, Method method);
 t_location get_location(t_server_config &config, std::string path);
 bool isSubroute(const std::string& route, const std::string& subroute);
 void setNonBlocking(int fd);
+
+#endif

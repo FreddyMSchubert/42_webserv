@@ -1,3 +1,5 @@
+#ifndef SOCKET_HPP
+#define SOCKET_HPP
 #pragma once
 
 #include <iostream>
@@ -53,3 +55,5 @@ class Socket
 		void redirectToError(int client_fd, int error_code);
 		void sendRedirect(int client_fd, const std::string& new_url);
 };
+
+#endif

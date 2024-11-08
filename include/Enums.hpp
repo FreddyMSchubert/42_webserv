@@ -1,3 +1,5 @@
+#ifndef ENUMS_HPP
+#define ENUMS_HPP
 #pragma once
 
 #include <iostream>
@@ -95,3 +97,4 @@ enum class Status {
 	NotExtended = 510,
 	NetworkAuthenticationRequired = 511
 };
+#endif

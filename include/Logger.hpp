@@ -1,3 +1,5 @@
+#ifndef LOGGER_HPP
+#define LOGGER_HPP
 #pragma once
 
 #include <iostream>
@@ -14,3 +16,4 @@ class Logger
 	public:
 		static void Log(LogLevel level, const std::string &message);
 };
+#endif

@@ -250,6 +250,7 @@ void	init_root_dir(std::string str, t_server_config& server, int& iter)
 	for (const auto& c : tmp_root)
 		if (isalpha(static_cast<unsigned char>(c)) || c == '/' || c == '.')
 			i++;
+	std::cout << "the root_dir is: " << tmp_root.substr(0, i) << std::endl;
 	server.root_dir = tmp_root.substr(0, i);
 }
 
@@ -407,7 +408,6 @@ void	read_location(t_server_config & server, std::vector<std::string> & current_
 
 void fill_structs(std::vector<std::vector<std::string>> & preprocessed_servers, std::vector<t_server_config> & tmp_serv_conf)
 {
-	//FIXME: root at first pleas do this noel pls 
     std::vector<std::function<void(std::string, t_server_config&, int&)>> init_functions = {
         init_port, init_server_name, init_root_dir, init_index_file,
         init_client_max_body_size, init_error_pages
@@ -415,6 +415,7 @@ void fill_structs(std::vector<std::vector<std::string>> & preprocessed_servers, 
 
 	std::regex location_regex(R"(^\s*location\s+/\S*\s*\{\s*$)");
 	std::regex server_end(R"(^\s*\}\s*$)");
+	int check_for_root_dir = 0;
     for (size_t server_idx = 0; server_idx < preprocessed_servers.size(); ++server_idx)
     {
         t_server_config	server;
@@ -431,6 +432,19 @@ void fill_structs(std::vector<std::vector<std::string>> & preprocessed_servers, 
 			}
             if (i < init_functions.size())
             {
+				if (check_for_root_dir == 0)
+				{
+					std::string root_dir = current_server[2];
+					init_functions[2](root_dir, server, counter);
+					check_for_root_dir++;
+					continue ;
+				}
+				if (i == 2 && check_for_root_dir != 0)
+				{
+					++counter;
+					++i;
+					continue;
+				}
                 init_functions[i](line, server, counter);
                 ++counter;
                 ++i;
@@ -469,6 +483,7 @@ void fill_structs(std::vector<std::vector<std::string>> & preprocessed_servers, 
 			}
         }
         tmp_serv_conf.push_back(server);
+		check_for_root_dir = 0;
     }
 }
 

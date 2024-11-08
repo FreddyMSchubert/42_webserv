@@ -1,3 +1,5 @@
+#ifndef SERVER_HPP
+#define SERVER_HPP
 #pragma once
 
 #include "Enums.hpp"
@@ -25,3 +27,5 @@ class Server
 		
 		void Run();
 };
+
+#endif

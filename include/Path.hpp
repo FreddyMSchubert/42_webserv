@@ -1,3 +1,5 @@
+#ifndef PATH_HPP
+#define PATH_HPP
 #pragma once
 
 #include <cstddef>
@@ -24,7 +26,7 @@ class Path
 			EMPTY
 		};
 
-		Path() : _path(""), _config(nullptr) {};
+		Path() : _path("\0"), _config(nullptr) {};
 		Path(std::string path, Type type, t_server_config *config);
 		virtual ~Path() = default;
 		Path(const Path& other)  : _path(std::string(other._path)), _config(other._config) {};
@@ -58,5 +60,4 @@ class Path
 
 std::ostream &operator<<(std::ostream &os, const Path &path);
 
-#include "FilePath.hpp"
-#include "Config.hpp"
+#endif

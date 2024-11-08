@@ -41,9 +41,11 @@ std::string Path::asFilePath() const
 
 std::string Path::asUrl() const
 {
-	if (!_config)
+	if (_config)
 		throw std::runtime_error("my penis is tengineligninglegnigngiengl");
-	std::cout << "_path " << _path << " rootdir " << _config->root_dir << _path.find(_config->root_dir) << std::endl;
+	std::cout << "_path " << _path << std::endl;
+	std::cout << " rootdir " << _config->root_dir << std::endl;
+	std::cout << " find: " << _path.find(_config->root_dir) << std::endl;
 	if (_path.find(_config->root_dir) != 0)
 		throw std::runtime_error("Path: asUrl: path does not start with root_dir");
 	if (_path == _config->root_dir)

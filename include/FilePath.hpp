@@ -1,3 +1,5 @@
+#ifndef FILEPATH_HPP
+#define FILEPATH_HPP
 #pragma once
 
 #include "Path.hpp"
@@ -13,7 +15,7 @@ class FilePath : public Path
 		std::string _file;
 
 	public:
-		FilePath() : Path(), _file("") {};
+		FilePath() : Path(), _file("\0") {};
 		FilePath(const std::string &path, Path::Type type, t_server_config *config);
 		~FilePath() = default;
 
@@ -25,3 +27,5 @@ class FilePath : public Path
 		std::string asUrl() const override;
 		std::string asFilePath() const override;
 };
+
+#endif
