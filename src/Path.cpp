@@ -41,7 +41,7 @@ std::string Path::asFilePath() const
 
 std::string Path::asUrl() const
 {
-	if (_config)
+	if (!_config)
 		throw std::runtime_error("my penis is tengineligninglegnigngiengl");
 	std::cout << "_path " << _path << std::endl;
 	std::cout << " rootdir " << _config->root_dir << std::endl;
