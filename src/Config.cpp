@@ -216,7 +216,6 @@ void	init_index_file(std::string str, t_server_config & server, int & iter)
     tmp_index.end());
 	for (auto& name : tmp_index)
 		name.erase(std::remove(name.begin(), name.end(), ';'), name.end());
-	// for (const auto& name : tmp_index)
 	for (size_t i = 0; i < tmp_index.size(); i++)
 	{
 		auto &name = tmp_index[i];
