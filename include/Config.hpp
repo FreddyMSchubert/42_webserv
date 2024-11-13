@@ -66,14 +66,13 @@ class	Parsing_Exception : public std::exception
 
 typedef struct s_location
 {
-	Path path;                                         // specifies the path of the location
-	Path root_dir;                                    // specifies the root dir for the location
+	std::variant<Path, FilePath> path;                                         // specifies the path of the location
+	Path loc_root_dir;                                    // specifies the root dir for the location
 	std::unordered_map<Method, bool> allowed_methods;  // specifies the allowed Methods, <Method (GET, POST)><allowed(true, false)>
 	bool directory_listing;                             // specifies if the directories should be shown or not
 	std::vector<std::string> cgi_extensions;                 // specifies the cgi extensions as Path
 	std::map<int, Path> redirections;                 // redirect to a new location (saved in Path) with the status code (saved in int)
 	Path upload_dir;                                   // specifies the upload directory of this location
-	bool empty() const { return path.isEmpty(); }
 } t_location;
 
 typedef struct s_server_config

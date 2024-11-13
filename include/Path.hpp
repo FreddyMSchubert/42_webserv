@@ -22,8 +22,7 @@ class Path
 		enum class Type
 		{
 			URL,
-			FILESYSTEM,
-			EMPTY
+			FILESYSTEM
 		};
 
 		Path() : _path("\0"), _config(nullptr) {};
@@ -46,6 +45,7 @@ class Path
 
 
 		static std::string combinePaths(const std::string& path1, const std::string& path2);
+		static std::string verifyPath(std::string path);
 		static std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, t_server_config *config);
 
 		std::string operator+(const std::string& other) const;

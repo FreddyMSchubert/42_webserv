@@ -14,24 +14,26 @@ std::string getPathFromFilePath(std::string fp, Path::Type pathType, t_server_co
 
 FilePath::FilePath(const std::string &path, Path::Type type, t_server_config *config) : Path(getPathFromFilePath(path, Path::Type::FILESYSTEM, config), type, config), _file(path)
 {
-	static_cast<Path>(*this).setConfig(*config);
+	std::cout << "FilePath with path: " << path << ", config" << (config == nullptr ? " is nullptr." : " is present: " + config->root_dir) << std::endl;
 
-	std::string filePath = path;
-	if (type == Path::Type::URL)
-		filePath = Path::combinePaths(config->root_dir, path);
+    std::string filePath = path;
+    if (type == Path::Type::URL)
+        filePath = Path::combinePaths(config->root_dir, path);
 
-	int lastSlash = filePath.find_last_of('/');
-	std::string folder = filePath.substr(0, lastSlash + 1);
-	std::string file = filePath.substr(lastSlash + 1);
+    int lastSlash = filePath.find_last_of('/');
+    std::string folder = filePath.substr(0, lastSlash + 1);
+    std::string file = filePath.substr(lastSlash + 1);
 
-	if (!std::filesystem::exists("." + filePath))
-		throw std::runtime_error("File \"" + filePath + "\" does not exist");
-	if (!std::filesystem::is_regular_file("." + filePath))
-		throw std::runtime_error("Path is not a file");
-	_path = folder;
-	_file = file;
-	_config = config;
+    if (!std::filesystem::exists("." + filePath))
+        throw std::runtime_error("File \"" + filePath + "\" does not exist");
+    if (!std::filesystem::is_regular_file("." + filePath))
+        throw std::runtime_error("Path is not a file");
+
+    // _path = folder;
+    _file = file;
+    _config = config;
 }
+
 
 std::string FilePath::getFileContents() const
 {
@@ -95,5 +97,5 @@ std::string FilePath::asUrl() const
 
 std::string FilePath::asFilePath() const
 {
-	return Path::combinePaths(static_cast<Path>(*this).asFilePath(), _file);
+	return Path::combinePaths(_path, _file);
 }

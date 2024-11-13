@@ -221,8 +221,11 @@ void	init_index_file(std::string str, t_server_config & server, int & iter)
 		auto &name = tmp_index[i];
 		try
 		{
+			if (name.find('/') != 0)
+				name = "/" + name;
 			std::cout << "Attempting presence of file " << name << std::endl;
 			server.index_file = FilePath(name, Path::Type::URL, &server);
+			std::cout << "File present: " << name << std::endl;
 			break;
 		}
 		catch (std::exception &ex)
@@ -250,7 +253,7 @@ void	init_root_dir(std::string str, t_server_config& server, int& iter)
 		if (isalpha(static_cast<unsigned char>(c)) || c == '/' || c == '.')
 			i++;
 	std::cout << "the root_dir is: " << tmp_root.substr(0, i) << std::endl;
-	server.root_dir = tmp_root.substr(0, i);
+	server.root_dir = Path::verifyPath(tmp_root.substr(0, i));
 }
 
 void	init_server_name(std::string str, t_server_config& server, int& iter)
@@ -333,7 +336,7 @@ void	init_root(t_server_config & server, t_location & location, std::string str)
 	for (const auto& c : pre_processed_root)
 		if (isalpha(static_cast<unsigned char>(c)) || c == '/' || c == '.')
 			i++;
-	location.root_dir = Path(pre_processed_root.substr(0, i), Path::Type::URL, &server);
+	location.loc_root_dir = Path(pre_processed_root.substr(0, i), Path::Type::URL, &server);
 }
 
 void	init_directory_listing(t_location& location, std::string str)
@@ -365,17 +368,17 @@ void	init_upload_dir(t_server_config & server, t_location & location, std::strin
 	for (const auto& c : pre_processed_root)
 		if (isalpha(static_cast<unsigned char>(c)) || c == '/' || c == '.')
 			i++;
-	location.root_dir = Path(pre_processed_root.substr(0, i), Path::Type::URL, &server);
+	location.loc_root_dir = Path(pre_processed_root.substr(0, i), Path::Type::URL, &server);
 }
 
 void	read_location(t_server_config & server, std::vector<std::string> & current_server, size_t start_of_location, size_t end_of_location, std::string location_str)
 {
 	t_location location;
-	std::string loc = skip_until_value(location_str, "location");
-	loc.erase(std::remove(loc.begin(), loc.end(), '{'), loc.end());
-	loc.erase(std::remove(loc.begin(), loc.end(), ' '), loc.end());
-	std::cout << "creating cool new path for " << loc << std::endl;
-	location.path = Path(loc, Path::Type::URL, &server);
+	std::string paht = skip_until_value(location_str, "location");
+	paht.erase(std::remove(paht.begin(), paht.end(), '{'), paht.end());
+	paht.erase(std::remove(paht.begin(), paht.end(), ' '), paht.end());
+	std::cout << "creating cool new path for " << paht << std::endl;
+	location.path = Path::createPath(paht, Path::Type::URL, &server);
 
 	std::regex allowed_methods(R"(^\s*allowed_methods\s+([A-Z]+\s*){1,2};\s*$)");
 	std::regex redirection(R"(^\s*redirection\s+(3[0-5][0-9]|[1-4][0-9]{2}|5[0-9]{2})\s+\.\/[^\s;]+\s*;\s*$)");
@@ -491,7 +494,7 @@ std::vector<t_server_config>	get_config(char *argv[], std::vector<t_server_confi
 	std::vector<std::vector<std::string>>	preprocessed_servers;
 
 	if (!argv[1])
-		split_conf_in_server(preprocessed_servers, read_file("config/default.conf"));
+		split_conf_in_server(preprocessed_servers, read_file("/config/default.conf"));
 	else
 		split_conf_in_server(preprocessed_servers, read_file(argv[1]));
 	fill_structs(preprocessed_servers, tmp_serv_conf);

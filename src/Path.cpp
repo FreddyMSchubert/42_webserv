@@ -11,27 +11,16 @@
 
 Path::Path(std::string path, Type type, t_server_config *config) : _config(config)
 {
-	std::cout << "Path constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM) << " and config " << (config == nullptr ? " is nullptr" : "isnt nullptr") << std::endl;
+	std::cout << "Path constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM) << " and config " << (config == nullptr ? " is nullptr" : "isnt nullptr: " + config->root_dir) << std::endl;
 
-	if (path.find("./") != std::string::npos)
-		throw std::runtime_error("Path: Path contains ./ : " + path);
-	if (path.find_last_of('/') != path.size() - 1)
-		path.push_back('/');
-	if (path.find_first_of("/") != 0) // FIXME: this is weird because it flags the path as not starting with a / even if it clearly does
-		path = "/" + path;
-
-	if (type == Type::FILESYSTEM)
-		_path = path;
+	if (type == Path::Type::FILESYSTEM)
+		_path = verifyPath(path);
 	else
 	{
-		// Convert filesystem path to URL
 		if (!_config)
 			throw std::runtime_error("Path: \"" + path + "\" Path: config is nullptr");
-		_path = Path::combinePaths(_config->root_dir, path);
+		_path = verifyPath(Path::combinePaths(_config->root_dir, path));
 	}
-
-	if (!std::filesystem::exists("." + _path))
-		throw std::runtime_error("Path: Path " + _path + "does not exist");
 }
 
 std::string Path::asFilePath() const
@@ -44,7 +33,10 @@ std::string Path::asUrl() const
 	if (!_config)
 		throw std::runtime_error("my penis is tengineligninglegnigngiengl");
 	std::cout << "_path " << _path << std::endl;
-	std::cout << " rootdir " << _config->root_dir << std::endl;
+	std::cout << "Starting rootdir check..." << std::endl
+			<< "Checking if _config is null..." << std::endl
+			<< (_config ? (std::string("_config is not null.\n") + "Checking if _config->root_dir is empty...\n" + (_config->root_dir != "" ? ("rootdir: " + _config->root_dir) : "Error: root_dir is empty.")) : "Error: _config is null.") << std::endl
+			<< "Finished rootdir check." << std::endl;
 	std::cout << " find: " << _path.find(_config->root_dir) << std::endl;
 	if (_path.find(_config->root_dir) != 0)
 		throw std::runtime_error("Path: asUrl: path does not start with root_dir");
@@ -104,6 +96,22 @@ std::variant<Path, FilePath> Path::createPath(const std::string &path, Path::Typ
 	if (std::filesystem::is_regular_file("." + filePath))
 		return FilePath(path, type, config);
 	return Path(path, type, config);
+}
+/*
+	Expects filesystem type
+	Returns validated path
+*/
+std::string Path::verifyPath(std::string path)
+{
+	if (path.find("./") != std::string::npos)
+		throw std::runtime_error("Path: Path contains ./ : " + path);
+	if (path.find_last_of('/') != path.size() - 1)
+		path.push_back('/');
+	if (path.find_first_of("/") != 0) // FIXME: this is weird because it flags the path as not starting with a / even if it clearly does
+		path = "/" + path;
+	if (!std::filesystem::exists("." + path))
+		throw std::runtime_error("Path: Path " + path + "does not exist");
+	return path;
 }
 
 Path& Path::operator=(const Path& other)

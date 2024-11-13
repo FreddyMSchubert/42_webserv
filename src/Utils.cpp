@@ -7,7 +7,7 @@ bool isAllowedMethodAt(t_server_config &config, Path path, Method method)
 		std::cout << "Attempting to find method " << method << " at " << path.asFilePath() << " at " << config.host << std::endl;
 
 		t_location location = get_location(config, path.asUrl());
-		if (location.root_dir.asFilePath() == "/" || location.root_dir.asFilePath().empty())
+		if (location.loc_root_dir.asFilePath() == "/" || location.loc_root_dir.asFilePath().empty())
 			break;
 		auto methodPair = location.allowed_methods.find(method);
 		if (methodPair != location.allowed_methods.end())
@@ -23,6 +23,7 @@ bool isAllowedMethodAt(t_server_config &config, Path path, Method method)
 		return foundLoc->second;
 	return false; // default for all methods if no rule is defined
 }
+
 
 bool isSubroute(const std::string& route, const std::string& subroute)
 {
@@ -42,7 +43,6 @@ std::string getFilePathAsURLPath(std::string path, t_server_config &config)
 // TODO: please check this!!
 t_location get_location(t_server_config &config, std::string path)
 {
-	// t_location loc = EMPTY_LOCATION; //FIXME: what are u doing here @freddy?
 	t_location loc;
 
 	std::cout << "hier" << std::endl;
@@ -60,13 +60,13 @@ t_location get_location(t_server_config &config, std::string path)
 		}
 	}
 
-	std::cout << "Initial location: " << loc.root_dir << std::endl;
+	std::cout << "Initial location: " << loc.loc_root_dir << std::endl;
 
 	for (t_location &location : config.locations)
 	{
-		std::cout << "Current location: " << loc.root_dir << " checking against " << location.root_dir << std::endl;
-		if (isSubroute(location.root_dir.asFilePath(), path) && std::filesystem::exists(location.root_dir.asFilePath()))
-			if (loc.root_dir.size() < location.root_dir.size())
+		std::cout << "Current location: " << loc.loc_root_dir << " checking against " << location.loc_root_dir << std::endl;
+		if (isSubroute(location.loc_root_dir.asFilePath(), path) && std::filesystem::exists(location.loc_root_dir.asFilePath()))
+			if (loc.loc_root_dir.size() < location.loc_root_dir.size())
 				loc = location;
 	}
 

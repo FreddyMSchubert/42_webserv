@@ -96,13 +96,6 @@ void Response::handle_dir_req(t_server_config &config, Path &path)
 {
 	t_location location = get_location(config, path.asFilePath());
 
-	if (location.empty()) // invalid
-	{
-		Logger::Log(LogLevel::WARNING, "GET: Invalid location \"" + path.asUrl() + "\"");
-		setStatus(Status::NotFound);
-		return;
-	}
-
 	if (!isAllowedMethodAt(config, path, Method::GET))
 	{
 		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
