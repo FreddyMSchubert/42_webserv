@@ -44,6 +44,7 @@ class Path
 
 		static std::string combinePaths(const std::string& path1, const std::string& path2);
 		static std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, t_server_config *config);
+		static std::string verifyPath(std::string path);
 
 		std::string operator+(const std::string& other) const;
 		bool operator==(const Path& other) const;

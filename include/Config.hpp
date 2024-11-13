@@ -6,46 +6,50 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <variant>
+#include <regex>
+#include <array>
+#include <map>
+#include "Path.hpp"
+#include "Logger.hpp"
+#include "FilePath.hpp"
 
 // typedef struct s_location t_location;
 
-typedef struct s_location 
+typedef struct s_location
 {
+	std::variant<Path, FilePath> path;
+	Path root_dir;
 	std::unordered_map<Method, bool> allowed_methods;
-	std::string root; // needs to be relative to project root & start with . otherwise mayhem
-	std::string index;
 	bool directory_listing;
-	size_t client_max_body_size;
-	bool empty() { return root.empty(); }
+	std::vector<std::string> cgi_extensions;
+	std::map<int, Path> redirections;
+	Path upload_dir;
 } t_location;
-#define EMPTY_LOCATION (t_location){{}, "", "", false, 0}
 
-inline std::ostream &operator<<(std::ostream &os, const t_location &location)
+class Config
 {
-	os << "Root: " << location.root << std::endl;
-	os << "Index: " << location.index << std::endl;
-	os << "Directory listing: " << location.directory_listing << std::endl;
-	os << "Client max body size: " << location.client_max_body_size << std::endl;
-	os << "Allowed methods: ";
-	for (auto &method : location.allowed_methods)
-		os << method.first << "(" << method.second << ")" << " ";
-	return os;
-}
+	private:
+		std::vector<std::string> _server_names;
+		std::string _host;
+		int _port;
+		std::string _root_dir;
+		FilePath _index_file;
+		unsigned int _client_max_body_size; // in bytes
+		std::map<int, FilePath> _error_pages;
+		std::vector<t_location> _locations;
 
-typedef struct s_error_page
-{
-	int error_code;
-	t_location path;
-} t_error_page;
+		void parseListen(std::string line);
+		void parseServerName(std::string line);
+		void parseRoot(std::string line);
+		void parseIndex(std::string line);
+		void parseClientMaxBodySize(std::string line);
+		void parseErrorPage(std::string line);
+		void parseLocation(std::string line);
 
-typedef struct s_server_config
-{
-	std::vector<std::string> server_names;
-	std::string host;
-	int port; // below 1024 require root
-
-	t_location default_location;
-	std::vector<t_location> locations;
-	std::vector<t_error_page> error_pages;
-
-} t_server_config;
+	public:
+		Config(std::string data);
+		Config(const Config &other) = default;
+		Config &operator=(const Config &other) = default;
+		~Config() = default;
+};

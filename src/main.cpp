@@ -97,12 +97,31 @@ std::vector<t_server_config> init_testing_configs()
 	}
 }
 
+std::vector<Config> parse_configs(std::string filename)
+{
+	// split it up in servers
+	// call Config constructor on each
+}
+
 int main(int argc, char *argv[])
 {
+	std::vector<Config> configs;
 	if (argc > 2)
 	{
 		std::cerr << "Usage: " << argv[0] << " [config_file]" << std::endl;
 		return 1;
+	}
+	else if (argc == 2)
+	{
+		configs = parse_configs(argv[1]);
+		if (configs.size() == 0)
+			return 1;
+	}
+	else
+	{
+		configs = parse_configs("./www/default.conf");
+		if (configs.size() == 0)
+			return 1;
 	}
 
 	srand(time(NULL));
