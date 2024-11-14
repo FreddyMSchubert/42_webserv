@@ -99,13 +99,39 @@ std::vector<t_server_config> init_testing_configs()
 
 std::vector<Config> parse_configs(std::string filename)
 {
-	// split it up in servers
-	// call Config constructor on each
+	// 1. Read the file
+	std::string fileData;
+
+	try
+	{
+		FilePath path = FilePath(filename, Path::Type::FILESYSTEM, nullptr);
+		fileData = path.getFileContents();
+	}
+	catch(const std::exception& e)
+	{
+		Logger::Log(LogLevel::ERROR, "Issue reading config file: " + std::string(e.what()));
+		return std::vector<Config>(0);
+	}
+
+	// 2. Create Configs
+	std::vector<Config> configs;
+	std::regex serverBlockRegex(R"(server\s*\{([^}]*)\})");
+	std::smatch match;
+	std::string::const_iterator searchStart(fileData.cbegin());
+	while (std::regex_search(searchStart, fileData.cend(), match, serverBlockRegex))
+	{
+		std::string serverConfig = match[1].str();
+		configs.emplace_back(serverConfig);
+		searchStart = match.suffix().first;
+	}
+
+	return configs;
 }
 
 int main(int argc, char *argv[])
 {
 	std::vector<Config> configs;
+
 	if (argc > 2)
 	{
 		std::cerr << "Usage: " << argv[0] << " [config_file]" << std::endl;
@@ -132,9 +158,11 @@ int main(int argc, char *argv[])
 
 	std::cout << "Signals successfully initialized!" << std::endl;
 
-	std::vector<t_server_config> configs = init_testing_configs(); // TODO: config parsing
-
-	std::cout << "configs.size() = " << configs.size() << std::endl;
+	if (configs.size() == 0)
+	{
+		Logger::Log(LogLevel::ERROR, "Failed to initialize configs");
+		return 1;
+	}
 
 	if (configs.size() == 0) return 1;
 
