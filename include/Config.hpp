@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <iostream>
 #include <unordered_map>
+#include <optional>
 #include <vector>
 #include <string>
 #include <variant>
@@ -34,18 +35,18 @@ class Config
 		std::string _host;
 		int _port;
 		std::string _root_dir;
-		FilePath _index_file;
+		std::optional<FilePath> _index_file; // optional but will always be present after constructor
 		unsigned int _client_max_body_size; // in bytes
 		std::map<int, FilePath> _error_pages;
 		std::vector<t_location> _locations;
 
-		void parseListen(std::string line);
-		void parseServerName(std::string line);
-		void parseRoot(std::string line);
-		void parseIndex(std::string line);
-		void parseClientMaxBodySize(std::string line);
-		void parseErrorPage(std::string line);
-		void parseLocation(std::string line);
+		void parseListen(const std::string & line);
+		void parseServerName(const std::string & line);
+		void parseRoot(const std::string & line);
+		void parseIndex(const std::string & line);
+		void parseClientMaxBodySize(const std::string & line);
+		void parseErrorPage(const std::string & line);
+		void parseLocation(const std::string & line);
 
 	public:
 		Config(std::string data);

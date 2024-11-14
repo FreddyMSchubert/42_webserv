@@ -19,8 +19,8 @@ Config::Config(std::string data)
 	}
 
 	// 2. parse each line, based on starting keyword
-	std::array<std::string, 7> keywords = {"listen", "server_name", "root", "index", "client_max_body_size", "error_page", "error_page"};
-	std::array<void(std::string), 7> parsers = {parseListen, parseServerName, parseRoot, parseIndex, parseClientMaxBodySize, parseErrorPage, parseErrorPage};
+	std::array<std::string, 7> keywords = {"listen", "server_name", "root", "index", "client_max_body_size", "error_page", "location"};
+	std::array<void (Config::*)(const std::string&), 7> parsers = {&Config::parseListen, &Config::parseServerName, &Config::parseRoot, &Config::parseIndex, &Config::parseClientMaxBodySize, &Config::parseErrorPage, &Config::parseLocation};
 	for (std::string &line : lines)
 	{
 		std::string keyword = line.substr(0, line.find(' '));
@@ -30,7 +30,7 @@ Config::Config(std::string data)
 			{
 				if (keyword == keywords[i])
 				{
-					parsers[i](line);
+					(this->*parsers[i])(line);
 					break;
 				}
 			}
@@ -46,7 +46,7 @@ Config::Config(std::string data)
 /* ----- LINE PARSERS ----- */
 /* ------------------------ */
 
-void Config::parseListen(std::string line)
+void Config::parseListen(const std::string & line)
 {
 	std::regex listen_regex(R"(listen\s+((\d{1,3}(?:\.\d{1,3}){3}):)?(\d+);)");
 	std::smatch match;
@@ -64,7 +64,7 @@ void Config::parseListen(std::string line)
 	}
 }
 
-void Config::parseServerName(std::string line)
+void Config::parseServerName(const std::string & line)
 {
 	std::regex server_name_regex(R"(server_name\s+(.+);)");
 	std::smatch match;
@@ -82,7 +82,7 @@ void Config::parseServerName(std::string line)
 	}
 }
 
-void Config::parseRoot(std::string line)
+void Config::parseRoot(const std::string & line)
 {
 	std::regex root_regex(R"(root\s+([^;]+);)");
 	std::smatch match;
@@ -92,9 +92,9 @@ void Config::parseRoot(std::string line)
 		throw std::invalid_argument("Invalid root directive");
 }
 
-void Config::parseIndex(std::string line)
+void Config::parseIndex(const std::string & line)
 {
-	std::regex index_regex(R"(server_name\s+(.+);)");
+	std::regex index_regex(R"(index\s+(.+);)");
 	std::smatch match;
 	if (std::regex_match(line, match, index_regex))
 	{
@@ -124,7 +124,7 @@ void Config::parseIndex(std::string line)
 	}
 }
 
-void Config::parseClientMaxBodySize(std::string line)
+void Config::parseClientMaxBodySize(const std::string & line)
 {
 	std::regex size_regex(R"(client_max_body_size\s+(\d+)\s*([KMG]B);)", std::regex::icase);
 	std::smatch match;
@@ -150,7 +150,7 @@ void Config::parseClientMaxBodySize(std::string line)
 	}
 }
 
-void Config::parseErrorPage(std::string line)
+void Config::parseErrorPage(const std::string & line)
 {
 	std::regex error_page_regex(R"(error_page\s+((?:\d{3}\s+)+)([^;]+);)");
 	std::smatch match;
@@ -174,7 +174,7 @@ void Config::parseErrorPage(std::string line)
 	}
 }
 
-void Config::parseLocation(std::string line)
+void Config::parseLocation(const std::string & line)
 {
 	Logger::Log(LogLevel::INFO, "Parsing location: " + line);
 	// this will tkae some time. not yet worth it. for now, lets just get this rolling
