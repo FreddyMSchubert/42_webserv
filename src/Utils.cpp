@@ -1,13 +1,13 @@
 #include "Utils.hpp"
 
-bool isAllowedMethodAt(t_server_config &config, Path path, Method method)
+bool isAllowedMethodAt(Config &config, Path path, Method method)
 {
 	while (true)
 	{
 		std::cout << "Attempting to find method " << method << " at " << path << std::endl;
 
 		t_location location = get_location(config, path.asFilePath());
-		if (location.root == "/" || location.root.empty())
+		if (location.root_dir.asUrl() == "/" || location.empty())
 			break;
 		auto methodPair = location.allowed_methods.find(method);
 		if (methodPair != location.allowed_methods.end())
@@ -18,8 +18,8 @@ bool isAllowedMethodAt(t_server_config &config, Path path, Method method)
 			break;
 	};
 
-	auto foundLoc = config.default_location.allowed_methods.find(method);
-	if (foundLoc != config.default_location.allowed_methods.end())
+	auto foundLoc = config.getRootLocation().allowed_methods.find(method);
+	if (foundLoc != config.getRootLocation().allowed_methods.end())
 		return foundLoc->second;
 	return false; // default for all methods if no rule is defined
 }
@@ -37,38 +37,38 @@ bool isSubroute(const std::string& route, const std::string& subroute)
 	return subroute.find(route) == 0;
 }
 
-std::string getFilePathAsURLPath(std::string path, t_server_config &config)
+std::string getFilePathAsURLPath(std::string path, Config &config)
 {
 	std::string urlPath = path;
-	urlPath.replace(0, config.default_location.root.size(), "");
+	urlPath.replace(0, config.getRootLocation().root_dir.size(), "");
 	if (urlPath == "")
 		urlPath = "/";
 	return urlPath;
 }
 
 // Gets the location config of the path, respecting subdirs
-t_location get_location(t_server_config &config, std::string path)
+t_location get_location(Config &config, std::string path)
 {
-	t_location loc = EMPTY_LOCATION;
+	t_location loc = config.getRootLocation();
 
-	std::cout << "Getting location for path: \"" << path << "\"" << " at root " << config.default_location.root << std::endl;
-	if (path == config.default_location.root)
+	std::cout << "Getting location for path: \"" << path << "\"" << " at root " << config.getRootLocation().root_dir << std::endl;
+	if (path == config.getRootLocation().root_dir.asUrl())
 	{
 		std::cout << "The path is \"/\"." << std::endl;
-		if (std::filesystem::exists(config.default_location.root))
+		if (std::filesystem::exists(config.getRootLocation().root_dir.asFilePath()))
 		{
-			loc = config.default_location;
+			loc = config.getRootLocation();
 			std::cout << "Default location is valid." << std::endl;
 		}
 	}
 
-	std::cout << "Initial location: " << loc.root << std::endl;
+	std::cout << "Initial location: " << loc.root_dir << std::endl;
 
-	for (t_location &location : config.locations)
+	for (t_location &location : config.getLocations())
 	{
-		std::cout << "Current location: " << loc.root << " checking against " << location.root << std::endl;
-		if (isSubroute(location.root, path) && std::filesystem::exists(location.root))
-			if (loc.root.size() < location.root.size())
+		std::cout << "Current location: " << loc.root_dir << " checking against " << location.root_dir << std::endl;
+		if (isSubroute(location.root_dir.asUrl(), path) && std::filesystem::exists(location.root_dir.asFilePath()))
+			if (loc.root_dir.size() < location.root_dir.size())
 				loc = location;
 	}
 

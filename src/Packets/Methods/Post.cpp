@@ -4,7 +4,7 @@
 #include "Utils.hpp"
 #include "./mimetypes.cpp"
 
-void Response::handlePost(Request& req, t_server_config &config)
+void Response::handlePost(Request& req, Config &config)
 {
 	(void)config;
 	

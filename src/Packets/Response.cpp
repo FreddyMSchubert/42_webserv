@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-Response::Response(Request& req, t_server_config &config) : Packet()
+Response::Response(Request& req, Config &config) : Packet()
 {
 	switch (req.getMethod())
 	{

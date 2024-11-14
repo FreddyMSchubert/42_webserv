@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-void Response::handle_file_req(t_server_config &config, FilePath &path)
+void Response::handle_file_req(Config &config, FilePath &path)
 {
 	setPath(path.asUrl());
 
@@ -90,7 +90,7 @@ static std::string get_dir_list_html(const std::string &current_path, const std:
 	return body;
 }
 
-void Response::handle_dir_req(t_server_config &config, Path &path)
+void Response::handle_dir_req(Config &config, Path &path)
 {
 	t_location location = get_location(config, path.asFilePath());
 
@@ -126,7 +126,7 @@ void Response::handle_dir_req(t_server_config &config, Path &path)
 	setBody(body);
 }
 
-void Response::handleGet(Request& req, t_server_config &config)
+void Response::handleGet(Request& req, Config &config)
 {
 	Logger::Log(LogLevel::INFO, "GET: Handling request");
 

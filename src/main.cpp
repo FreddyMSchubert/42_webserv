@@ -33,12 +33,12 @@ void signalHandler(int signum)
 	}
 }
 
-std::vector<t_server_config> init_testing_configs()
+std::vector<Config> init_testing_configs()
 {
 
 	try
 	{
-		std::vector<t_server_config> configs(3);
+		std::vector<Config> configs(3);
 	
 		configs[0].server_names.push_back("clickergame.com");
 		configs[1].server_names.push_back("platformergame.com");
@@ -93,7 +93,7 @@ std::vector<t_server_config> init_testing_configs()
 	{
 		Logger::Log(LogLevel::ERROR, e.what());
 		signalHandler(SIGABRT);
-		return std::vector<t_server_config>(0);
+		return std::vector<Config>(0);
 	}
 }
 

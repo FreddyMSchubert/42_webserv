@@ -17,14 +17,14 @@
 class Response : public Packet
 {
 	private:
-		void handleGet(Request& req, t_server_config &config);
-			void handle_file_req(t_server_config &config, FilePath &path);
-			void handle_dir_req(t_server_config &config, Path &path);
-		void handlePost(Request& req, t_server_config &config);
-		void handleDelete(Request& req, t_server_config &config);
+		void handleGet(Request& req, Config &config);
+			void handle_file_req(Config &config, FilePath &path);
+			void handle_dir_req(Config &config, Path &path);
+		void handlePost(Request& req, Config &config);
+		void handleDelete(Request& req, Config &config);
 
 	public:
-		Response(Request &req, t_server_config &config);
+		Response(Request &req, Config &config);
 		~Response() = default;
 
 		// methods

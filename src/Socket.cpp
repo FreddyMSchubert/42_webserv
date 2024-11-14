@@ -1,6 +1,6 @@
 #include "Socket.hpp"
 
-Socket::Socket(t_server_config config) : _socket_pid(-1), config(config)
+Socket::Socket(Config config) : _socket_pid(-1), config(config)
 {
 	_socket_pid = socket(AF_INET, SOCK_STREAM, 0);
 	if (_socket_pid == -1)
@@ -145,12 +145,12 @@ void Socket::_connect()
 {
 	std::memset(&_socket, 0, sizeof(_socket));
 	_socket.sin_family = AF_INET;
-	_socket.sin_port = htons(config.port);
+	_socket.sin_port = htons(config.getPort());
 
-	if (inet_pton(AF_INET, config.host.c_str(), &_socket.sin_addr) <= 0)
+	if (inet_pton(AF_INET, config.getHost().c_str(), &_socket.sin_addr) <= 0)
 	{
 		close(_socket_pid);
-		throw std::runtime_error("Invalid IP address: " + config.host);
+		throw std::runtime_error("Invalid IP address: " + config.getHost());
 	}
 	
 	if (bind(_socket_pid, (struct sockaddr *)&_socket, sizeof(_socket)) == -1)

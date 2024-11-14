@@ -15,8 +15,6 @@
 #include "Logger.hpp"
 #include "FilePath.hpp"
 
-// typedef struct s_location t_location;
-
 typedef struct s_location
 {
 	std::variant<Path, FilePath> path;
@@ -26,6 +24,7 @@ typedef struct s_location
 	std::vector<std::string> cgi_extensions;
 	std::map<int, Path> redirections;
 	Path upload_dir;
+	bool empty() const { return path.index() == 0; }
 } t_location;
 
 class Config
@@ -53,4 +52,16 @@ class Config
 		Config(const Config &other) = default;
 		Config &operator=(const Config &other) = default;
 		~Config() = default;
+
+		std::vector<std::string> getServerNames() const { return _server_names; }
+		std::string getHost() const { return _host; }
+		int getPort() const { return _port; }
+		std::string getRootDir() const { return _root_dir; }
+		FilePath getIndexFile() const { return *_index_file; }
+		unsigned int getClientMaxBodySize() const { return _client_max_body_size; }
+		std::map<int, FilePath> getErrorPages() const { return _error_pages; }
+		std::string getErrorPage(int code) const;
+		std::vector<t_location> getLocations() const { return _locations; }
+
+		t_location getRootLocation() const;
 };

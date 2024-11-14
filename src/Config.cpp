@@ -179,6 +179,7 @@ void Config::parseLocation(const std::string & line)
 	Logger::Log(LogLevel::INFO, "Parsing location: " + line);
 	// this will tkae some time. not yet worth it. for now, lets just get this rolling
 	// heres some default values though
+	// gotta make sure here that the / loc exists and it has default values if no other ones are present
 	t_location location;
 	location.path = Path("/", Path::Type::URL, this);
 	location.root_dir = Path("/www/clicker/", Path::Type::FILESYSTEM, this);
@@ -186,4 +187,15 @@ void Config::parseLocation(const std::string & line)
 	location.allowed_methods.emplace(Method::POST, true);
 	location.allowed_methods.emplace(Method::DELETE, true);
 	location.directory_listing = true;
+}
+
+/* ----------------- */
+/* ----- Utils ----- */
+/* ----------------- */
+
+t_location Config::getRootLocation()
+{
+	for (t_location &loc : _locations)
+		if (loc.root_dir == "/")
+			return loc;
 }
