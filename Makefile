@@ -74,4 +74,8 @@ parrot:
 	@printf "$(BOLD)$(GREEN)🦜 Parrot mode activated!$(RESET)\n"
 	@curl parrot.live
 
+rick:
+	@printf "$(BOLD)$(GREEN)🦜 Never gonna give you up!$(RESET)\n"
+	@curl -s -L https://raw.githubusercontent.com/keroserene/rickrollrc/master/roll.sh | bash
+
 .PHONY: all clean fclean re run debug parrot
