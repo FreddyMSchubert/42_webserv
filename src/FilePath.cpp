@@ -2,11 +2,18 @@
 
 #include "./Packets/Methods/mimetypes.cpp"
 
-FilePath::FilePath(const std::string &path, Path::Type type, Config *config)
+std::string formatPath(const std::string &path)
+{
+	std::string formattedPath = path;
+	formattedPath = formattedPath.substr(0, formattedPath.find_last_of('/') + 1);
+	return formattedPath;
+}
+
+FilePath::FilePath(const std::string &path, Path::Type type, Config &config) : Path(formatPath(path), type, config)
 {
 	std::string filePath = path;
 	if (type == Path::Type::URL)
-		filePath = Path::combinePaths(config->default_location.root, path);
+		filePath = Path::combinePaths(config.getRootLocation().root_dir.asFilePath(), path);
 
 	int lastSlash = filePath.find_last_of('/');
 	std::string folder = filePath.substr(0, lastSlash + 1);

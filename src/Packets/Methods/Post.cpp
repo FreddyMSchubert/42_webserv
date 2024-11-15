@@ -53,10 +53,14 @@ void Response::handlePost(Request& req, Config &config)
 		return ;
 	}
 
-	Path filepath;
-	
-	try {
-		filepath = Path(req.getPath(), Path::Type::URL, config);
+	std::string filename;
+	try
+	{
+		Path filepath = Path(req.getPath(), Path::Type::URL, config);
+		if (req.getHeaders().find("X-Filename") != req.getHeaders().end())
+			filename = filepath.asFilePath() + req.getHeaders()["X-Filename"];
+		else
+			filename = filepath.asFilePath() + "default";
 	}
 	catch (std::exception &e)
 	{
@@ -65,12 +69,6 @@ void Response::handlePost(Request& req, Config &config)
 		setBody("Error parsing path");
 		return ;
 	}
-
-	std::string filename;
-	if (req.getHeaders().find("X-Filename") != req.getHeaders().end())
-		filename = filepath.asFilePath() + req.getHeaders()["X-Filename"];
-	else
-		filename = filepath.asFilePath() + "default";
 
 	std::string extension = "txt";
 	try {

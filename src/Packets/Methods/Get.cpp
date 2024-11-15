@@ -133,7 +133,7 @@ void Response::handleGet(Request& req, Config &config)
 	std::string reqTarget = req.getPath();
 	std::cout << "reqTarget: \"" << reqTarget << "\"" << std::endl;
 	if (reqTarget == "/")
-		reqTarget = config.default_location.index;
+		reqTarget = config.getIndexFile().asUrl();
 	std::variant<Path, FilePath> path = Path::createPath(reqTarget, Path::Type::URL, &config);
 
 	setVersion("HTTP/1.1");
