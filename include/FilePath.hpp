@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Path.hpp"
-#include "Config.hpp"
+class Config;
 
 #include <fstream>
 #include <sstream>
@@ -21,3 +21,5 @@ class FilePath : public Path
 		std::string getFileExtension() const;
 		std::string getMimeType() const;
 };
+
+#include "Config.hpp"

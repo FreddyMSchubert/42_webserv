@@ -83,3 +83,15 @@ void setNonBlocking(int fd)
 	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
 		throw std::runtime_error("Failed to set non-blocking mode");
 }
+
+std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, Config &config)
+{
+	std::string filePath = path;
+	if (type == Path::Type::URL)
+		filePath = Path::combinePaths(config.getRootLocation().root_dir.asFilePath(), path);
+	if (!std::filesystem::exists(filePath))
+		throw std::runtime_error("Path does not exist");
+	if (std::filesystem::is_regular_file(filePath))
+		return FilePath(path, type, config);
+	return Path(path, type, config);
+}

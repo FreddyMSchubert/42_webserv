@@ -2,6 +2,7 @@
 
 #include "Config.hpp"
 #include "Path.hpp"
+#include "FilePath.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -18,3 +19,4 @@ std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::str
 t_location get_location(Config &config, std::string path);
 bool isSubroute(const std::string& route, const std::string& subroute);
 void setNonBlocking(int fd);
+std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, Config &config);

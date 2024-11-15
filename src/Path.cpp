@@ -26,7 +26,7 @@ std::string Path::asUrl() const
 
 std::string Path::asFilePath() const
 {
-	return combinePaths(_config.getRootLocation().root_dir.asFilePath(), _path);
+	return combinePaths(_config.getRootDir(), _path);
 }
 
 std::vector<std::filesystem::directory_entry> Path::getDirectoryEntries()
@@ -67,17 +67,6 @@ std::string Path::combinePaths(const std::string& path1, const std::string& path
 		return path1 + "/" + path2;
 	else
 		return path1 + path2;
-}
-std::variant<Path, FilePath> Path::createPath(const std::string &path, Path::Type type, Config *config)
-{
-	std::string filePath = path;
-	if (type == Path::Type::URL)
-		filePath = Path::combinePaths(config->getRootLocation().root_dir.asFilePath(), path);
-	if (!std::filesystem::exists(filePath))
-		throw std::runtime_error("Path does not exist");
-	if (std::filesystem::is_regular_file(filePath))
-		return FilePath(path, type, config);
-	return Path(path, type, *config);
 }
 /*
 	Expects filesystem type

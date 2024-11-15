@@ -74,7 +74,8 @@
 		"print": "cpp",
 		"variant": "cpp",
 		"csignal": "cpp",
-		"regex": "cpp"
+		"regex": "cpp",
+		"__functional_base_03": "cpp"
 	},
 	"C_Cpp.default.compilerPath": "/usr/bin/clang++"
 }

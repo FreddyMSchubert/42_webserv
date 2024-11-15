@@ -7,9 +7,7 @@
 #include <vector>
 #include <optional>
 
-class FilePath;
-
-struct s_server_config typedef Config;
+class Config;
 
 class Path
 {
@@ -42,7 +40,6 @@ class Path
 
 
 		static std::string combinePaths(const std::string& path1, const std::string& path2);
-		static std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, Config *config);
 		static std::string verifyPath(std::string path);
 
 		std::string operator+(const std::string& other) const;
@@ -56,5 +53,3 @@ class Path
 };
 
 std::ostream &operator<<(std::ostream &os, const Path &path);
-
-#include "FilePath.hpp"

@@ -134,7 +134,7 @@ void Response::handleGet(Request& req, Config &config)
 	std::cout << "reqTarget: \"" << reqTarget << "\"" << std::endl;
 	if (reqTarget == "/")
 		reqTarget = config.getIndexFile().asUrl();
-	std::variant<Path, FilePath> path = Path::createPath(reqTarget, Path::Type::URL, &config);
+	std::variant<Path, FilePath> path = createPath(reqTarget, Path::Type::URL, config);
 
 	setVersion("HTTP/1.1");
 
@@ -148,5 +148,4 @@ void Response::handleGet(Request& req, Config &config)
 		Logger::Log(LogLevel::INFO, "GET: Handling directory request");
 		handle_dir_req(config, std::get<Path>(path));
 	}
-	
 }

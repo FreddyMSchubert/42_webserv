@@ -104,11 +104,11 @@ void Config::parseIndex(const std::string & line)
 		std::string name;
 		while (iss >> name)
 			names.push_back(name);
-		for (int i = 0; i < names.size(); i++)
+		for (size_t i = 0; i < names.size(); i++)
 		{
 			try
 			{
-				_index_file = FilePath(names[i], Path::Type::URL, this);
+				_index_file = FilePath(names[i], Path::Type::URL, *this);
 			}
 			catch (std::exception &e)
 			{
@@ -158,14 +158,14 @@ void Config::parseErrorPage(const std::string & line)
 	{
 		std::string error_codes_str = match[1];
 		std::string error_path = match[2];
-		FilePath path(error_path, Path::Type::URL, this);
+		FilePath path(error_path, Path::Type::URL, *this);
 
 		std::istringstream iss(error_codes_str);
 		std::string code_str;
 		while (iss >> code_str)
 		{
 			int error_code = std::stoi(code_str);
-			_error_pages[error_code] = path;
+			_error_pages.emplace(error_code, path);
 		}
 	}
 	else
@@ -180,22 +180,26 @@ void Config::parseLocation(const std::string & line)
 	// this will tkae some time. not yet worth it. for now, lets just get this rolling
 	// heres some default values though
 	// gotta make sure here that the / loc exists and it has default values if no other ones are present
-	t_location location;
-	location.path = Path("/", Path::Type::URL, this);
-	location.root_dir = Path("/www/clicker/", Path::Type::FILESYSTEM, this);
-	location.allowed_methods.emplace(Method::GET, true);
-	location.allowed_methods.emplace(Method::POST, true);
-	location.allowed_methods.emplace(Method::DELETE, true);
-	location.directory_listing = true;
+	Path locPath = Path("/", Path::Type::URL, *this);
+	Path locRoot = Path("/www/clicker/", Path::Type::FILESYSTEM, *this);
+	Path locUpload = Path("/www/clicker/uploads/", Path::Type::FILESYSTEM, *this);
+	std::unordered_map<Method, bool> methods;
+	methods.emplace(Method::GET, true);
+	methods.emplace(Method::POST, true);
+	methods.emplace(Method::DELETE, true);
+	bool directory_listing = true;
+	t_location loc = {locPath, locRoot, methods, directory_listing, {}, {}, locUpload};
+	_locations.push_back(loc);
 }
 
 /* ----------------- */
 /* ----- Utils ----- */
 /* ----------------- */
 
-t_location Config::getRootLocation()
+t_location Config::getRootLocation() const
 {
-	for (t_location &loc : _locations)
-		if (loc.root_dir == "/")
+	for (const t_location &loc : _locations)
+		if (loc.root_dir.asUrl() == "/")
 			return loc;
+	throw std::runtime_error("Root location not present in config " + _root_dir);
 }
