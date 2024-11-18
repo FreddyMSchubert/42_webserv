@@ -88,7 +88,7 @@ std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type
 {
 	std::string filePath = path;
 	if (type == Path::Type::URL)
-		filePath = Path::combinePaths(config.getRootLocation().root_dir.asFilePath(), path);
+		filePath = Path::combinePaths(config.getRootDir(), path);
 	if (!std::filesystem::exists(filePath))
 		throw std::runtime_error("Path does not exist");
 	if (std::filesystem::is_regular_file(filePath))

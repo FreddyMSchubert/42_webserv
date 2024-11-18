@@ -47,15 +47,57 @@ std::vector<Config> parse_configs(std::string filename)
 	fileData = ss.str();
 
 	// 2. Create Configs
-	std::vector<Config> configs;
-	std::regex serverBlockRegex(R"(server\s*\{([^}]*)\})");
-	std::smatch match;
-	std::string::const_iterator searchStart(fileData.cbegin());
-	while (std::regex_search(searchStart, fileData.cend(), match, serverBlockRegex))
+	std::vector<std::string> server_blocks;
+	std::string token;
+	int brace_count = 0;
+	bool inside_server_block = false;
+
+	for (size_t i = 0; i < fileData.size(); ++i)
 	{
-		std::string serverConfig = match[1].str();
-		configs.emplace_back(serverConfig);
-		searchStart = match.suffix().first;
+		char c = fileData[i];
+		token += c;
+
+		if (fileData.compare(i, 6, "server") == 0 && !inside_server_block)
+		{
+			inside_server_block = true;
+			i += 5; // Skip "server"
+		}
+		else if (c == '{' && inside_server_block)
+		{
+			brace_count++;
+		}
+		else if (c == '}' && inside_server_block)
+		{
+			brace_count--;
+			if (brace_count == 0)
+			{
+				server_blocks.push_back(token);
+				token.clear();
+				inside_server_block = false;
+			}
+		}
+	}
+	if (inside_server_block)
+		throw std::runtime_error("Unmatched '{' in configuration file.");
+
+	std::vector<Config> configs;
+	for (const std::string &server_data : server_blocks)
+	{
+		size_t start = server_data.find('{');
+		size_t end = server_data.rfind('}');
+		if (start == std::string::npos || end == std::string::npos || end <= start)
+			throw std::runtime_error("Invalid server block.");
+		std::string server_content = server_data.substr(start + 1, end - start - 1);
+
+		try
+		{
+			Config server_config(server_content);
+			configs.push_back(server_config);
+		}
+		catch (const std::exception &e)
+		{
+			Logger::Log(LogLevel::ERROR, e.what());
+		}
 	}
 
 	return configs;
@@ -70,17 +112,17 @@ int main(int argc, char *argv[])
 		std::cerr << "Usage: " << argv[0] << " [config_file]" << std::endl;
 		return 1;
 	}
-	else if (argc == 2)
-	{
-		configs = parse_configs(argv[1]);
-		if (configs.size() == 0)
-			return 1;
-	}
 	else
 	{
-		configs = parse_configs("./www/default.conf");
+		std::string configFilee = "./www/default.conf";
+		if (argc == 2)
+			configFilee = argv[1];
+		configs = parse_configs(configFilee);
 		if (configs.size() == 0)
+		{
+			Logger::Log(LogLevel::ERROR, "Failed to initialize configs");
 			return 1;
+		}
 	}
 
 	srand(time(NULL));

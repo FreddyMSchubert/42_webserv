@@ -3,19 +3,43 @@
 // Expects the string between the {} of a server block
 Config::Config(std::string data)
 {
+	std::cout << data
+			  << std::endl;
+
+
 	// 1. split into a vector of strings, seperated by ';' or '}'
 	std::vector<std::string> lines;
-	std::regex delimiter("[;}]");
-	std::sregex_token_iterator iter(data.begin(), data.end(), delimiter, -1);
-	std::sregex_token_iterator end;
-	for (; iter != end; ++iter)
+	std::string token;
+	int brace_count = 0;
+	for (size_t i = 0; i < data.size(); ++i)
 	{
-		std::string token = *iter;
-		token = std::regex_replace(token, std::regex("^\\s+|\\s+$"), "");
-		token = std::regex_replace(token, std::regex("\\s+"), " ");
+		char c = data[i];
+		token += c;
 
-		if (!token.empty())
-			lines.push_back(token + ";");
+		if (c == '{')
+		{
+			brace_count++;
+		}
+		else if (c == '}')
+		{
+			brace_count--;
+			if (brace_count == 0)
+			{
+				token = std::regex_replace(token, std::regex("^\\s+|\\s+$"), "");
+				token = std::regex_replace(token, std::regex("\\s+"), " ");
+				if (!token.empty())
+					lines.push_back(token);
+				token.clear();
+			}
+		}
+		else if (c == ';' && brace_count == 0)
+		{
+			token = std::regex_replace(token, std::regex("^\\s+|\\s+$"), "");
+			token = std::regex_replace(token, std::regex("\\s+"), " ");
+			if (!token.empty())
+				lines.push_back(token);
+			token.clear();
+		}
 	}
 
 	// 2. parse each line, based on starting keyword
@@ -24,22 +48,19 @@ Config::Config(std::string data)
 	for (std::string &line : lines)
 	{
 		std::string keyword = line.substr(0, line.find(' '));
-		try
+		bool foundMatch = false;
+		for (int i = 0; i < 7; i++)
 		{
-			for (int i = 0; i < 7; i++)
+			if (keyword == keywords[i])
 			{
-				if (keyword == keywords[i])
-				{
-					Logger::Log(LogLevel::INFO, "Parsing " + keyword + " line: \"" + line + "\"");
-					(this->*parsers[i])(line);
-					break;
-				}
+				Logger::Log(LogLevel::INFO, "Parsing " + keyword + " line: \"" + line + "\"");
+				(this->*parsers[i])(line);
+				foundMatch = true;
+				break;
 			}
 		}
-		catch (std::exception &e)
-		{
-			Logger::Log(LogLevel::ERROR, "Line \"" + line + "\": " + e.what());
-		}
+		if (!foundMatch)
+			throw std::invalid_argument("Invalid directive: \"" + keyword + "\"");
 	}
 }
 
@@ -207,14 +228,14 @@ void Config::parseLocation(const std::string & line)
 {
 	Logger::Log(LogLevel::INFO, "Parsing location: " + line);
 
-	Path locPath = Path("/", Path::Type::URL, *this);
-	Path locRoot = Path("/www/clicker/", Path::Type::FILESYSTEM, *this);
-	Path locUpload = Path("/www/clicker/uploads/", Path::Type::FILESYSTEM, *this);
+	Path locPath = Path("/www/clicker/", Path::Type::FILESYSTEM, *this);
+	Path locRoot = Path("/", Path::Type::URL, *this);
 	std::unordered_map<Method, bool> methods;
 	methods.emplace(Method::GET, true);
 	methods.emplace(Method::POST, true);
 	methods.emplace(Method::DELETE, true);
 	bool directory_listing = true;
+	Path locUpload = Path("/www/clicker/uploads/", Path::Type::FILESYSTEM, *this);
 	t_location loc = {locPath, locRoot, methods, directory_listing, {}, {}, locUpload};
 	_locations.push_back(loc);
 
