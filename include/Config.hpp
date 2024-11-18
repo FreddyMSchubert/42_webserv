@@ -14,6 +14,7 @@
 #include "Path.hpp"
 #include "Logger.hpp"
 #include "FilePath.hpp"
+#include "Settings.hpp"
 
 typedef struct s_location
 {

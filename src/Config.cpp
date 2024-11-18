@@ -73,6 +73,7 @@ void Config::parseServerName(const std::string & line)
 {
 	std::regex server_name_regex(R"(server_name\s+(.+);)");
 	std::smatch match;
+	std::string names_str;
 	if (std::regex_match(line, match, server_name_regex))
 	{
 		std::string names_str = match[1];
@@ -144,7 +145,7 @@ void Config::parseIndex(const std::string & line)
 
 void Config::parseClientMaxBodySize(const std::string & line)
 {
-	std::regex size_regex(R"(client_max_body_size\s+(\d+)\s*([KMG]B);)", std::regex::icase);
+	std::regex size_regex(R"(client_max_body_size\s+(\d+)\s*([KMG]?B);)", std::regex::icase);
 	std::smatch match;
 	if (std::regex_match(line, match, size_regex))
 	{
@@ -221,7 +222,7 @@ void Config::parseLocation(const std::string & line)
 		Logger::Log(LogLevel::INFO, "Locations: ");
 		for (const t_location &loc : _locations)
 		{
-			Logger::Log(LogLevel::INFO, "Path: " + loc.path.asUrl());
+			Logger::Log(LogLevel::INFO, "Path: " + (std::holds_alternative<Path>(loc.path) ? std::get<Path>(loc.path).asUrl() : std::get<FilePath>(loc.path).asUrl()));
 			Logger::Log(LogLevel::INFO, "Root: " + loc.root_dir.asUrl());
 			Logger::Log(LogLevel::INFO, "Upload: " + loc.upload_dir.asUrl());
 			Logger::Log(LogLevel::INFO, "Methods: ");

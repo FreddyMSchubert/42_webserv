@@ -10,23 +10,23 @@ enum class Method
 	DELETE,
 };
 
-inline std::ostream &operator<<(std::ostream &os, const Method &m)
+static inline std::string methodToString(Method m)
 {
 	switch (m)
 	{
 		case Method::GET:
-			os << "GET";
-			break;
+			return "GET";
 		case Method::POST:
-			os << "POST";
-			break;
+			return "POST";
 		case Method::DELETE:
-			os << "DELETE";
-			break;
+			return "DELETE";
 		default:
-			os << "UNKNOWN";
-			break;
+			return "UNKNOWN";
 	}
+}
+inline std::ostream &operator<<(std::ostream &os, const Method &m)
+{
+	os << methodToString(m);
 	return os;
 }
 
