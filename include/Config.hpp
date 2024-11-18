@@ -47,6 +47,11 @@ class Config
 		void parseClientMaxBodySize(const std::string & line);
 		void parseErrorPage(const std::string & line);
 		void parseLocation(const std::string & line);
+		void parseAllowedMethods(const std::string & line, t_location & loc);
+		void parseAutoindex(const std::string & line, t_location & loc);
+		void parseCgiExtensions(const std::string & line, t_location & loc);
+		void parseRedirections(const std::string & line, t_location & loc);
+		void parseUploadDir(const std::string & line, t_location & loc);
 
 	public:
 		Config(std::string data);
@@ -64,5 +69,6 @@ class Config
 		std::string getErrorPage(int code) const;
 		std::vector<t_location> getLocations() const { return _locations; }
 
+		void	extractConfigFromBrackets(std::vector<std::string> &lines, const std::string &data);
 		t_location getRootLocation() const;
 };

@@ -11,7 +11,7 @@
 
 Path::Path(std::string path, Type type, Config &config) : _config(config)
 {
-	std::cout << "Path constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM ? "Path::Type::Filesystem" : "Path::Type::URL") << " and config root " << config.getRootDir() << std::endl;
+	// std::cout << "Path constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM ? "Path::Type::Filesystem" : "Path::Type::URL") << " and config root " << config.getRootDir() << std::endl;
 
 	std::string fspath;
 	if (type == Path::Type::FILESYSTEM)
