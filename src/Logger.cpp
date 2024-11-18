@@ -25,6 +25,9 @@ void Logger::Log(LogLevel level, const std::string &message)
 		case LogLevel::ERROR:
 			prefix = "\033[31m" + current_time + "[ERROR!]" + "\033[22m";
 			break;
+		case LogLevel::STAGE:
+			prefix = "\033[34m" + current_time + "[ STAGE]" + "\033[22m";
+			break;
 	}
 
 	std::string log_msg = prefix + " " + message + "\033[0m";

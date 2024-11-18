@@ -6,7 +6,8 @@ enum class LogLevel
 {
 	INFO,
 	WARNING,
-	ERROR
+	ERROR,
+	STAGE
 };
 
 class Logger

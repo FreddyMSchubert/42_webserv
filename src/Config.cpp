@@ -15,7 +15,7 @@ Config::Config(std::string data)
 		token = std::regex_replace(token, std::regex("\\s+"), " ");
 
 		if (!token.empty())
-			lines.push_back(token);
+			lines.push_back(token + ";");
 	}
 
 	// 2. parse each line, based on starting keyword
@@ -30,6 +30,7 @@ Config::Config(std::string data)
 			{
 				if (keyword == keywords[i])
 				{
+					Logger::Log(LogLevel::INFO, "Parsing " + keyword + " line: \"" + line + "\"");
 					(this->*parsers[i])(line);
 					break;
 				}
@@ -62,6 +63,10 @@ void Config::parseListen(const std::string & line)
 	{
 		throw std::invalid_argument("Invalid listen directive");
 	}
+
+	#if LOG_CONFIG_PARSING
+		Logger::Log(LogLevel::INFO, "Host: " + _host + ", Port: " + std::to_string(_port));
+	#endif
 }
 
 void Config::parseServerName(const std::string & line)
@@ -80,6 +85,10 @@ void Config::parseServerName(const std::string & line)
 	{
 		throw std::invalid_argument("Invalid server_name directive");
 	}
+
+	#if LOG_CONFIG_PARSING
+		Logger::Log(LogLevel::INFO, "Server names: " + names_str);
+	#endif
 }
 
 void Config::parseRoot(const std::string & line)
@@ -90,6 +99,10 @@ void Config::parseRoot(const std::string & line)
 		_root_dir = Path::verifyPath(match[1]);
 	else
 		throw std::invalid_argument("Invalid root directive");
+
+	#if LOG_CONFIG_PARSING
+		Logger::Log(LogLevel::INFO, "Root directory: " + _root_dir);
+	#endif
 }
 
 void Config::parseIndex(const std::string & line)
@@ -122,6 +135,10 @@ void Config::parseIndex(const std::string & line)
 	{
 		throw std::invalid_argument("Invalid server_name directive");
 	}
+
+	#if LOG_CONFIG_PARSING
+		Logger::Log(LogLevel::INFO, "Index file: " + _index_file->asUrl());
+	#endif
 }
 
 void Config::parseClientMaxBodySize(const std::string & line)
@@ -148,6 +165,10 @@ void Config::parseClientMaxBodySize(const std::string & line)
 	{
 		throw std::invalid_argument("Invalid client_max_body_size directive");
 	}
+
+	#if LOG_CONFIG_PARSING
+		Logger::Log(LogLevel::INFO, "Client max body size: " + std::to_string(_client_max_body_size));
+	#endif
 }
 
 void Config::parseErrorPage(const std::string & line)
@@ -172,6 +193,12 @@ void Config::parseErrorPage(const std::string & line)
 	{
 		throw std::invalid_argument("Invalid error_page directive");
 	}
+
+	#if LOG_CONFIG_PARSING
+		Logger::Log(LogLevel::INFO, "Error pages:");
+		for (const auto &page : _error_pages)
+			Logger::Log(LogLevel::INFO, "Error " + std::to_string(page.first) + ": " + page.second.asUrl());
+	#endif
 }
 
 void Config::parseLocation(const std::string & line)
@@ -190,6 +217,26 @@ void Config::parseLocation(const std::string & line)
 	bool directory_listing = true;
 	t_location loc = {locPath, locRoot, methods, directory_listing, {}, {}, locUpload};
 	_locations.push_back(loc);
+
+	#if LOG_CONFIG_PARSING
+		Logger::Log(LogLevel::INFO, "Locations: ");
+		for (const t_location &loc : _locations)
+		{
+			Logger::Log(LogLevel::INFO, "Path: " + loc.path.asUrl());
+			Logger::Log(LogLevel::INFO, "Root: " + loc.root_dir.asUrl());
+			Logger::Log(LogLevel::INFO, "Upload: " + loc.upload_dir.asUrl());
+			Logger::Log(LogLevel::INFO, "Methods: ");
+			for (const auto &method : loc.allowed_methods)
+				Logger::Log(LogLevel::INFO, "  " + methodToString(method.first) + ": " + std::to_string(method.second));
+			Logger::Log(LogLevel::INFO, "Directory listing: " + std::to_string(loc.directory_listing));
+			Logger::Log(LogLevel::INFO, "CGI extensions: ");
+			for (const std::string &ext : loc.cgi_extensions)
+				Logger::Log(LogLevel::INFO, "  " + ext);
+			Logger::Log(LogLevel::INFO, "Redirections: ");
+			for (const auto &redir : loc.redirections)
+				Logger::Log(LogLevel::INFO, "  " + std::to_string(redir.first) + ": " + redir.second.asUrl());
+		}
+	#endif
 }
 
 /* ----------------- */

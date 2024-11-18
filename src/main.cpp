@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	signal(SIGTERM, signalHandler);
 	signal(SIGABRT, signalHandler);
 
-	std::cout << "Signals successfully initialized!" << std::endl;
+	Logger::Log(LogLevel::STAGE, "Signals successfully initialized!");
 
 	if (configs.size() == 0)
 	{
