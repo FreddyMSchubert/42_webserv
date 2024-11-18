@@ -11,12 +11,12 @@
 
 Path::Path(std::string path, Type type, Config &config) : _config(config)
 {
-	std::cout << "Path constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM) << " and config " << config.getRootDir() << std::endl;
+	std::cout << "Path constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM ? "Path::Type::Filesystem" : "Path::Type::URL") << " and config root " << config.getRootDir() << std::endl;
 
 	if (type == Path::Type::FILESYSTEM)
 		_path = verifyPath(path);
 	else
-		_path = verifyPath(Path::combinePaths(_config.getRootLocation().root_dir.asUrl(), path));
+		_path = verifyPath(Path::combinePaths(_config.getRootDir(), path));
 }
 
 std::string Path::asUrl() const
@@ -81,7 +81,7 @@ std::string Path::verifyPath(std::string path)
 	if (path.find_first_of('/') != 0)
 		path = "/" + path;
 	if (!std::filesystem::exists("." + path))
-		throw std::runtime_error("Path: Path " + path + "does not exist");
+		throw std::runtime_error("Path: Path " + path + " does not exist");
 	return path;
 }
 

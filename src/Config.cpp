@@ -126,8 +126,9 @@ void Config::parseIndex(const std::string & line)
 			catch (std::exception &e)
 			{
 				// only throw if last index file
+				Logger::Log(LogLevel::WARNING, "Index file: " + names[i] + " not found: " + e.what());
 				if (i == names.size() - 1)
-					throw e;
+					throw std::runtime_error("No valid index file found.");
 			}
 		}
 	}
@@ -204,9 +205,7 @@ void Config::parseErrorPage(const std::string & line)
 void Config::parseLocation(const std::string & line)
 {
 	Logger::Log(LogLevel::INFO, "Parsing location: " + line);
-	// this will tkae some time. not yet worth it. for now, lets just get this rolling
-	// heres some default values though
-	// gotta make sure here that the / loc exists and it has default values if no other ones are present
+
 	Path locPath = Path("/", Path::Type::URL, *this);
 	Path locRoot = Path("/www/clicker/", Path::Type::FILESYSTEM, *this);
 	Path locUpload = Path("/www/clicker/uploads/", Path::Type::FILESYSTEM, *this);

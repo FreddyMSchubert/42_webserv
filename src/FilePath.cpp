@@ -2,28 +2,30 @@
 
 #include "./Packets/Methods/mimetypes.cpp"
 
-std::string formatPath(const std::string &path)
+std::string formatPath(std::string path)
 {
-	std::string formattedPath = path;
-	formattedPath = formattedPath.substr(0, formattedPath.find_last_of('/') + 1);
-	return formattedPath;
+	if (path.find('/') != std::string::npos)
+		path = path.substr(0, path.find_last_of('/') + 1);
+	else
+		path = "/";
+	return path;
 }
 
 FilePath::FilePath(const std::string &path, Path::Type type, Config &config) : Path(formatPath(path), type, config)
 {
+	std::cout << "FilePath constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM ? "Path::Type::Filesystem" : "Path::Type::URL") << " and config root " << config.getRootDir() << std::endl;
+
 	std::string filePath = path;
 	if (type == Path::Type::URL)
-		filePath = Path::combinePaths(config.getRootLocation().root_dir.asFilePath(), path);
+		filePath = Path::combinePaths(config.getRootDir(), path);
 
 	int lastSlash = filePath.find_last_of('/');
-	std::string folder = filePath.substr(0, lastSlash + 1);
 	std::string file = filePath.substr(lastSlash + 1);
 
-	if (!std::filesystem::exists(filePath))
-		throw std::runtime_error("File does not exist");
-	if (!std::filesystem::is_regular_file(filePath))
+	if (!std::filesystem::exists("." + filePath))
+		throw std::runtime_error("File \"" + filePath + "\" does not exist");
+	if (!std::filesystem::is_regular_file("." + filePath))
 		throw std::runtime_error("Path is not a file");
-	_path = folder;
 	_file = file;
 	_config = config;
 }
