@@ -20,6 +20,9 @@ class FilePath : public Path
 		std::string getFileName() const;
 		std::string getFileExtension() const;
 		std::string getMimeType() const;
+
+		std::string asFilePath() const override;
+		std::string asUrl() const override;
 };
 
 #include "Config.hpp"

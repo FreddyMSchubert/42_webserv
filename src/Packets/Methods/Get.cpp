@@ -4,12 +4,14 @@ void Response::handle_file_req(Config &config, FilePath &path)
 {
 	setPath(path.asUrl());
 
-	if (isAllowedMethodAt(config, path, Method::GET) == false)
+	if (!isAllowedMethodAt(config, path, Method::GET))
 	{
 		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
 		setStatus(Status::MethodNotAllowed);
 		return;
 	}
+
+	std::cout << "Method allowed" << std::endl;
 
 	try
 	{
@@ -131,7 +133,6 @@ void Response::handleGet(Request& req, Config &config)
 	Logger::Log(LogLevel::INFO, "GET: Handling request");
 
 	std::string reqTarget = req.getPath();
-	std::cout << "reqTarget: \"" << reqTarget << "\"" << std::endl;
 	if (reqTarget == "/")
 		reqTarget = config.getIndexFile().asUrl();
 	std::variant<Path, FilePath> path = createPath(reqTarget, Path::Type::URL, config);
@@ -140,12 +141,12 @@ void Response::handleGet(Request& req, Config &config)
 
 	if (std::holds_alternative<FilePath>(path))
 	{
-		Logger::Log(LogLevel::INFO, "GET: Handling file request");
+		Logger::Log(LogLevel::INFO, "GET: Handling file request for " + std::get<FilePath>(path).asUrl());
 		handle_file_req(config, std::get<FilePath>(path));
 	}
 	else
 	{
-		Logger::Log(LogLevel::INFO, "GET: Handling directory request");
+		Logger::Log(LogLevel::INFO, "GET: Handling directory request for " + std::get<Path>(path).asUrl());
 		handle_dir_req(config, std::get<Path>(path));
 	}
 }

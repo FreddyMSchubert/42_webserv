@@ -33,12 +33,11 @@ FilePath::FilePath(const std::string &path, Path::Type type, Config &config) : P
 
 std::string FilePath::getFileContents() const
 {
-	std::string filepath = Path::combinePaths(_path, _file);
-	if (!std::filesystem::exists(filepath))
+	if (!std::filesystem::exists("." + asFilePath()))
 		throw std::runtime_error("File does not exist");
-	if (!std::filesystem::is_regular_file(filepath))
+	if (!std::filesystem::is_regular_file("." + asFilePath()))
 		throw std::runtime_error("Path is not a file");
-	std::ifstream file(filepath);
+	std::ifstream file("." + asFilePath());
 	if (!file.is_open() || !file.good())
 		throw std::runtime_error("Failed to open file");
 	std::stringstream buffer;
@@ -64,4 +63,13 @@ std::string FilePath::getMimeType() const
 	if (it == mimeTypes.end())
 		return DEFAULT_MIMETYPE;
 	return it->second;
+}
+
+std::string FilePath::asFilePath() const
+{
+	return Path::combinePaths(Path::combinePaths(_config.getRootDir(), _path), _file);
+}
+std::string FilePath::asUrl() const
+{
+	return Path::combinePaths(_path, _file);
 }

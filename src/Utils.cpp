@@ -7,6 +7,7 @@ bool isAllowedMethodAt(Config &config, Path path, Method method)
 		std::cout << "Attempting to find method " << method << " at " << path << std::endl;
 
 		t_location location = get_location(config, path.asFilePath());
+		std::cout << "Successfully got that location" << std::endl;
 		if (location.root_dir.asUrl() == "/" || location.empty())
 			break;
 		auto methodPair = location.allowed_methods.find(method);
@@ -18,8 +19,9 @@ bool isAllowedMethodAt(Config &config, Path path, Method method)
 			break;
 	};
 
-	auto foundLoc = config.getRootLocation().allowed_methods.find(method);
-	if (foundLoc != config.getRootLocation().allowed_methods.end())
+	const t_location& rootLoc = config.getRootLocation();
+	auto foundLoc = rootLoc.allowed_methods.find(method);
+	if (foundLoc != rootLoc.allowed_methods.end())
 		return foundLoc->second;
 	return false; // default for all methods if no rule is defined
 }
@@ -51,7 +53,7 @@ t_location get_location(Config &config, std::string path)
 {
 	t_location loc = config.getRootLocation();
 
-	std::cout << "Getting location for path: \"" << path << "\"" << " at root " << config.getRootLocation().root_dir << std::endl;
+	std::cout << "Getting location for path: \"" << path << "\"" << " at root " << config.getRootDir() << std::endl;
 	if (path == config.getRootLocation().root_dir.asUrl())
 	{
 		std::cout << "The path is \"/\"." << std::endl;
@@ -67,7 +69,7 @@ t_location get_location(Config &config, std::string path)
 	for (t_location &location : config.getLocations())
 	{
 		std::cout << "Current location: " << loc.root_dir << " checking against " << location.root_dir << std::endl;
-		if (isSubroute(location.root_dir.asUrl(), path) && std::filesystem::exists(location.root_dir.asFilePath()))
+		if (isSubroute(location.root_dir.asUrl(), path))
 			if (loc.root_dir.size() < location.root_dir.size())
 				loc = location;
 	}
@@ -89,9 +91,9 @@ std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type
 	std::string filePath = path;
 	if (type == Path::Type::URL)
 		filePath = Path::combinePaths(config.getRootDir(), path);
-	if (!std::filesystem::exists(filePath))
-		throw std::runtime_error("Path does not exist");
-	if (std::filesystem::is_regular_file(filePath))
+	if (!std::filesystem::exists("." + filePath))
+		throw std::runtime_error("Path ." + filePath + " does not exist");
+	if (std::filesystem::is_regular_file("." + filePath))
 		return FilePath(path, type, config);
 	return Path(path, type, config);
 }
