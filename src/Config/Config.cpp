@@ -174,13 +174,14 @@ void Config::parseErrorPage(const std::string & line)
 		while (iss >> code_str)
 		{
 			int error_code = std::stoi(code_str);
+			for (auto error : _error_pages)
+				if (error.first == error_code)
+					throw std::invalid_argument("Invalid error_page directive");
 			_error_pages.emplace(error_code, path);
 		}
 	}
 	else
-	{
 		throw std::invalid_argument("Invalid error_page directive");
-	}
 
 	#if LOG_CONFIG_PARSING
 		Logger::Log(LogLevel::INFO, "Error pages:");

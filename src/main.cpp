@@ -99,8 +99,11 @@ std::vector<Config> parse_configs(std::string filename)
 			Logger::Log(LogLevel::ERROR, e.what());
 		}
 	}
-
-	return configs;
+	for (size_t i = 0; i < configs.size(); ++i)
+        for (size_t j = i + 1; j < configs.size(); ++j)
+            if (configs[i].getHost() == configs[j].getHost() && configs[i].getPort() == configs[j].getPort())
+               throw std::runtime_error("Host and Port are similar in minimum two servers!"); 
+	return (configs);
 }
 
 int main(int argc, char *argv[])
@@ -117,7 +120,11 @@ int main(int argc, char *argv[])
 		std::string configFilee = "./config/default.conf";
 		if (argc == 2)
 			configFilee = argv[1];
-		configs = parse_configs(configFilee);
+		try {
+			configs = parse_configs(configFilee);
+		} catch (std::exception & e){
+			std::cout << e.what() << std::endl;
+		}
 		if (configs.size() == 0)
 		{
 			Logger::Log(LogLevel::ERROR, "Failed to initialize configs");
