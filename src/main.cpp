@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		std::string configFilee = "./www/default.conf";
+		std::string configFilee = "./config/default.conf";
 		if (argc == 2)
 			configFilee = argv[1];
 		configs = parse_configs(configFilee);
