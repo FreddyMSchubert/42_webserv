@@ -2,7 +2,8 @@
 
 bool isAllowedMethodAt(Config &config, Path path, Method method)
 {
-	t_location location = get_location(config, path.asFilePath());
+	t_location location = get_location(config, path.asUrl());
+	std::cout << "Found method: " << location << std::endl;
 	return location.allowed_methods[static_cast<int>(method)];
 }
 
@@ -40,6 +41,8 @@ t_location get_location(Config &config, std::string path)
 	{
 		std::string currLocPath = std::holds_alternative<Path>(currLoc.path) ? std::get<Path>(currLoc.path).asUrl() : std::get<FilePath>(currLoc.path).asUrl();
 		std::string retLocPath = std::holds_alternative<Path>(retLoc.path) ? std::get<Path>(retLoc.path).asUrl() : std::get<FilePath>(retLoc.path).asUrl();
+
+		std::cout << "Comparing urrLocPath " << currLocPath << " with path " << path << " and retLocPath " << retLocPath << std::endl;
 
 		if (path.find(currLocPath) == 0) // path is a subdir of location
 			if (retLocPath.size() < currLocPath.size()) // is it more specific?

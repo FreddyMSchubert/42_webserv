@@ -41,7 +41,7 @@ std::string Path::asFilePath() const
 std::vector<std::filesystem::directory_entry> Path::getDirectoryEntries()
 {
 	std::vector<std::filesystem::directory_entry> entries;
-	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(this->asFilePath()))
+	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator("." + this->asFilePath()))
 		entries.push_back(entry);
 	return entries;
 }
@@ -54,7 +54,6 @@ void Path::goUpOneDir()
 	_path.pop_back();
 	_path = _path.substr(0, _path.find_last_of('/') + 1);
 }
-
 void Path::goDownIntoDir(const std::string& dir)
 {
 	if (dir.find('/') != std::string::npos)

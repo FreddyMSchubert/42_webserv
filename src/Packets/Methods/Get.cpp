@@ -11,6 +11,8 @@ void Response::handle_file_req(Config &config, FilePath &path)
 		return;
 	}
 
+	std::cout << "Get is allowed for path " << path.asUrl() << std::endl;
+
 	try
 	{
 		std::string file = path.getFileContents();
@@ -93,13 +95,6 @@ static std::string get_dir_list_html(const std::string &current_path, const std:
 void Response::handle_dir_req(Config &config, Path &path)
 {
 	t_location location = get_location(config, path.asFilePath());
-
-	if (location.empty()) // invalid
-	{
-		Logger::Log(LogLevel::WARNING, "GET: Invalid location \"" + path.asUrl() + "\"");
-		setStatus(Status::NotFound);
-		return;
-	}
 
 	if (!isAllowedMethodAt(config, path, Method::GET))
 	{

@@ -251,21 +251,7 @@ void Config::parseLocation(const std::string& line)
 
 	#if LOG_CONFIG_PARSING
 		for (const t_location &loc : _locations)
-		{
-			Logger::Log(LogLevel::INFO, "Path: " + (std::holds_alternative<Path>(loc.path) ? std::get<Path>(loc.path).asUrl() : std::get<FilePath>(loc.path).asUrl()));
-			Logger::Log(LogLevel::INFO, "Root: " + loc.root_dir);
-			Logger::Log(LogLevel::INFO, "Upload: " + loc.upload_dir.asUrl());
-			Logger::Log(LogLevel::INFO, "Methods: ");
-			for (int i = 0; i < 3; i++)
-				Logger::Log(LogLevel::INFO, "  " + methodToString(static_cast<Method>(i)) + ": " + (loc.allowed_methods.at(i) ? "true" : "false"));
-			Logger::Log(LogLevel::INFO, std::string("Directory listing: ") + (loc.directory_listing ? "true" : "false"));
-			Logger::Log(LogLevel::INFO, "CGI extensions: ");
-			for (const std::string &ext : loc.cgi_extensions)
-				Logger::Log(LogLevel::INFO, "  " + ext);
-			Logger::Log(LogLevel::INFO, "Redirections: ");
-			for (const auto &redir : loc.redirections)
-				Logger::Log(LogLevel::INFO, "  " + std::to_string(redir.first) + ": " + redir.second.asUrl());
-		}
+			std::cout << loc << std::endl;
 	#endif
 }
 
@@ -410,4 +396,23 @@ t_location Config::getRootLocation() const
 			return loc;
 	}
 	throw std::runtime_error("Root location not present in config " + getRootDir());
+}
+
+std::ostream &operator<<(std::ostream &os, const t_location &loc)
+{
+	os << "Path: " + (std::holds_alternative<Path>(loc.path) ? std::get<Path>(loc.path).asUrl() : std::get<FilePath>(loc.path).asUrl()) << " ";
+	os << "Root: " + loc.root_dir << " ";
+	os << "Upload: " + loc.upload_dir.asUrl() << " ";
+	os << "Methods:";
+	for (int i = 0; i < 3; i++)
+		os << " " + methodToString(static_cast<Method>(i)) + ": " + (loc.allowed_methods.at(i) ? "true" : "false");
+	os << std::string(" Directory listing: ") + (loc.directory_listing ? "true" : "false") << " ";
+	os << "CGI extensions: ";
+	for (const std::string &ext : loc.cgi_extensions)
+		os << "  " + ext;
+	os << " Redirections: ";
+	for (const auto &redir : loc.redirections)
+		os << "  " + std::to_string(redir.first) + ": " + redir.second.asUrl();
+	
+	return os;
 }

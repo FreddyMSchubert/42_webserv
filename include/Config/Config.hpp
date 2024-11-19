@@ -24,9 +24,8 @@ typedef struct s_location
 	std::vector<std::string>						cgi_extensions;
 	std::map<int, Path>								redirections;
 	Path											upload_dir;
-
-	bool empty() const { return path.index() == 0; }
 } t_location;
+std::ostream &operator<<(std::ostream &os, const t_location &loc);
 
 class Config
 {

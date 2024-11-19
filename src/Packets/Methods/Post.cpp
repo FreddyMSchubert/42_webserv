@@ -19,14 +19,6 @@ void Response::handlePost(Request& req, Config &config)
 
 	t_location location = get_location(config, Path(path, Path::Type::URL, config).asFilePath());
 
-	if (location.empty())
-	{
-		std::cerr << "Invalid location" << std::endl;
-		setStatus(Status::NotFound);
-		setBody("Invalid location");
-		return;
-	}
-
 	if (!isAllowedMethodAt(config, Path(path, Path::Type::URL, config), Method::POST))
 	{
 		std::cerr << "POST method not allowed" << std::endl;
