@@ -33,76 +33,96 @@ void signalHandler(int signum)
 	}
 }
 
-std::vector<t_server_config> init_testing_configs()
+std::vector<Config> parse_configs(std::string filename)
 {
+	// 1. Read the file
+	std::string fileData;
 
-	try
+	std::ifstream infile(filename, std::ios::in | std::ios::binary);
+	if (!infile)
+		throw std::runtime_error("Failed to open file: " + filename);
+	std::ostringstream ss;
+	ss << infile.rdbuf();
+	infile.close();
+	fileData = ss.str();
+
+	// 2. Create Configs
+	std::vector<std::string> server_blocks;
+	std::string token;
+	int brace_count = 0;
+	bool inside_server_block = false;
+
+	for (size_t i = 0; i < fileData.size(); ++i)
 	{
-		std::vector<t_server_config> configs(3);
-	
-		configs[0].server_names.push_back("clickergame.com");
-		configs[1].server_names.push_back("platformergame.com");
-		configs[2].server_names.push_back("teeetris.com");
+		char c = fileData[i];
+		token += c;
 
-		configs[0].host = LOCALHOST;
-		configs[1].host = LOCALHOST;
-		configs[2].host = LOCALHOST;
-
-		configs[0].port = 8080;
-		configs[1].port = 8081;
-		configs[2].port = 4242;
-
-		configs[0].default_location.allowed_methods[Method::GET] = true;
-		configs[0].default_location.allowed_methods[Method::POST] = true;
-		configs[1].default_location.allowed_methods[Method::GET] = true;
-		configs[1].default_location.allowed_methods[Method::POST] = true;
-		configs[2].default_location.allowed_methods[Method::GET] = true;
-
-		configs[0].default_location.root = "./www/clicker/";
-		configs[1].default_location.root = "./www/platformer/";
-		configs[2].default_location.root = "./www/tetris/";
-
-		configs[0].default_location.index = "/index.html";
-		configs[1].default_location.index = "/index.html";
-		configs[2].default_location.index = "/index.html";
-
-		configs[0].default_location.directory_listing = false;
-		configs[1].default_location.directory_listing = true;
-		configs[2].default_location.directory_listing = false;
-
-		configs[0].default_location.client_max_body_size = 1000000;
-		configs[1].default_location.client_max_body_size = 1000;
-		configs[2].default_location.client_max_body_size = 1000000;
-
-		configs[1].error_pages.push_back((t_error_page){404, (t_location){std::unordered_map<Method, bool>(), "/www/platformer/404/", "404.html", false, 0}});
-
-		configs[0].locations = std::vector<t_location>(2);
-
-		configs[0].locations[0] = (t_location){std::unordered_map<Method, bool>(), "./www/clicker/assets/", "", true, 0};
-		configs[0].locations[0].allowed_methods[Method::GET] = false;
-		configs[0].locations[1] = (t_location){std::unordered_map<Method, bool>(), "./www/clicker/assets/particles/", "", true, 0};
-		configs[0].locations[1].allowed_methods[Method::GET] = true;
-
-		configs[0].port = rand() % 1000 + 8000;
-		configs[1].port = rand() % 1000 + 8000;
-		configs[2].port = rand() % 1000 + 8000;
-
-		return configs;
-
-	} catch (std::exception &e)
-	{
-		Logger::Log(LogLevel::ERROR, e.what());
-		signalHandler(SIGABRT);
-		return std::vector<t_server_config>(0);
+		if (fileData.compare(i, 6, "server") == 0 && !inside_server_block)
+		{
+			inside_server_block = true;
+			i += 5; // Skip "server"
+		}
+		else if (c == '{' && inside_server_block)
+		{
+			brace_count++;
+		}
+		else if (c == '}' && inside_server_block)
+		{
+			brace_count--;
+			if (brace_count == 0)
+			{
+				server_blocks.push_back(token);
+				token.clear();
+				inside_server_block = false;
+			}
+		}
 	}
+	if (inside_server_block)
+		throw std::runtime_error("Unmatched '{' in configuration file.");
+
+	std::vector<Config> configs;
+	for (const std::string &server_data : server_blocks)
+	{
+		size_t start = server_data.find('{');
+		size_t end = server_data.rfind('}');
+		if (start == std::string::npos || end == std::string::npos || end <= start)
+			throw std::runtime_error("Invalid server block.");
+		std::string server_content = server_data.substr(start + 1, end - start - 1);
+
+		try
+		{
+			Config server_config(server_content);
+			configs.push_back(server_config);
+		}
+		catch (const std::exception &e)
+		{
+			Logger::Log(LogLevel::ERROR, e.what());
+		}
+	}
+
+	return configs;
 }
 
 int main(int argc, char *argv[])
 {
+	std::vector<Config> configs;
+
 	if (argc > 2)
 	{
 		std::cerr << "Usage: " << argv[0] << " [config_file]" << std::endl;
 		return 1;
+	}
+	else
+	{
+		std::string configFilee = "./config/default.conf";
+		if (argc == 2)
+			configFilee = argv[1];
+		configs = parse_configs(configFilee);
+		if (configs.size() == 0)
+		{
+			Logger::Log(LogLevel::ERROR, "Failed to initialize configs");
+			return 1;
+		}
 	}
 
 	srand(time(NULL));
@@ -111,11 +131,13 @@ int main(int argc, char *argv[])
 	signal(SIGTERM, signalHandler);
 	signal(SIGABRT, signalHandler);
 
-	std::cout << "Signals successfully initialized!" << std::endl;
+	Logger::Log(LogLevel::STAGE, "Signals successfully initialized!");
 
-	std::vector<t_server_config> configs = init_testing_configs(); // TODO: config parsing
-
-	std::cout << "configs.size() = " << configs.size() << std::endl;
+	if (configs.size() == 0)
+	{
+		Logger::Log(LogLevel::ERROR, "Failed to initialize configs");
+		return 1;
+	}
 
 	if (configs.size() == 0) return 1;
 

@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-void Response::handleDelete(Request& req, t_server_config &config)
+void Response::handleDelete(Request& req, Config &config)
 {
 	(void)config;
 	(void)req;

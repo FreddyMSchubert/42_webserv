@@ -5,28 +5,25 @@
 #include <filesystem>
 #include <variant>
 #include <vector>
+#include <optional>
 
-class FilePath;
-
-struct s_server_config typedef t_server_config;
+class Config;
 
 class Path
 {
 	protected:
 		std::string		_path; // saved as URL type
-		t_server_config	*_config;
+		Config &		_config;
 
 	public:
-
 		enum class Type
 		{
 			URL,
 			FILESYSTEM
 		};
 
-		Path() : _path("/"), _config(nullptr) {};
-		Path(std::string path, Type type, t_server_config &config);
-		~Path() = default;
+		Path(std::string path, Type type, Config &config);
+		virtual ~Path() = default;
 		Path(const Path& other)  : _path(std::string(other._path)), _config(other._config) {};
 		Path& operator=(const Path& other);
 
@@ -37,13 +34,13 @@ class Path
 
 		bool isEmpty() const;
 		bool isRoot() const;
-		std::string asFilePath() const;
-		std::string asUrl() const;
+		virtual std::string asFilePath() const;
+		virtual std::string asUrl() const;
 		size_t size() const;
 
 
 		static std::string combinePaths(const std::string& path1, const std::string& path2);
-		static std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, t_server_config *config);
+		static std::string verifyPath(std::string path);
 
 		std::string operator+(const std::string& other) const;
 		bool operator==(const Path& other) const;
@@ -51,10 +48,8 @@ class Path
 
 		void hardSetPath(const std::string& path);
 		std::string getPath() const;
-		void setConfig(t_server_config &config);
-		t_server_config *getConfig() const;
+		void setConfig(Config &config);
+		Config &getConfig() const;
 };
 
 std::ostream &operator<<(std::ostream &os, const Path &path);
-
-#include "FilePath.hpp"

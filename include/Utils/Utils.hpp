@@ -2,6 +2,7 @@
 
 #include "Config.hpp"
 #include "Path.hpp"
+#include "FilePath.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -13,9 +14,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-std::string getFileAsString(const std::string& path);
-bool isAllowedMethodAt(t_server_config &config, Path path, Method method);
+bool isAllowedMethodAt(Config &config, Path path, Method method);
 std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::string& path);
-t_location get_location(t_server_config &config, std::string path);
-bool isSubroute(const std::string& route, const std::string& subroute);
+t_location get_location(Config &config, std::string path);
 void setNonBlocking(int fd);
+std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, Config &config);

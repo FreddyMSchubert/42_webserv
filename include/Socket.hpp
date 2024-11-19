@@ -33,16 +33,14 @@ class Socket
 		int _socket_pid;
 		struct sockaddr_in _socket;
 		std::vector<struct pollfd> _clients;
-		t_server_config config;
+		Config &_config;
 		void _connect();
 		void _close();
 		void _setNonBlocking(int fd);
 		std::string _receiveData(int client_fd);
 	public:
-		Socket(t_server_config config);
-		Socket(int port, std::string address);
+		Socket(Config &config);
 		Socket(Socket&& other) noexcept = default;
-		Socket& operator=(Socket&& other) noexcept = default;
 		Socket(const Socket &src) = delete;
 		Socket &operator=(const Socket &src) = delete;
 		~Socket();

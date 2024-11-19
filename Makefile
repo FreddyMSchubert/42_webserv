@@ -6,7 +6,7 @@ OBJ_DIR = ./obj
 OBJ = $(patsubst ./src/%.cpp,$(OBJ_DIR)/%.o,$(SRC))
 TOTAL_FILES := $(words $(OBJ))
 
-HEADERS := -I ./include -I ./include/Packets
+HEADERS := -I ./include -I ./include/Packets -I ./include/Config -I ./include/Utils
 LIBS :=
 CFLAGS := -Wall -Wextra -Werror -std=c++17 -g -fsanitize=address
 
@@ -74,4 +74,8 @@ parrot:
 	@printf "$(BOLD)$(GREEN)🦜 Parrot mode activated!$(RESET)\n"
 	@curl parrot.live
 
-.PHONY: all clean fclean re run debug parrot
+rick:
+	@printf "$(BOLD)$(GREEN)🦜 Never gonna give you up!$(RESET)\n"
+	@curl -s -L https://raw.githubusercontent.com/keroserene/rickrollrc/master/roll.sh | bash
+
+.PHONY: all clean fclean re run debug parrot rick

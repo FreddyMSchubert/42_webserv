@@ -1,15 +1,17 @@
 #include "Response.hpp"
 
-void Response::handle_file_req(t_server_config &config, FilePath &path)
+void Response::handle_file_req(Config &config, FilePath &path)
 {
 	setPath(path.asUrl());
 
-	if (isAllowedMethodAt(config, path, Method::GET) == false)
+	if (!isAllowedMethodAt(config, path, Method::GET))
 	{
 		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
 		setStatus(Status::MethodNotAllowed);
 		return;
 	}
+
+	std::cout << "Get is allowed for path " << path.asUrl() << std::endl;
 
 	try
 	{
@@ -27,79 +29,47 @@ void Response::handle_file_req(t_server_config &config, FilePath &path)
 	}
 }
 
-static std::string get_dir_list_html(const std::string &current_path, const std::vector<std::filesystem::directory_entry> &entries)
+static std::string get_dir_list_html(Path &current_path, const std::vector<std::filesystem::directory_entry> &entries)
 {
-	std::string body = "<html><head><title>Directory Listing</title></head><body><div class=\"floating\"><h1>Directory Listing</h1><ul>";
+	std::ifstream file("./src/Packets/Methods/directoryListing.html");
+	std::string line;
+	std::string body = "";
+	while (std::getline(file, line))
+		body += line;
+	file.close();
 
-	body += "<li>🏠 <a href=\"/\">Root</a></li>";
+	// generate data to insert into the template
+	std::ostringstream dataToInsert;
 
-	if (current_path != "/")
+	if (!current_path.isRoot())
 	{
-		std::string up_path = current_path;
-		if (up_path.back() == '/')
-			up_path.pop_back();
-		size_t pos = up_path.find_last_of('/');
-		if (pos != std::string::npos)
-			up_path = up_path.substr(0, pos + 1);
-		else
-			up_path = "/";
-		body += "<li>⬆️ <a href=\"" + up_path + "\">..</a></li>";
+		Path parentPath(current_path);
+		parentPath.goUpOneDir();
+
+		dataToInsert << "<li>⬆️ <a href=\"/" << parentPath.asUrl() << "\">..</a></li>";
 	}
 
-	body += "<br>";
+	dataToInsert << "<br>";
 
 	for (std::filesystem::directory_entry entry : entries)
 	{
 		if (entry.is_directory())
-			body += "<li>📂 <a href=\"" + entry.path().filename().string() + "/\">" + entry.path().filename().string() + "/</a></li>";
+			dataToInsert << "<li>📂 <a href=\"" + entry.path().filename().string() + "/\">" + entry.path().filename().string() + "/</a></li>";
 		else
-			body += "<li>📄 <a target=\"_blank\" href=\"" + entry.path().filename().string() + "\">" + entry.path().filename().string() + "</a></li>";
+			dataToInsert << "<li>📄 <a target=\"_blank\" href=\"" + entry.path().filename().string() + "\">" + entry.path().filename().string() + "</a></li>";
 	}
 
-	body += R"(</ul></div><style>
-	body {
-		font-family: sans-serif;
-		color: black;
-
-		background-image: url(https://wallpapercave.com/wp/wp10973816.jpg);
-		background-size: cover;
-	}
-	a {
-		color: black;
-	}
-	.floating {
-		padding: 50px 30px 50px 30px;
-		box-shadow: 0px 0px 39px 22px rebeccapurple;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		align-self: center;
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		background-color: #FFFFFF54;
-		backdrop-filter: blur(10px);
-		border-radius: 50px;
-		min-width: 100px;
-	}
-	</style>)";
-	
-	body += "</body></html>";
+	const std::string needle = "[[[DIRECTORY_LISTING]]]";
+	size_t pos = body.find(needle);
+	if (pos != std::string::npos)
+		body.replace(pos, needle.size(), dataToInsert.str());
 
 	return body;
 }
 
-void Response::handle_dir_req(t_server_config &config, Path &path)
+void Response::handle_dir_req(Config &config, Path &path)
 {
 	t_location location = get_location(config, path.asFilePath());
-
-	if (location.empty()) // invalid
-	{
-		Logger::Log(LogLevel::WARNING, "GET: Invalid location \"" + path.asUrl() + "\"");
-		setStatus(Status::NotFound);
-		return;
-	}
 
 	if (!isAllowedMethodAt(config, path, Method::GET))
 	{
@@ -117,7 +87,7 @@ void Response::handle_dir_req(t_server_config &config, Path &path)
 
 	std::vector<std::filesystem::directory_entry> entries = path.getDirectoryEntries();
 
-	std::string body = get_dir_list_html(path.asUrl(), entries);
+	std::string body = get_dir_list_html(path, entries);
 
 	addHeader("Content-Length", std::to_string(body.size()));
 	setStatus(Status::OK);
@@ -126,27 +96,35 @@ void Response::handle_dir_req(t_server_config &config, Path &path)
 	setBody(body);
 }
 
-void Response::handleGet(Request& req, t_server_config &config)
+void Response::handleGet(Request& req, Config &config)
 {
 	Logger::Log(LogLevel::INFO, "GET: Handling request");
 
 	std::string reqTarget = req.getPath();
-	std::cout << "reqTarget: \"" << reqTarget << "\"" << std::endl;
 	if (reqTarget == "/")
-		reqTarget = config.default_location.index;
-	std::variant<Path, FilePath> path = Path::createPath(reqTarget, Path::Type::URL, &config);
+		reqTarget = config.getIndexFile().asUrl();
 
-	setVersion("HTTP/1.1");
+	try
+	{
+		std::variant<Path, FilePath> path = createPath(reqTarget, Path::Type::URL, config);
 
-	if (std::holds_alternative<FilePath>(path))
-	{
-		Logger::Log(LogLevel::INFO, "GET: Handling file request");
-		handle_file_req(config, std::get<FilePath>(path));
+		setVersion("HTTP/1.1");
+
+		if (std::holds_alternative<FilePath>(path))
+		{
+			Logger::Log(LogLevel::INFO, "GET: Handling file request for " + std::get<FilePath>(path).asUrl());
+			handle_file_req(config, std::get<FilePath>(path));
+		}
+		else
+		{
+			Logger::Log(LogLevel::INFO, "GET: Handling directory request for " + std::get<Path>(path).asUrl());
+			handle_dir_req(config, std::get<Path>(path));
+		}
 	}
-	else
+	catch (std::exception &e)
 	{
-		Logger::Log(LogLevel::INFO, "GET: Handling directory request");
-		handle_dir_req(config, std::get<Path>(path));
+		Logger::Log(LogLevel::ERROR, "Error getting data: " + std::string(e.what()));
+		setStatus(Status::NotFound);
+		return;
 	}
-	
 }

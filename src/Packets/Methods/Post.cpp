@@ -4,7 +4,7 @@
 #include "Utils.hpp"
 #include "./mimetypes.cpp"
 
-void Response::handlePost(Request& req, t_server_config &config)
+void Response::handlePost(Request& req, Config &config)
 {
 	(void)config;
 	
@@ -18,14 +18,6 @@ void Response::handlePost(Request& req, t_server_config &config)
 	setVersion("HTTP/1.1");
 
 	t_location location = get_location(config, Path(path, Path::Type::URL, config).asFilePath());
-
-	if (location.empty())
-	{
-		std::cerr << "Invalid location" << std::endl;
-		setStatus(Status::NotFound);
-		setBody("Invalid location");
-		return;
-	}
 
 	if (!isAllowedMethodAt(config, Path(path, Path::Type::URL, config), Method::POST))
 	{
@@ -53,10 +45,14 @@ void Response::handlePost(Request& req, t_server_config &config)
 		return ;
 	}
 
-	Path filepath;
-	
-	try {
-		filepath = Path(req.getPath(), Path::Type::URL, config);
+	std::string filename;
+	try
+	{
+		Path filepath = Path(req.getPath(), Path::Type::URL, config);
+		if (req.getHeaders().find("X-Filename") != req.getHeaders().end())
+			filename = filepath.asFilePath() + req.getHeaders()["X-Filename"];
+		else
+			filename = filepath.asFilePath() + "default";
 	}
 	catch (std::exception &e)
 	{
@@ -65,12 +61,6 @@ void Response::handlePost(Request& req, t_server_config &config)
 		setBody("Error parsing path");
 		return ;
 	}
-
-	std::string filename;
-	if (req.getHeaders().find("X-Filename") != req.getHeaders().end())
-		filename = filepath.asFilePath() + req.getHeaders()["X-Filename"];
-	else
-		filename = filepath.asFilePath() + "default";
 
 	std::string extension = "txt";
 	try {
