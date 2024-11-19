@@ -2,28 +2,8 @@
 
 bool isAllowedMethodAt(Config &config, Path path, Method method)
 {
-	while (true)
-	{
-		std::cout << "Attempting to find method " << method << " at " << path << std::endl;
-
-		t_location location = get_location(config, path.asFilePath());
-		std::cout << "Successfully got that location" << std::endl;
-		if (location.root_dir.asUrl() == "/" || location.empty())
-			break;
-		auto methodPair = location.allowed_methods.find(method);
-		if (methodPair != location.allowed_methods.end())
-			return methodPair->second;
-
-		path.goUpOneDir();
-		if (path.isRoot())
-			break;
-	};
-
-	const t_location& rootLoc = config.getRootLocation();
-	auto foundLoc = rootLoc.allowed_methods.find(method);
-	if (foundLoc != rootLoc.allowed_methods.end())
-		return foundLoc->second;
-	return false; // default for all methods if no rule is defined
+	t_location location = get_location(config, path.asFilePath());
+	return location.allowed_methods[static_cast<int>(method)];
 }
 
 std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::string& path)
@@ -32,11 +12,6 @@ std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::str
 	for (const auto& entry : std::filesystem::directory_iterator(path))
 		entries.push_back(entry);
 	return entries;
-}
-
-bool isSubroute(const std::string& route, const std::string& subroute)
-{
-	return subroute.find(route) == 0;
 }
 
 std::string getFilePathAsURLPath(std::string path, Config &config)
@@ -48,33 +23,30 @@ std::string getFilePathAsURLPath(std::string path, Config &config)
 	return urlPath;
 }
 
-// Gets the location config of the path, respecting subdirs
+// Gets the most specific config location of the path, respecting subdirs
+// Expects path in URL format
+// TODO: Make this consider files.
 t_location get_location(Config &config, std::string path)
 {
-	t_location loc = config.getRootLocation();
+	t_location retLoc = config.getRootLocation();
 
-	std::cout << "Getting location for path: \"" << path << "\"" << " at root " << config.getRootDir() << std::endl;
-	if (path == config.getRootLocation().root_dir.asUrl())
+	if (std::filesystem::is_regular_file("." + path))
+		throw std::runtime_error("get_location can currently not yet handle files");
+
+	if (path == config.getRootDir())
+		return retLoc;
+
+	for (t_location &currLoc : config.getLocations())
 	{
-		std::cout << "The path is \"/\"." << std::endl;
-		if (std::filesystem::exists(config.getRootLocation().root_dir.asFilePath()))
-		{
-			loc = config.getRootLocation();
-			std::cout << "Default location is valid." << std::endl;
-		}
+		std::string currLocPath = std::holds_alternative<Path>(currLoc.path) ? std::get<Path>(currLoc.path).asUrl() : std::get<FilePath>(currLoc.path).asUrl();
+		std::string retLocPath = std::holds_alternative<Path>(retLoc.path) ? std::get<Path>(retLoc.path).asUrl() : std::get<FilePath>(retLoc.path).asUrl();
+
+		if (path.find(currLocPath) == 0) // path is a subdir of location
+			if (retLocPath.size() < currLocPath.size()) // is it more specific?
+				retLoc = currLoc;
 	}
 
-	std::cout << "Initial location: " << loc.root_dir << std::endl;
-
-	for (t_location &location : config.getLocations())
-	{
-		std::cout << "Current location: " << loc.root_dir << " checking against " << location.root_dir << std::endl;
-		if (isSubroute(location.root_dir.asUrl(), path))
-			if (loc.root_dir.size() < location.root_dir.size())
-				loc = location;
-	}
-
-	return loc;
+	return retLoc;
 }
 
 void setNonBlocking(int fd)

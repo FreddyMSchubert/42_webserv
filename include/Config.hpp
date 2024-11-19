@@ -3,7 +3,6 @@
 #include "Enums.hpp"
 #include <cstddef>
 #include <iostream>
-#include <unordered_map>
 #include <optional>
 #include <vector>
 #include <string>
@@ -18,13 +17,14 @@
 
 typedef struct s_location
 {
-	std::variant<Path, FilePath> path;
-	Path root_dir;
-	std::unordered_map<Method, bool> allowed_methods;
-	bool directory_listing;
-	std::vector<std::string> cgi_extensions;
-	std::map<int, Path> redirections;
-	Path upload_dir;
+	std::variant<Path, FilePath>					path;				// path in config
+	std::string										root_dir;			// folder to get data from. not a path as it might not be in config root. If empty, use config root
+	std::array<bool, 3>								allowed_methods;	// saved in order of Method enum in Enums.hpp
+	bool											directory_listing;
+	std::vector<std::string>						cgi_extensions;
+	std::map<int, Path>								redirections;
+	Path											upload_dir;
+
 	bool empty() const { return path.index() == 0; }
 } t_location;
 
@@ -40,19 +40,26 @@ class Config
 		std::map<int, FilePath> _error_pages;
 		std::vector<t_location> _locations;
 
+		// Line parsers
 		void parseListen(const std::string & line);
 		void parseServerName(const std::string & line);
 		void parseRoot(const std::string & line);
 		void parseIndex(const std::string & line);
 		void parseClientMaxBodySize(const std::string & line);
 		void parseErrorPage(const std::string & line);
-		void parseLocation(const std::string & line);
-		void parseAllowedMethods(const std::string & line, t_location & loc);
-		void parseAutoindex(const std::string & line, t_location & loc);
-		void parseCgiExtensions(const std::string & line, t_location & loc);
-		void parseRedirections(const std::string & line, t_location & loc);
-		void parseUploadDir(const std::string & line, t_location & loc);
 
+		// Location Line Parsers
+		void parseLocation(const std::string & line);
+		void parseLocationRoot(const std::string & line, t_location & loc);
+		void parseLocationAllowedMethods(const std::string & line, t_location & loc);
+		void parseLocationAutoindex(const std::string & line, t_location & loc);
+		void parseLocationCgiExtensions(const std::string & line, t_location & loc);
+		void parseLocationRedirections(const std::string & line, t_location & loc);
+		void parseLocationUploadDir(const std::string & line, t_location & loc);
+
+		// Private Utils
+		void	extractConfigFromBrackets(std::vector<std::string> &lines, const std::string &data);
+	
 	public:
 		Config(std::string data);
 		Config(const Config &other) = default;
@@ -69,6 +76,6 @@ class Config
 		std::string getErrorPage(int code) const;
 		std::vector<t_location> getLocations() const { return _locations; }
 
-		void	extractConfigFromBrackets(std::vector<std::string> &lines, const std::string &data);
+		// Public Utils
 		t_location getRootLocation() const;
 };

@@ -17,6 +17,5 @@
 bool isAllowedMethodAt(Config &config, Path path, Method method);
 std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::string& path);
 t_location get_location(Config &config, std::string path);
-bool isSubroute(const std::string& route, const std::string& subroute);
 void setNonBlocking(int fd);
 std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, Config &config);

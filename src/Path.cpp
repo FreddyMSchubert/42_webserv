@@ -61,7 +61,7 @@ void Path::goDownIntoDir(const std::string& dir)
 		throw std::runtime_error("Path: goDownIntoDir: dir contains /");
 
 	std::string new_path = _path + dir + (dir.back() == '/' ? "" : "/");
-	std::string new_path_filesystem = Path::combinePaths(_config.getRootLocation().root_dir.asFilePath(), new_path);
+	std::string new_path_filesystem = Path::combinePaths(_config.getRootLocation().root_dir, new_path);
 	if (!std::filesystem::exists(new_path_filesystem))
 		throw std::runtime_error("Path: goDownIntoDir: Directory does not exist");
 	_path = new_path;

@@ -4,12 +4,11 @@
 
 enum class Method
 {
-	UNKNOWN,
 	GET,
 	POST,
 	DELETE,
+	UNKNOWN
 };
-
 static inline std::string methodToString(Method m)
 {
 	switch (m)

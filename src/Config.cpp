@@ -189,67 +189,75 @@ void Config::parseErrorPage(const std::string & line)
 	#endif
 }
 
+/* --------------------------------- */
+/* ----- LOCATION LINE PARSERS ----- */
+/* --------------------------------- */
+
 void Config::parseLocation(const std::string& line)
 {
-    std::vector<std::string> configLines;
-    std::string location_path;
-    size_t pos = 0;
+	std::vector<std::string> configLines;
+	std::string location_path;
+	size_t pos = 0;
 
-    // Step 1: Extract location path
-    while (pos < line.size() && std::isspace(line[pos])) ++pos;
-    if (line.substr(pos, 8) == "location") {
-        pos += 8;
-        while (pos < line.size() && std::isspace(line[pos])) ++pos;
-        while (pos < line.size() && !std::isspace(line[pos]) && line[pos] != '{')
-            location_path += line[pos++];
-        while (pos < line.size() && std::isspace(line[pos])) ++pos;
-        ++pos; // Skip '{' 
-        // Step 2: Extract config inside the braces
-        extractConfigFromBrackets(configLines, line.substr(pos));
-		// TODO: should we initalize with default values??
-        // Step 3: Initialize location with default values
-        t_location loc = {
-            Path(_root_dir, Path::Type::FILESYSTEM, *this),
-            Path(location_path, Path::Type::URL, *this),
-            {},
-            false,
-            {},
-            {},
-            Path(_root_dir + "/", Path::Type::FILESYSTEM, *this)
-        };
-        // Step 4: Define keywords and corresponding parser functions
-		std::array<std::string, 5> keywords = {"allowed_methods", "autoindex", "upload_dir", "cgi_extensions", "return"};
-		std::array<void (Config::*)(const std::string&, t_location&), 5> parsers = {&Config::parseAllowedMethods, &Config::parseAutoindex, &Config::parseUploadDir, &Config::parseCgiExtensions, &Config::parseRedirections};
-        // Step 5: Parse each config line and call appropriate parser function
-        for (const auto& config : configLines) {
-            bool foundMatch = false;
-            for (size_t i = 0; i < keywords.size(); ++i) {
-                if (config.find(keywords[i]) != std::string::npos) {
-                    Logger::Log(LogLevel::INFO, "Parsing " + keywords[i] + " line: \"" + config + "\"");
-                    (this->*parsers[i])(config, loc);
-                    foundMatch = true;
-                    break;
-                }
-            }
-            if (!foundMatch) {
-                Logger::Log(LogLevel::ERROR, "Unknown config keyword in location: \"" + config + "\"");
-                throw std::invalid_argument("Invalid config keyword: \"" + config + "\"");
-            }
-        }
-        // Step 6: Push populated location to locations vector
-        _locations.push_back(loc);
-    }
-    else
-        throw std::invalid_argument("Location could not be found!");
+	// Step 1: Extract location path
+	while (pos < line.size() && std::isspace(line[pos])) ++pos;
+	if (line.substr(pos, 8) == "location")
+	{
+		pos += 8;
+		while (pos < line.size() && std::isspace(line[pos])) ++pos;
+		while (pos < line.size() && !std::isspace(line[pos]) && line[pos] != '{')
+			location_path += line[pos++];
+		while (pos < line.size() && std::isspace(line[pos])) ++pos;
+		++pos; // Skip '{' 
+
+		// Step 2: Extract config inside the braces
+		extractConfigFromBrackets(configLines, line.substr(pos));
+
+		// Step 3: Initialize location with default values
+		t_location loc = {
+			Path(location_path, Path::Type::URL, *this),
+			"",
+			{false, false, false},
+			false,
+			{},
+			{},
+			Path(_root_dir + "/", Path::Type::FILESYSTEM, *this)
+		};
+
+		// Step 4: Define keywords and corresponding parser functions
+		std::array<std::string, 6> keywords = {"allowed_methods", "root", "autoindex", "upload_dir", "cgi_extensions", "return"};
+		std::array<void (Config::*)(const std::string&, t_location&), 6> parsers = {&Config::parseLocationAllowedMethods, &Config::parseLocationRoot,  &Config::parseLocationAutoindex, &Config::parseLocationUploadDir, &Config::parseLocationCgiExtensions, &Config::parseLocationRedirections};
+		for (const auto& configLine : configLines)
+		{
+			bool foundMatch = false;
+			for (size_t i = 0; i < keywords.size(); ++i)
+			{
+				if (configLine.find(keywords[i]) != std::string::npos)
+				{
+					Logger::Log(LogLevel::INFO, "Parsing " + keywords[i] + " line: \"" + configLine + "\"");
+					(this->*parsers[i])(configLine, loc);
+					foundMatch = true;
+					break;
+				}
+			}
+			if (!foundMatch)
+				throw std::invalid_argument("Invalid directive: \"" + configLine + "\"");
+		}
+
+		_locations.push_back(loc);
+	}
+	else
+		throw std::invalid_argument("Location could not be found!");
+
 	#if LOG_CONFIG_PARSING
 		for (const t_location &loc : _locations)
 		{
 			Logger::Log(LogLevel::INFO, "Path: " + (std::holds_alternative<Path>(loc.path) ? std::get<Path>(loc.path).asUrl() : std::get<FilePath>(loc.path).asUrl()));
-			Logger::Log(LogLevel::INFO, "Root: " + loc.root_dir.asUrl());
+			Logger::Log(LogLevel::INFO, "Root: " + loc.root_dir);
 			Logger::Log(LogLevel::INFO, "Upload: " + loc.upload_dir.asUrl());
 			Logger::Log(LogLevel::INFO, "Methods: ");
-			for (const auto &method : loc.allowed_methods)
-				Logger::Log(LogLevel::INFO, "  " + methodToString(method.first) + ": " + (method.second ? "true" : "false"));
+			for (int i = 0; i < 3; i++)
+				Logger::Log(LogLevel::INFO, "  " + methodToString(static_cast<Method>(i)) + ": " + (loc.allowed_methods.at(i) ? "true" : "false"));
 			Logger::Log(LogLevel::INFO, std::string("Directory listing: ") + (loc.directory_listing ? "true" : "false"));
 			Logger::Log(LogLevel::INFO, "CGI extensions: ");
 			for (const std::string &ext : loc.cgi_extensions)
@@ -261,96 +269,104 @@ void Config::parseLocation(const std::string& line)
 	#endif
 }
 
-/* ----------------- */
-/* ----- Utils ----- */
-/* ----------------- */
-
-void Config::parseAllowedMethods(const std::string & line, t_location & loc)
+// root /www/clicker/custom_data/2024/assets;
+// TODO: Make this handle files, not just dirs
+void Config::parseLocationRoot(const std::string & line, t_location & loc)
 {
-    std::regex allowed_methods_regex(R"(\s*allowed_methods\s+([A-Z\s]+)\s*;\s*)");
-    std::smatch match;
-    if (std::regex_match(line, match, allowed_methods_regex))
-	{
-        std::string methods_str = match[1];
-        std::istringstream iss(methods_str);
-        std::unordered_map<Method, bool> methods;
-        std::string method;
-        while (iss >> method)
-		{
-            if (method == "GET")
-                methods[Method::GET] = true;
-            else if (method == "POST")
-                methods[Method::POST] = true;
-            else if (method == "DELETE")
-                methods[Method::DELETE] = true;
-        }
-        loc.allowed_methods = methods;
-    }
-    else
-        throw std::invalid_argument("Invalid allowed_methods line: \"" + line + "\"");
-}
-
-void Config::parseAutoindex(const std::string & line, t_location & loc)
-{
-    std::regex autoindex_regex(R"(^\s*autoindex\s*(on|off)\s*;\s*$)");
-    std::smatch match;
-    if (std::regex_match(line, match, autoindex_regex))
-	{
-        if (line.find("on"))
-            loc.directory_listing = true;
-        else if (line.find("off"))
-            loc.directory_listing = false;
-    }
+	std::regex root_regex(R"(^\s*root\s+\/[a-zA-Z0-9\/.]*\s*;\s*$)");
+	std::smatch match;
+	if (std::regex_match(line, match, root_regex))
+		loc.root_dir = Path::verifyPath(match[1]);
 	else
-        throw std::invalid_argument("Invalid autoindex (directory_listing) line: \"" + line + "\"");
+		throw std::invalid_argument("Invalid location root directive: \"" + line + "\"");
 }
 
-//FIXME: no fcking clue what we should do with that or how to test that but too dehydrated to be interested in such bs
-void Config::parseCgiExtensions(const std::string & line, t_location & loc)
+void Config::parseLocationAllowedMethods(const std::string & line, t_location & loc)
 {
-    std::regex cgi_extensions_regex(R"(\s*cgi_extensions\s+(\.[a-zA-Z0-9]+(?:\s+\.[a-zA-Z0-9]+)*)\s*;\s*)");
-    std::smatch match;
-    if (std::regex_match(line, match, cgi_extensions_regex))
-    {
-        std::string extensions_str = match[1].str();
-        std::istringstream iss(extensions_str);
-        std::string extension;
-        while (iss >> extension)
-            loc.cgi_extensions.push_back(extension);
-    }
-    else
-        throw std::invalid_argument("Invalid CGI extensions line: \"" + line + "\"");
+	std::regex allowed_methods_regex(R"(\s*allowed_methods\s+([A-Z\s]+)\s*;\s*)");
+	std::smatch match;
+	if (std::regex_match(line, match, allowed_methods_regex))
+	{
+		std::string methods_str = match[1];
+		std::istringstream iss(methods_str);
+		std::string method;
+		while (iss >> method)
+		{
+			if (method == "GET")
+				loc.allowed_methods[0] = true;
+			else if (method == "POST")
+				loc.allowed_methods[1] = true;
+			else if (method == "DELETE")
+				loc.allowed_methods[2] = true;
+			else
+				throw std::invalid_argument("Invalid method in allowed_methods directive: \"" + method + "\"");
+		}
+	}
+	else
+		throw std::invalid_argument("Invalid location allowed_methods directive: \"" + line + "\"");
 }
 
-void Config::parseRedirections(const std::string &line, t_location &loc)
+void Config::parseLocationAutoindex(const std::string & line, t_location & loc)
 {
-    std::regex redirection_regex(R"(\s*return\s+(\d{3})\s+([^\s;]+)\s*;\s*)");
-    std::smatch match;
-    if (std::regex_match(line, match, redirection_regex))
-    {
-        int status_code = std::stoi(match[1].str());
-        std::string redirect_path = match[2].str();
-		(void)status_code;
-		(void)redirect_path;
-		(void)loc;
-        // loc.redirections[status_code] = Path(redirect_path, Path::Type::URL, *this); 
-    }
-    else
-        throw std::invalid_argument("Invalid redirect line: \"" + line + "\"");
+	std::regex autoindex_regex(R"(^\s*autoindex\s*(on|off)\s*;\s*$)");
+	std::smatch match;
+	if (std::regex_match(line, match, autoindex_regex))
+	{
+		if (line.find("on"))
+			loc.directory_listing = true;
+		else if (line.find("off"))
+			loc.directory_listing = false;
+	}
+	else
+		throw std::invalid_argument("Invalid location autoindex (directory_listing) directive: \"" + line + "\"");
 }
 
-void Config::parseUploadDir(const std::string &line, t_location &loc)
+void Config::parseLocationCgiExtensions(const std::string & line, t_location & loc)
 {
-    std::regex upload_dir_regex(R"(\s*upload_dir\s+([^\s;]+)\s*;\s*)");
-    std::smatch match;
-    if (std::regex_match(line, match, upload_dir_regex))
-    {
-        std::string upload_path = match[1].str();
-        loc.upload_dir = Path(upload_path, Path::Type::FILESYSTEM, *this);
-    }
-    else
-        throw std::invalid_argument("Invalid upload_dir line: \"" + line + "\"");
+	std::regex cgi_extensions_regex(R"(\s*cgi_extensions\s+(\.[a-zA-Z0-9]+(?:\s+\.[a-zA-Z0-9]+)*)\s*;\s*)");
+	std::smatch match;
+	if (std::regex_match(line, match, cgi_extensions_regex))
+	{
+		std::string extensions_str = match[1].str();
+		std::istringstream iss(extensions_str);
+		std::string extension;
+		while (iss >> extension)
+			loc.cgi_extensions.push_back(extension);
+	}
+	else
+		throw std::invalid_argument("Invalid location CGI extensions directive: \"" + line + "\"");
 }
+
+void Config::parseLocationRedirections(const std::string &line, t_location &loc)
+{
+	std::regex redirection_regex(R"(\s*return\s+(\d{3})\s+([^\s;]+)\s*;\s*)");
+	std::smatch match;
+	if (std::regex_match(line, match, redirection_regex))
+	{
+		int status_code = std::stoi(match[1].str());
+		std::string redirect_path = match[2].str();
+		loc.redirections.emplace(status_code, Path(redirect_path, Path::Type::URL, *this));
+	}
+	else
+		throw std::invalid_argument("Invalid location redirect directive: \"" + line + "\"");
+}
+
+void Config::parseLocationUploadDir(const std::string &line, t_location &loc)
+{
+	std::regex upload_dir_regex(R"(\s*upload_dir\s+([^\s;]+)\s*;\s*)");
+	std::smatch match;
+	if (std::regex_match(line, match, upload_dir_regex))
+	{
+		std::string upload_path = match[1].str();
+		loc.upload_dir = Path(upload_path, Path::Type::FILESYSTEM, *this);
+	}
+	else
+		throw std::invalid_argument("Invalid location upload_dir directive: \"" + line + "\"");
+}
+
+/* ----------------- */
+/* ----- UTILS ----- */
+/* ----------------- */
 
 void	Config::extractConfigFromBrackets(std::vector<std::string> &lines, const std::string &data)
 {
@@ -363,14 +379,17 @@ void	Config::extractConfigFromBrackets(std::vector<std::string> &lines, const st
 		token += c;
 
 		if (c == '{')
-		{
 			brace_count++;
-		}
-		else if (c == '}')
+		else if (c == '}' || c == ';')
 		{
-			brace_count--;
+			if (c == '}')
+				brace_count--;
 			if (brace_count == 0)
 			{
+				size_t comment_pos = token.find('#');
+				if (comment_pos != std::string::npos)
+					token = token.substr(0, comment_pos);
+
 				token = std::regex_replace(token, std::regex("^\\s+|\\s+$"), "");
 				token = std::regex_replace(token, std::regex("\\s+"), " ");
 				if (!token.empty())
@@ -378,21 +397,17 @@ void	Config::extractConfigFromBrackets(std::vector<std::string> &lines, const st
 				token.clear();
 			}
 		}
-		else if (c == ';' && brace_count == 0)
-		{
-			token = std::regex_replace(token, std::regex("^\\s+|\\s+$"), "");
-			token = std::regex_replace(token, std::regex("\\s+"), " ");
-			if (!token.empty())
-				lines.push_back(token);
-			token.clear();
-		}
 	}
 }
 
 t_location Config::getRootLocation() const
 {
-	for (const t_location &loc : _locations)
-		if (loc.root_dir.asUrl() == "/")
+	for (const t_location &loc : getLocations())
+	{
+		if (std::holds_alternative<Path>(loc.path) && std::get<Path>(loc.path).asUrl() == "/")
 			return loc;
-	throw std::runtime_error("Root location not present in config " + _root_dir);
+		if (std::holds_alternative<FilePath>(loc.path) && std::get<FilePath>(loc.path).asUrl() == "/")
+			return loc;
+	}
+	throw std::runtime_error("Root location not present in config " + getRootDir());
 }
