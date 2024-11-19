@@ -1,6 +1,6 @@
 #include "FilePath.hpp"
 
-#include "./Packets/Methods/mimetypes.cpp"
+#include "../Packets/Methods/mimetypes.cpp"
 
 // /error_pages/404.html -> /error_pages/
 std::string formatPath(std::string path)

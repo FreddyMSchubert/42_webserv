@@ -6,7 +6,7 @@ OBJ_DIR = ./obj
 OBJ = $(patsubst ./src/%.cpp,$(OBJ_DIR)/%.o,$(SRC))
 TOTAL_FILES := $(words $(OBJ))
 
-HEADERS := -I ./include -I ./include/Packets
+HEADERS := -I ./include -I ./include/Packets -I ./include/Config -I ./include/Utils
 LIBS :=
 CFLAGS := -Wall -Wextra -Werror -std=c++17 -g -fsanitize=address
 

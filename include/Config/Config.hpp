@@ -73,7 +73,6 @@ class Config
 		FilePath getIndexFile() const { return *_index_file; }
 		unsigned int getClientMaxBodySize() const { return _client_max_body_size; }
 		std::map<int, FilePath> getErrorPages() const { return _error_pages; }
-		std::string getErrorPage(int code) const;
 		std::vector<t_location> getLocations() const { return _locations; }
 
 		// Public Utils
