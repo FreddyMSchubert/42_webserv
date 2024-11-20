@@ -99,10 +99,6 @@ std::vector<Config> parse_configs(std::string filename)
 			Logger::Log(LogLevel::ERROR, e.what());
 		}
 	}
-	for (size_t i = 0; i < configs.size(); ++i)
-        for (size_t j = i + 1; j < configs.size(); ++j)
-            if (configs[i].getHost() == configs[j].getHost() && configs[i].getPort() == configs[j].getPort())
-               throw std::runtime_error("Host and Port are similar in minimum two servers!"); 
 	return (configs);
 }
 
@@ -124,6 +120,18 @@ int main(int argc, char *argv[])
 			configs = parse_configs(configFilee);
 		} catch (std::exception & e){
 			std::cout << e.what() << std::endl;
+		}
+		for (auto it1 = configs.begin(); it1 != configs.end(); ++it1)
+		{
+			for (auto it2 = it1 + 1; it2 != configs.end(); ++it2)
+			{
+				if (it1->getHost() == it2->getHost() && it1->getPort() == it2->getPort())
+				{
+					it2 = configs.erase(it2);
+					it1 = configs.erase(it1);
+					throw std::runtime_error("Host and Port are similar in minimum two servers!");
+				}
+			}
 		}
 		if (configs.size() == 0)
 		{
