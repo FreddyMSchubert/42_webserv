@@ -54,11 +54,13 @@ class Config
 		void parseLocationAutoindex(const std::string & line, t_location & loc);
 		void parseLocationCgiExtensions(const std::string & line, t_location & loc);
 		void parseLocationRedirections(const std::string & line, t_location & loc);
-		void parseLocationUploadDir(const std::string & line, t_location & loc);
+		void parseLocationUploadDir(const std::string &line, t_location &loc);
+
+		void NewFunction(std::__1::string &upload_path, t_location &loc);
 
 		// Private Utils
-		void	extractConfigFromBrackets(std::vector<std::string> &lines, const std::string &data);
-	
+		void extractConfigFromBrackets(std::vector<std::string> &lines, const std::string &data);
+
 	public:
 		Config(std::string data);
 		Config(const Config &other) = default;
