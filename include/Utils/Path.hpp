@@ -47,7 +47,6 @@ class Path
 		bool operator!=(const Path& other) const;
 
 		void hardSetPath(const std::string& path);
-		std::string getPath() const;
 		void setConfig(Config &config);
 		Config &getConfig() const;
 };

@@ -1,4 +1,0 @@
-DELETE /api/v1/users/123 HTTP/1.1
-Host: example.com
-Authorization: Bearer your_access_token
-User-Agent: Mozilla/5.0

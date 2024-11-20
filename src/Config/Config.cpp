@@ -332,9 +332,8 @@ void Config::parseLocationRedirections(const std::string &line, t_location &loc)
 	{
 		int status_code = std::stoi(match[1].str());
 		std::string redirect_path = match[2].str();
-		redirect_path = redirect_path.substr(redirect_path.find('/') + 1);
-		redirect_path = (std::holds_alternative<Path>(loc.path) ? std::get<Path>(loc.path).getPath() : std::get<FilePath>(loc.path).getPath()) + redirect_path;
-		loc.redirections.emplace(status_code, FilePath(redirect_path, Path::Type::URL, *this));
+		redirect_path = Path::combinePaths(loc.getPathAsPath().asFilePath(), redirect_path);
+		loc.redirections.emplace(status_code, FilePath(redirect_path, Path::Type::FILESYSTEM, *this));
 	}
 	else
 		throw std::invalid_argument("Invalid location redirect directive: \"" + line + "\"");
@@ -347,8 +346,7 @@ void Config::parseLocationUploadDir(const std::string &line, t_location &loc)
 	if (std::regex_match(line, match, upload_dir_regex))
 	{
 		std::string upload_path = match[1].str();
-		upload_path = upload_path.substr(upload_path.find('/') + 1);
-		upload_path = _root_dir + (std::holds_alternative<Path>(loc.path) ? std::get<Path>(loc.path).getPath() : std::get<FilePath>(loc.path).getPath()) + upload_path;
+		upload_path = Path::combinePaths(loc.getPathAsPath().asFilePath(), upload_path);
 		loc.upload_dir = Path(upload_path, Path::Type::FILESYSTEM, *this);
 	}
 	else

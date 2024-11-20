@@ -139,10 +139,6 @@ void Path::hardSetPath(const std::string& path)
 {
 	_path = path;
 }
-std::string Path::getPath() const
-{
-	return _path;
-}
 void Path::setConfig(Config &config)
 {
 	_config = config;

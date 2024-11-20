@@ -24,6 +24,8 @@ typedef struct s_location
 	std::vector<std::string>						cgi_extensions;
 	std::map<int, Path>								redirections;
 	Path											upload_dir;
+
+	Path getPathAsPath() const { return std::holds_alternative<Path>(path) ? std::get<Path>(path) : static_cast<Path>(std::get<FilePath>(path)); }
 } t_location;
 std::ostream &operator<<(std::ostream &os, const t_location &loc);
 
@@ -55,8 +57,6 @@ class Config
 		void parseLocationCgiExtensions(const std::string & line, t_location & loc);
 		void parseLocationRedirections(const std::string & line, t_location & loc);
 		void parseLocationUploadDir(const std::string &line, t_location &loc);
-
-		void NewFunction(std::__1::string &upload_path, t_location &loc);
 
 		// Private Utils
 		void extractConfigFromBrackets(std::vector<std::string> &lines, const std::string &data);
