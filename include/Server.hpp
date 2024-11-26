@@ -4,6 +4,7 @@
 #include "Socket.hpp"
 #include "Config.hpp"
 #include "Logger.hpp"
+#include "SocketManager.hpp"
 
 #include <iostream>
 #include <vector>
@@ -12,8 +13,9 @@
 class Server
 {
 	private:
-		std::vector<Socket> _sockets;
-		Config &_config;
+		// std::vector<Socket> _sockets;
+		Config			&_config;
+		SocketManager	_socketManager;
 
 	public:
 		Server(Config &config);

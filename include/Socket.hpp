@@ -50,4 +50,15 @@ class Socket
 		void closeSocket(int socket);
 		void redirectToError(int client_fd, int error_code);
 		void sendRedirect(int client_fd, const std::string& new_url);
+
+		/*
+			stattdessen:
+				contructor: get it running
+				destructor: close it
+
+				sendData: sedn repsonse to clinet
+				getdata: get data from client, return string
+
+				this is literally just an abstraction for the socketmanager
+		*/
 };
