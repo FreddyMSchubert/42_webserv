@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>404 Not Found</title>
+	<style>
+		body {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 100vh;
+			margin: 0;
+			font-family: Arial, sans-serif;
+			background: url('https://img.sparknews.funkemedien.de/214885251/214885251_1532012732_v16_9_1600.webp') no-repeat center center fixed;
+			background-size: cover;
+		}
+		.blink {
+			font-size: 50px;
+			animation: blink 1s infinite;
+			background-color: rgba(255, 255, 255, 0.7);
+			padding: 20px;
+			border-radius: 10px;
+			position: absolute;
+			left: 0%;
+		}
+		@keyframes blink {
+			0% { color: red; }
+			25% { color: blue; }
+			50% { color: green; }
+			75% { color: orange; }
+			100% { color: purple; }
+		}
+	</style>
+</head>
+<body>
+	<div class="blink">404 Schleich di!</div>
+</body>
+</html>
