@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "Socket.hpp"
 
+//Setup the listening socket and push it to the vector of sockets
 Server::Server(Config &config) : _config(config)
 {
 	Socket listeningSocket(config);
@@ -11,6 +12,7 @@ Server::Server(Config &config) : _config(config)
 	_socket_data.emplace_back(listeningSocket.getSocketFd(), -1, e_socket_state::ACCEPT, listeningSocket, std::stringstream());
 
 	Logger::Log(LogLevel::INFO, "Server listening on " + _config.getHost() + ":" + std::to_string(_config.getPort()) + ".");
+	Run();
 }
 
 // So generally what happens here is this: we loop trough the fds which are structs of pollfd and check:
@@ -83,12 +85,10 @@ void Server::updatePoll()
 	}
 }
 
-// IsClosed function in issue
-bool Server::isDataComplete(t_socket_data &socket) // cant be a bool need true, false, and shit broke go fix it as third state -> no why? either what the client sends is correct or its not. why do i need to fix something that the client failed to do?
+
+bool Server::isDataComplete(t_socket_data &socket) // We still got the problem that we need 3 states: 1) chunked 2) complete message recieved 3) incomplete/false message
 {
     std::string data = socket.buffer.str();
-
-    // Find the end of headers0
 
     size_t header_end = data.find("\r\n\r\n");
     if (header_end == std::string::npos)
@@ -101,37 +101,39 @@ bool Server::isDataComplete(t_socket_data &socket) // cant be a bool need true, 
     bool chunked = false;
 
     // Parse headers
-    while (std::getline(header_stream, line) && line != "\r") {
+    while (std::getline(header_stream, line) && line != "\r")
+	{
         // Convert header line to lowercase for case-insensitive comparison
         std::transform(line.begin(), line.end(), line.begin(), ::tolower);
 
-        if (line.find("content-length:") != std::string::npos) {
+        if (line.find("content-length:") != std::string::npos)
             content_length = std::stoul(line.substr(15)); // Extract value after "content-length: "
-        }
-        else if (line.find("transfer-encoding:") != std::string::npos) {
+        else if (line.find("transfer-encoding:") != std::string::npos)
+		{
             if (line.find("chunked") != std::string::npos)
                 chunked = true;
         }
     }
 
     // Determine message completeness based on encoding
-    if (chunked) {
-        // Handle chunked encoding
-        // Check if the terminating chunk is received (0\r\n\r\n)
+    if (chunked)
+	{
+        if (socket.buffer.str().size() > _config.getClientMaxBodySize())
+			return false;
         if (data.find("0\r\n\r\n") != std::string::npos)
+		{
+			// Process the chunked data (remove the chunked encoding and combine the chunks)
             return true;
+		}
         else
             return false;
     }
-    else if (content_length > 0) {
-        // Check if body is fully received
+    else if (content_length > 0)
+	{
         size_t total_length = header_end + 4 + content_length;
         return data.size() >= total_length;
     }
-    else {
-        // No body or unrecognized encoding
-        return true; // Consider headers complete
-    }
+	return false;
 }
 
 void Server::Run()
@@ -180,3 +182,10 @@ void Server::Run()
 		}
 	}
 }
+
+//How it should work: (i havent written everything but the idea is there)
+//1. We create a listening socket (Constructor)
+//2. After that we call Run in to start the server (Constructor)
+//3. In Run we will loop trough the sockets and check if there is any data to read for the server (updatePoll)
+//4. If there is data we will check if the data is complete (and chunked or not and how to handle it) (isDataComplete)
+//5. If the data is complete we will send a response back to the client (Run)
