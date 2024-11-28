@@ -30,35 +30,36 @@
 class Socket
 {
 	private:
-		int _socket_pid;
+		int _socket_fd;
 		struct sockaddr_in _socket;
 		std::vector<struct pollfd> _clients;
 		Config &_config;
-		void _connect();
-		void _close();
-		void _setNonBlocking(int fd);
-		std::string _receiveData(int client_fd);
+
 	public:
+		// Constructor and Destructor
 		Socket(Config &config);
-		Socket(Socket&& other) noexcept = default;
-		Socket(const Socket &src) = delete;
-		Socket &operator=(const Socket &src) = delete;
 		~Socket();
+
+		// Socket Setup
+		int	 addNewSocket();
+		void connectSocket();
+		void setNonBlockingSocket(int fd);
+
+		// Data Transmission
 		void sendData(Response &response, int socket_fd);
 		void sendData(const std::string &data, int socket_fd);
-		void Run();
+		std::string receiveData(int client_fd);
+
+		// Connection Management
 		void closeSocket(int socket);
-		void redirectToError(int client_fd, int error_code);
+		void closeAllSockets();
 		void sendRedirect(int client_fd, const std::string& new_url);
+		void redirectToError(int client_fd, int error_code);
 
-		/*
-			stattdessen:
-				contructor: get it running
-				destructor: close it
+		//Setters
+		void setSocketFd(int socket_fd) { _socket_fd = socket_fd; }
 
-				sendData: sedn repsonse to clinet
-				getdata: get data from client, return string
-
-				this is literally just an abstraction for the socketmanager
-		*/
+		// Getters
+		int getSocketFd() const { return _socket_fd; }
+		int getPort() const { return _config.getPort(); }
 };
