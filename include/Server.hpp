@@ -24,7 +24,7 @@ typedef struct s_socket_data
 	int					fd;
 	int					port;
 	e_socket_state		state;
-	Socket				&socket;
+	Socket				socket;
 	std::stringstream	buffer;
 }	t_socket_data;
 
@@ -32,7 +32,6 @@ class Server
 {
 	private:
 		Config	&_config;
-		std::vector<Socket>			_sockets;
 		std::vector<t_socket_data>	_socket_data;
 
 		// Private methods

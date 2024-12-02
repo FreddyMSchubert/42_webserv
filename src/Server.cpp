@@ -8,7 +8,6 @@ Server::Server(Config &config) : _config(config)
 	listeningSocket.connectSocket();
 	listeningSocket.setNonBlockingSocket(listeningSocket.getSocketFd());
 
-	_sockets.push_back(listeningSocket);
 	_socket_data.emplace_back(listeningSocket.getSocketFd(), -1, e_socket_state::ACCEPT, listeningSocket, std::stringstream());
 
 	Logger::Log(LogLevel::INFO, "Server listening on " + _config.getHost() + ":" + std::to_string(_config.getPort()) + ".");
@@ -23,10 +22,10 @@ Server::Server(Config &config) : _config(config)
 void Server::updatePoll()
 {
 	std::vector<struct pollfd> fds;
-	for (size_t i = 0; i < _sockets.size(); ++i)
+	for (size_t i = 0; i < _socket_data.size(); ++i)
 	{
 		struct pollfd pfd;
-		pfd.fd = _sockets[i].getSocketFd();
+		pfd.fd = _socket_data[i].socket.getSocketFd();
 		pfd.events = POLLIN;
 		fds.push_back(pfd);
 	}
@@ -45,17 +44,16 @@ void Server::updatePoll()
 			if (i == 0) // Listening socket
 			{
 				// Handle new connection directly here
-				socklen_t addrlen = sizeof(_sockets[0]);
-				int client_fd = accept(_sockets[0].getSocketFd(), (struct sockaddr*)&_sockets[0], &addrlen);
+				socklen_t addrlen = sizeof(_socket_data[0].socket); // what in the world is this // why would you pass the size of our class obj to accept?
+				int client_fd = accept(_socket_data[0].socket.getSocketFd(), (struct sockaddr*)&_socket_data[0].socket, &addrlen);
 				
 				if (client_fd < 0)
 					Logger::Log(LogLevel::ERROR, "Accept error: " + std::string(strerror(errno)));
 				else
 				{
-					_sockets[0].setNonBlockingSocket(client_fd);
+					_socket_data[0].socket.setNonBlockingSocket(client_fd);
 					Socket clientSocket(_config);
 					clientSocket.setSocketFd(client_fd);
-					_sockets.push_back(clientSocket);
 					_socket_data.emplace_back(client_fd, -1, e_socket_state::READ, clientSocket, std::stringstream());
 				}
 			}
@@ -71,8 +69,7 @@ void Server::updatePoll()
 					else if (bytes > _config.getClientMaxBodySize()) //as far as i know if that gets triggered we should display a 413 http error
 						Logger::Log(LogLevel::ERROR, "Client sent too much data, closing socket");
 					_socket_data[i].state = e_socket_state::CLOSE;
-					_sockets[i].closeSocket(_socket_data[i].fd);
-					_sockets.erase(_sockets.begin() + i);
+					_socket_data[i].socket.closeSocket(_socket_data[i].fd);
 					_socket_data.erase(_socket_data.begin() + i);
 					--i;
 				}
@@ -173,8 +170,7 @@ void Server::Run()
 
 				case e_socket_state::CLOSE:
 					// Close and remove the socket
-					_sockets[i].closeSocket(_socket_data[i].fd);
-					_sockets.erase(_sockets.begin() + i);
+					_socket_data[i].socket.closeSocket(_socket_data[i].fd);
 					_socket_data.erase(_socket_data.begin() + i);
 					--i;
 					break;
