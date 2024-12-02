@@ -16,7 +16,8 @@ enum class e_socket_state
 	WRITE,
 	ACCEPT,
 	CONNECT,
-	CLOSE
+	CLOSE,
+	UNKNOWN
 };
 
 typedef struct s_socket_data
@@ -32,7 +33,8 @@ class Server
 {
 	private:
 		Config	&_config;
-		std::vector<t_socket_data>	_socket_data;
+		t_socket_data		_listening_socket;
+		std::vector<t_socket_data>	_sockets;
 
 		// Private methods
 		void updatePoll();
