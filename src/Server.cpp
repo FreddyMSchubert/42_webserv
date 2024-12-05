@@ -2,13 +2,14 @@
 #include "Socket.hpp"
 
 //Setup the listening socket and push it to the vector of sockets
-Server::Server(Config &config) : _config(config)
+Server::Server(Config &config) : _config(config), _listening_socket{-1, -1, e_socket_state::CLOSE, Socket(config), std::stringstream()}
 {
 	Socket listeningSocket(config);
 	listeningSocket.connectSocket();
 	listeningSocket.setNonBlockingSocket(listeningSocket.getSocketFd());
 
-	_listening_socket = {listeningSocket.getSocketFd(), -1, e_socket_state::UNKNOWN, listeningSocket, std::stringstream()};
+	_listening_socket.fd = listeningSocket.getSocketFd();
+	_listening_socket.socket = listeningSocket;
 
 	Logger::Log(LogLevel::INFO, "Server listening on " + _config.getHost() + ":" + std::to_string(_config.getPort()) + ".");
 	Run();
@@ -44,8 +45,9 @@ void Server::updatePoll()
 			if (i == 0) // Listening socket
 			{
 				// Handle new connection directly here
-				socklen_t addrlen = sizeof(_listening_socket.socket); // what in the world is this // why would you pass the size of our class obj to accept?
-				int client_fd = accept(_listening_socket.socket.getSocketFd(), (struct sockaddr*)&_listening_socket.socket, &addrlen);
+				struct sockaddr_in client_addr;
+				socklen_t addrlen = sizeof(client_addr);
+				int client_fd = accept(_listening_socket.socket.getSocketFd(), (struct sockaddr*)&client_addr, &addrlen);
 				
 				if (client_fd < 0)
 					Logger::Log(LogLevel::ERROR, "Accept error: " + std::string(strerror(errno)));
@@ -82,55 +84,44 @@ void Server::updatePoll()
 	}
 }
 
-
-bool Server::isDataComplete(t_socket_data &socket) // We still got the problem that we need 3 states: 1) chunked 2) complete message recieved 3) incomplete/false message
+e_complete_data Server::isDataComplete(t_socket_data &socket) // used an enum
 {
 	std::string data = socket.buffer.str();
+	//need to rework this
 
-	size_t header_end = data.find("\r\n\r\n");
-	if (header_end == std::string::npos)
-		return false;
-
-	std::string headers = data.substr(0, header_end);
-	std::istringstream header_stream(headers);
-	std::string line;
-	size_t content_length = 0;
-	bool chunked = false;
-
-	// Parse headers
-	while (std::getline(header_stream, line) && line != "\r")
+	// Case 1: Check if data is empty or malformed ->Incomplete
+	if (data.empty() || data.find("\r\n\r\n") == std::string::npos)
+		return e_complete_data::INCOMPLETE;
+	
+	// Case 2: Check for chunked transfer -> Chunked finished or unfinished
+	if (data.find("Transfer-Encoding: chunked") != std::string::npos)
 	{
-		// Convert header line to lowercase for case-insensitive comparison
-		std::transform(line.begin(), line.end(), line.begin(), ::tolower);
-
-		if (line.find("content-length:") != std::string::npos)
-			content_length = std::stoul(line.substr(15)); // Extract value after "content-length: "
-		else if (line.find("transfer-encoding:") != std::string::npos)
-		{
-			if (line.find("chunked") != std::string::npos)
-				chunked = true;
-		}
-	}
-
-	// Determine message completeness based on encoding
-	if (chunked)
-	{
-		if (socket.buffer.str().size() > _config.getClientMaxBodySize())
-			return false;
 		if (data.find("0\r\n\r\n") != std::string::npos)
-		{
-			// Process the chunked data (remove the chunked encoding and combine the chunks)
-			return true;
-		}
-		else
-			return false;
+			return e_complete_data::CHUNKED_FINISHED;
+		return e_complete_data::CHUNKED_UNFINISHED;
 	}
-	else if (content_length > 0)
+	
+	// Case 3: Check Content-Length -> Complete or Incomplete (but doesnt make sense now need to rework)
+	size_t contentLengthPos = data.find("Content-Length: ");
+	if (contentLengthPos != std::string::npos)
 	{
-		size_t total_length = header_end + 4 + content_length;
-		return data.size() >= total_length;
+		size_t headerEnd = data.find("\r\n\r\n");
+		std::string lengthStr = data.substr(contentLengthPos + 16, 
+		data.find("\r\n", contentLengthPos) - (contentLengthPos + 16));
+		
+		try
+		{
+			size_t contentLength = std::stoul(lengthStr);
+			size_t bodyLength = data.length() - (headerEnd + 4);
+			
+			if (bodyLength >= contentLength)
+				return e_complete_data::COMPLETE;
+			return e_complete_data::INCOMPLETE;
+		}
+		catch (...)
+			return e_complete_data::INCOMPLETE;
+		return e_complete_data::INCOMPLETE;
 	}
-	return false;
 }
 
 void Server::Run()
@@ -174,6 +165,12 @@ void Server::Run()
 					_sockets.erase(_sockets.begin() + i);
 					--i;
 					break;
+				case e_socket_state::UNKNOWN:
+					break;
+				case e_socket_state::ACCEPT:
+					continue;
+				case e_socket_state::CONNECT:
+					continue;
 			}
 		}
 	}

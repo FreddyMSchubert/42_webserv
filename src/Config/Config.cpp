@@ -1,5 +1,9 @@
 #include "Config.hpp"
 
+Config::Config()
+{
+}
+
 // Expects the string between the {} of a server block
 Config::Config(std::string data)
 {

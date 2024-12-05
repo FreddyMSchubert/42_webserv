@@ -38,6 +38,7 @@ class Socket
 	public:
 		// Constructor and Destructor
 		Socket(Config &config);
+		Socket &operator=(const Socket& copy);
 		~Socket();
 
 		// Socket Setup
@@ -56,10 +57,10 @@ class Socket
 		void sendRedirect(int client_fd, const std::string& new_url);
 		void redirectToError(int client_fd, int error_code);
 
-		//Setters
-		void setSocketFd(int socket_fd) { _socket_fd = socket_fd; }
-
 		// Getters
 		int getSocketFd() const { return _socket_fd; }
 		int getPort() const { return _config.getPort(); }
+
+		//Setters
+		void setSocketFd(int socket_fd) { _socket_fd = socket_fd; }
 };

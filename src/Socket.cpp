@@ -18,6 +18,18 @@ Socket::Socket(Config &config) : _socket_fd(-1), _config(config)
 	}
 }
 
+Socket &Socket::operator=(const Socket &copy)
+{
+	if (this != &copy)
+	{
+		this->_socket_fd = copy._socket_fd;
+		this->_socket = copy._socket;
+		this->_clients = copy._clients;
+		this->_config = copy._config;
+	}
+	return (*this);
+}
+
 Socket::~Socket()
 {
 	closeAllSockets();
