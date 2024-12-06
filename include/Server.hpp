@@ -10,6 +10,12 @@
 #include <fstream>
 #include <string>
 
+const std::string HTTP_MIN_HEADER_PATTERN = 
+    "^(GET|POST|DELETE)\\s+(\\/[^\\s]*)?\\s+HTTP\\/1\\.1\\r\\n"
+    "Host:\\s+[^\\r\\n]+\\r\\n"
+    "([^\\r\\n]+\\r\\n)*"
+    "\\r\\n";        
+
 enum class e_socket_state
 {
 	READ,
