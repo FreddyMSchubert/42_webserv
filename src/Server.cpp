@@ -17,8 +17,6 @@ Server::Server(Config &config) : _config(config), _listening_socket{-1, -1, e_so
 
 void Server::updatePoll()
 {
-	// need to rework this
-
 	// Fill the vector of pollfd with the sockets
 	std::vector<struct pollfd> fds;
 
@@ -187,7 +185,7 @@ void Server::Run()
 			{
 				case e_complete_data::COMPLETE:
 				case e_complete_data::CHUNKED_FINISHED:
-					// handleRequest(_sockets[i]);  // Separate function for request handling
+					// handleRequest(_sockets[i]);  // Separate function for request handling or whatever (dunno if thats correct or where we get the response)
 					break;
 					
 				case e_complete_data::CHUNKED_UNFINISHED:

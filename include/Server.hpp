@@ -56,6 +56,7 @@ class Server
 		// Private methods
 		void updatePoll();
 		e_complete_data isDataComplete(t_socket_data &socket);
+		void handleRequest(t_socket_data& socket);
 
 	public:
 		// Constructors and destructors
