@@ -36,7 +36,7 @@ Socket::~Socket()
 	Logger::Log(LogLevel::INFO, "Socket closed!");
 }
 
-int Socket::addNewSocket()
+void Socket::addNewSocket()
 {
 	connectSocket();
 	setNonBlockingSocket(_socket_fd);

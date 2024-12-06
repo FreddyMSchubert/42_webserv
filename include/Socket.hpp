@@ -42,7 +42,7 @@ class Socket
 		~Socket();
 
 		// Socket Setup
-		int	 addNewSocket();
+		void addNewSocket();
 		void connectSocket();
 		void setNonBlockingSocket(int fd);
 
