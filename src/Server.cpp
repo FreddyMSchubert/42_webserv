@@ -2,17 +2,17 @@
 #include "Socket.hpp"
 
 //Setup the listening socket and push it to the vector of sockets
-Server::Server(Config &config) : _config(config), _listening_socket{-1, -1, e_socket_state::CLOSE, Socket(config), std::stringstream()}
+Server::Server(Config &config) : _config(config), _listening_socket{Socket(config).getSocketFd(), config.getPort(), e_socket_state::READ, Socket(config), std::stringstream()}
 {
-	Socket listeningSocket(config);
-	listeningSocket.connectSocket();
-	listeningSocket.setNonBlockingSocket(listeningSocket.getSocketFd());
-
-	_listening_socket.fd = listeningSocket.getSocketFd();
-	_listening_socket.socket = listeningSocket;
-
-	Logger::Log(LogLevel::INFO, "Server listening on " + _config.getHost() + ":" + std::to_string(_config.getPort()) + ".");
-	Run();
+	try
+	{
+		Logger::Log(LogLevel::INFO, "Server initialized on " + _config.getHost() + ":" + std::to_string(_config.getPort()));
+	}
+	catch (const std::exception& e)
+	{
+		Logger::Log(LogLevel::ERROR, "Server initialization failed: " + std::string(e.what()));
+		throw;
+	}
 }
 
 void Server::updatePoll()
@@ -171,6 +171,7 @@ e_complete_data Server::isDataComplete(t_socket_data &socket) // used an enum
 
 void Server::Run()
 {
+	//continuously looping is very resource intensive for that we might use epoll or select
 	while (true)
 	{
 		// Monitor sockets
@@ -180,18 +181,27 @@ void Server::Run()
 		for (size_t i = 0; i < _sockets.size(); ++i)
 		{
 			e_complete_data status = isDataComplete(_sockets[i]);
-			
-			switch (status)
+			try
 			{
-				case e_complete_data::COMPLETE:
-				case e_complete_data::CHUNKED_FINISHED:
-					// handleRequest(_sockets[i]);  // Separate function for request handling or whatever (dunno if thats correct or where we get the response)
-					break;
-					
-				case e_complete_data::CHUNKED_UNFINISHED:
-				case e_complete_data::INCOMPLETE:
-					continue;  // Wait for more data
-					break;
+				std::string data = _sockets[i].socket.receiveData(_sockets[i].fd);
+				Request req(data);
+				Response response(req, _config);
+				switch (status)
+				{
+					case e_complete_data::COMPLETE:
+					case e_complete_data::CHUNKED_FINISHED:
+						_sockets[i].socket.sendData(response, _sockets[i].fd);
+						break;
+									
+					case e_complete_data::CHUNKED_UNFINISHED:
+					case e_complete_data::INCOMPLETE:
+						continue;  // Wait for more data
+						break;
+				}
+			}
+			catch (...)
+			{
+				std::cout << "The show goes on" << std::endl; //yep testing purposes
 			}
 		}
 	}

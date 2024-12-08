@@ -128,11 +128,13 @@ int main(int argc, char *argv[])
 	try
 	{
 		for (auto &config : configs)
+		{
+			std::cout  << "Server: " << config.getHost() << ":" << config.getPort() << std::endl;
 			servers.emplace_back(config);
+		}
 
-		while (42 == 42)
-			for (auto &server : servers)
-				server.Run();
+		for (auto &server : servers)
+			server.Run();
 	}
 	catch(const std::exception& e)
 	{

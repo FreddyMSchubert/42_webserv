@@ -36,14 +36,14 @@ enum class e_complete_data
 
 typedef struct s_socket_data
 {
-    int fd;
-    int port;
-    e_socket_state state;
-    Socket socket;
-    std::stringstream buffer;
+	int fd;
+	int port;
+	e_socket_state state;
+	Socket socket;
+	std::stringstream buffer;
 
-    s_socket_data(int fd, int port, e_socket_state state, Socket socket, std::stringstream&& buffer)
-        : fd(fd), port(port), state(state), socket(socket), buffer(std::move(buffer)) {}
+	s_socket_data(int fd, int port, e_socket_state state, Socket socket, std::stringstream&& buffer)
+		: fd(fd), port(port), state(state), socket(socket), buffer(std::move(buffer)) {}
 } t_socket_data;
 
 class Server

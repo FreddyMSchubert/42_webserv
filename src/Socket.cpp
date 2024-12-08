@@ -14,6 +14,7 @@ Socket::Socket(Config &config) : _socket_fd(-1), _config(config)
 	}
 	catch(const std::exception &e)
 	{
+		std::cout << "Hi there" << std::endl;
 		throw std::runtime_error(e.what());
 	}
 }
@@ -53,9 +54,16 @@ void Socket::connectSocket()
 		close(_socket_fd);
 		throw std::runtime_error("Invalid IP address: " + _config.getHost());
 	}
-	
-	if (bind(_socket_fd, (struct sockaddr *)&_socket, sizeof(_socket)) == -1)
+
+	int opt = 1;
+	if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 	{
+		perror("setsockopt");
+		exit(EXIT_FAILURE);
+	}
+	
+	if (bind(_socket_fd, (struct sockaddr *)&_socket, sizeof(_socket)) < 0)
+	{	
 		close(_socket_fd);
 		throw std::runtime_error("Failed to bind socket");
 	}
