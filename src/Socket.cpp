@@ -1,22 +1,64 @@
 #include "Socket.hpp"
 
-Socket::Socket(Config &config) : _socket_fd(-1), _config(config)
+// Listening socket constructor
+Socket::Socket(Config &config) : _config(config)
 {
 	_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_socket_fd == -1)
 		throw std::runtime_error("Socket creation failed");
 
-	Logger::Log(LogLevel::INFO, "Running Socket...");
+	Logger::Log(LogLevel::INFO, "Running Listening Socket on fd " + std::to_string(_socket_fd) + "...");
 	try
 	{
-		connectSocket();
-		setNonBlockingSocket(_socket_fd);
+		std::memset(&_socket, 0, sizeof(_socket));
+		_socket.sin_family = AF_INET;
+		_socket.sin_port = htons(_config.getPort());
+
+		if (inet_pton(AF_INET, _config.getHost().c_str(), &_socket.sin_addr) <= 0)
+		{
+			close(_socket_fd);
+			throw std::runtime_error("Invalid IP address: " + _config.getHost());
+		}
+
+		int opt = 1;
+		if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+		{
+			perror("setsockopt");
+			exit(EXIT_FAILURE);
+		}
+		
+		if (bind(_socket_fd, (struct sockaddr *)&_socket, sizeof(_socket)) < 0)
+		{	
+			close(_socket_fd);
+			throw std::runtime_error("Failed to bind socket");
+		}
+
+		if (listen(_socket_fd, 10) == -1)
+		{
+			close(_socket_fd);
+			throw std::runtime_error("Failed to listen on socket");
+		}
+
+		Logger::Log(LogLevel::INFO, "Socket " + std::to_string(_socket_fd) + " connected!");
+
+		// set non-blocking
+		int flags = fcntl(_socket_fd, F_GETFL, 0);
+		if (flags == -1)
+			throw std::runtime_error("Failed to get socket flags");
+		if (fcntl(_socket_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+			throw std::runtime_error("Failed to set non-blocking mode");
 	}
 	catch(const std::exception &e)
 	{
 		std::cout << "Hi there" << std::endl;
 		throw std::runtime_error(e.what());
 	}
+}
+// Client socket constructor
+Socket::Socket(Config &config, int fd) : _config(config)
+{
+	_socket_fd = fd;
+	Logger::Log(LogLevel::INFO, "Running Client Connection Socket...");
 }
 
 Socket &Socket::operator=(const Socket &copy)
@@ -25,7 +67,6 @@ Socket &Socket::operator=(const Socket &copy)
 	{
 		this->_socket_fd = copy._socket_fd;
 		this->_socket = copy._socket;
-		this->_clients = copy._clients;
 		this->_config = copy._config;
 	}
 	return (*this);
@@ -33,70 +74,16 @@ Socket &Socket::operator=(const Socket &copy)
 
 Socket::~Socket()
 {
-	closeAllSockets();
-	Logger::Log(LogLevel::INFO, "Socket closed!");
+	close(_socket_fd);
+	Logger::Log(LogLevel::INFO, "Socket " + std::to_string(_socket_fd) + " closed");
 }
 
-void Socket::addNewSocket()
-{
-	connectSocket();
-	setNonBlockingSocket(_socket_fd);
-}
-
-void Socket::connectSocket()
-{
-	std::memset(&_socket, 0, sizeof(_socket));
-	_socket.sin_family = AF_INET;
-	_socket.sin_port = htons(_config.getPort());
-
-	if (inet_pton(AF_INET, _config.getHost().c_str(), &_socket.sin_addr) <= 0)
-	{
-		close(_socket_fd);
-		throw std::runtime_error("Invalid IP address: " + _config.getHost());
-	}
-
-	int opt = 1;
-	if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-	{
-		perror("setsockopt");
-		exit(EXIT_FAILURE);
-	}
-	
-	if (bind(_socket_fd, (struct sockaddr *)&_socket, sizeof(_socket)) < 0)
-	{	
-		close(_socket_fd);
-		throw std::runtime_error("Failed to bind socket");
-	}
-
-	if (listen(_socket_fd, 10) == -1)
-	{
-		close(_socket_fd);
-		throw std::runtime_error("Failed to listen on socket");
-	}
-
-	Logger::Log(LogLevel::INFO, "Socket connected!");
-}
-
-void Socket::setNonBlockingSocket(int fd)
-{
-	int flags = fcntl(fd, F_GETFL, 0);
-	if (flags == -1)
-		throw std::runtime_error("Failed to get socket flags");
-	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
-		throw std::runtime_error("Failed to set non-blocking mode");
-}
-
-void Socket::sendData(Response &response, int client_fd)
-{
-	sendData(response.getRawPacket(), client_fd);
-}
-
-void Socket::sendData(const std::string &data, int socket_fd)
+void Socket::sendData(Response &response)
 {
 	#if LOG_OUTGOING_PACKETS
 		Logger::Log(LogLevel::INFO, "Sending data: " + data);
 	#endif
-	ssize_t sent = send(socket_fd, data.c_str(), data.length(), 0);
+	ssize_t sent = send(_socket_fd, response.getRawPacket().c_str(), response.getRawPacket().length(), 0);
 	if (sent < 0)
 		throw std::runtime_error("Failed to send data");
 	else
@@ -104,74 +91,32 @@ void Socket::sendData(const std::string &data, int socket_fd)
 }
 
 // TODO: handle protocols other then HTTP (probably not) that dont send \r\n\r\n in the end
-std::string Socket::receiveData(int client_fd)
+std::string Socket::receiveData()
 {
 	std::string data;
-	char buffer[4096];
+	char buffer[_config.getClientMaxBodySize() + 1];
 	ssize_t received;
-	int max_loops = 1000;
 
-	while (--max_loops)
+	received = recv(_socket_fd, buffer, sizeof(buffer), 0);
+	if (received > 0)
 	{
-		received = recv(client_fd, buffer, sizeof(buffer), 0);
-		if (received > 0)
-		{
-			data.append(buffer, received);
-			if (data.find("\r\n\r\n") != std::string::npos)
-				break;
-		}
-		else if (received == 0)
-		{
-			Logger::Log(LogLevel::INFO, "Connection closed by client");
-			closeSocket(client_fd);
-			break;
-		}
-		else if (received < 0)
-		{
-			if (errno == EWOULDBLOCK || errno == EAGAIN)
-				break;
-			Logger::Log(LogLevel::ERROR, "Failed to receive data: " + std::string(strerror(errno)));
-			closeSocket(client_fd);
-			break;
-		}
+		data.append(buffer, received);
+		if (data.find("\r\n\r\n") != std::string::npos)
+			return data;
+	}
+	else if (received < 0)
+	{
+		Logger::Log(LogLevel::ERROR, "Failed to receive data: " + std::string(strerror(errno)));
+		close(_socket_fd);
+		throw std::runtime_error("Failed to receive data");
+		return data;
 	}
 
 	if (data.empty())
 		Logger::Log(LogLevel::WARNING, "Tried to receive data but received nothing");
 	return data;
 }
-
-void Socket::closeSocket(int socket)
-{
-	Logger::Log(LogLevel::INFO, "Trying to close socket: " + std::to_string(socket));
-	int i = 0;
-
-	for (auto &client : _clients)
-	{
-		if (client.fd == socket)
-		{
-			close(client.fd);
-			_clients.erase(_clients.begin() + i);
-			Logger::Log(LogLevel::INFO, "Socket closed: " + std::to_string(socket));
-			return;
-		}
-		++i;
-	}
-
-	Logger::Log(LogLevel::WARNING, "Attempted to close non-existent socket: " + std::to_string(socket));
-}
-
-void Socket::closeAllSockets()
-{
-	Logger::Log(LogLevel::INFO, "Closing socket...");
-	for (auto &client : _clients)
-		close(client.fd);
-	_socket_fd = -1;
-	_clients.clear();
-	Logger::Log(LogLevel::INFO, "Socket closed!");
-}
-
-void Socket::sendRedirect(int client_fd, const std::string& new_url)
+void Socket::sendRedirect(const std::string& new_url)
 {
 	std::string response = "HTTP/1.1 302 Found\r\n";
 	response += "Location: " + new_url + "\r\n";
@@ -179,12 +124,13 @@ void Socket::sendRedirect(int client_fd, const std::string& new_url)
 	response += "Connection: close\r\n";
 	response += "\r\n"; // End of headers
 
-	sendData(response, client_fd);
-	closeSocket(client_fd);
+	Request request(response);
+	Response responsePacket(request, _config);
+	sendData(responsePacket);
 	Logger::Log(LogLevel::INFO, "Redirected client to " + new_url);
 }
 
-void Socket::redirectToError(int client_fd, int error_code)
+void Socket::redirectToError(int error_code)
 {
 	int websiteId = rand() % 4;
 	std::string website;
@@ -200,5 +146,5 @@ void Socket::redirectToError(int client_fd, int error_code)
 		website += ".jpg";
 
 	Logger::Log(LogLevel::INFO, "Redirecting client to " + website + " with code " + std::to_string(error_code) + ".");
-	sendRedirect(client_fd, website);
+	sendRedirect(website);
 }

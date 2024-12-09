@@ -32,35 +32,23 @@ class Socket
 	private:
 		int _socket_fd;
 		struct sockaddr_in _socket;
-		std::vector<struct pollfd> _clients;
 		Config &_config;
 
 	public:
 		// Constructor and Destructor
+		Socket(Config &config, int fd);
 		Socket(Config &config);
 		Socket &operator=(const Socket& copy);
 		~Socket();
 
-		// Socket Setup
-		void addNewSocket();
-		void connectSocket();
-		void setNonBlockingSocket(int fd);
-
 		// Data Transmission
-		void sendData(Response &response, int socket_fd);
-		void sendData(const std::string &data, int socket_fd);
-		std::string receiveData(int client_fd);
+		void sendData(Response &response);
+		std::string receiveData();
 
 		// Connection Management
-		void closeSocket(int socket);
-		void closeAllSockets();
-		void sendRedirect(int client_fd, const std::string& new_url);
-		void redirectToError(int client_fd, int error_code);
+		void sendRedirect(const std::string& new_url);
+		void redirectToError(int error_code);
 
 		// Getters
 		int getSocketFd() const { return _socket_fd; }
-		int getPort() const { return _config.getPort(); }
-
-		//Setters
-		void setSocketFd(int socket_fd) { _socket_fd = socket_fd; }
 };

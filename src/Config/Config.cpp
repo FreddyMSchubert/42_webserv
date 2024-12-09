@@ -22,7 +22,9 @@ Config::Config(std::string data)
 		{
 			if (keyword == keywords[i])
 			{
-				Logger::Log(LogLevel::INFO, "Parsing " + keyword + " line: \"" + line + "\"");
+				#if LOG_CONFIG_PARSING
+					Logger::Log(LogLevel::INFO, "Parsing " + keyword + " line: \"" + line + "\"");
+				#endif
 				(this->*parsers[i])(line);
 				foundMatch = true;
 				break;
@@ -239,7 +241,9 @@ void Config::parseLocation(const std::string& line)
 			{
 				if (configLine.find(keywords[i]) != std::string::npos)
 				{
-					Logger::Log(LogLevel::INFO, "Parsing " + keywords[i] + " line: \"" + configLine + "\"");
+					#if LOG_CONFIG_PARSING
+						Logger::Log(LogLevel::INFO, "Parsing " + keywords[i] + " line: \"" + configLine + "\"");
+					#endif
 					(this->*parsers[i])(configLine, loc);
 					foundMatch = true;
 					break;

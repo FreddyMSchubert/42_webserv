@@ -9,6 +9,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <array>
 
 const std::string HTTP_MIN_HEADER_PATTERN = 
     "^(GET|POST|DELETE)\\s+(\\/[^\\s]*)?\\s+HTTP\\/1\\.1\\r\\n"
@@ -16,15 +17,13 @@ const std::string HTTP_MIN_HEADER_PATTERN =
     "([^\\r\\n]+\\r\\n)*"
     "\\r\\n";        
 
-enum class e_socket_state
+typedef struct s_socket_state
 {
-	READ,
-	WRITE,
-	ACCEPT,
-	CONNECT,
-	CLOSE,
-	UNKNOWN
-};
+	bool read; // POLLIN
+	bool write; // POLLOUT
+	bool disconnect; // POLLHUP
+	bool error; // POLLERR
+}	t_socket_state;
 
 enum class e_complete_data
 {
@@ -36,27 +35,28 @@ enum class e_complete_data
 
 typedef struct s_socket_data
 {
-	int fd;
-	int port;
-	e_socket_state state;
 	Socket socket;
+	int fd;
+	t_socket_state states;
 	std::stringstream buffer;
 
-	s_socket_data(int fd, int port, e_socket_state state, Socket socket, std::stringstream&& buffer)
-		: fd(fd), port(port), state(state), socket(socket), buffer(std::move(buffer)) {}
+	s_socket_data(int fd, Socket socket)
+		: socket(socket), fd(fd), buffer(std::stringstream()) {};
+	s_socket_data(Config &config)
+		: socket(config), fd(socket.getSocketFd()), buffer(std::stringstream()) {};
 } t_socket_data;
 
 class Server
 {
 	private:
-		Config	&					_config;
+		Config			&			_config;
 		t_socket_data				_listening_socket;
 		std::vector<t_socket_data>	_sockets;
 
 		// Private methods
 		void updatePoll();
 		e_complete_data isDataComplete(t_socket_data &socket);
-		void handleRequest(t_socket_data& socket);
+		// void handleRequest(t_socket_data& socket);
 
 	public:
 		// Constructors and destructors

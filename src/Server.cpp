@@ -2,45 +2,34 @@
 #include "Socket.hpp"
 
 //Setup the listening socket and push it to the vector of sockets
-Server::Server(Config &config) : _config(config), _listening_socket{Socket(config).getSocketFd(), config.getPort(), e_socket_state::READ, Socket(config), std::stringstream()}
+Server::Server(Config &config) : _config(config), _listening_socket{config}
 {
-	try
-	{
-		Logger::Log(LogLevel::INFO, "Server initialized on " + _config.getHost() + ":" + std::to_string(_config.getPort()));
-	}
-	catch (const std::exception& e)
-	{
-		Logger::Log(LogLevel::ERROR, "Server initialization failed: " + std::string(e.what()));
-		throw;
-	}
+	Logger::Log(LogLevel::INFO, "Server initialized on " + _config.getHost() + ":" + std::to_string(_config.getPort()));
 }
 
+// POLLIN    // Ready to read (incoming requests/data)
+// POLLOUT   // Ready to write (sending responses)
+// POLLHUP   // Client disconnected
+// POLLERR   // Error occurred
 void Server::updatePoll()
 {
 	// Fill the vector of pollfd with the sockets
 	std::vector<struct pollfd> fds;
-
-	//listening socket
-	struct pollfd listen_pfd;
-	listen_pfd.fd = _listening_socket.socket.getSocketFd();
-	listen_pfd.events = POLLIN;  // Only needs to accept connections therefore always POLLIN
-	fds.push_back(listen_pfd);
 
 	//client sockets
 	for (size_t i = 0; i < _sockets.size(); ++i)
 	{
 		struct pollfd pfd;
 		pfd.fd = _sockets[i].socket.getSocketFd();
-		
-		if (_sockets[i].state == e_socket_state::READ)
-			pfd.events = POLLIN;
-		else if (_sockets[i].state == e_socket_state::WRITE)
-			pfd.events = POLLOUT;
-		else
-			pfd.events = POLLIN | POLLOUT; //watch both if unsure
-			
+		pfd.events = POLLIN | POLLOUT | POLLHUP | POLLERR; //watch all events
 		fds.push_back(pfd);
 	}
+
+	//listening socket
+	struct pollfd listen_pfd;
+	listen_pfd.fd = _listening_socket.socket.getSocketFd();
+	listen_pfd.events = POLLIN | POLLOUT | POLLERR | POLLHUP;  // Only needs to accept connections therefore always POLLIN
+	fds.push_back(listen_pfd);
 
 	//poll trough every socket and check if there is any data to read
 	int ret = poll(fds.data(), fds.size(), -1);
@@ -51,73 +40,52 @@ void Server::updatePoll()
 	}
 
 	// Handle events
-	for (size_t i = 0; i < fds.size(); ++i)
+	unsigned long fdIndex = -1;
+	while (++fdIndex < _sockets.size())
 	{
-		if (fds[i].revents & POLLIN)
+		_sockets[fdIndex].states.read = fds[fdIndex].revents & POLLIN;
+		_sockets[fdIndex].states.write = fds[fdIndex].revents & POLLOUT;
+		_sockets[fdIndex].states.disconnect = fds[fdIndex].revents & POLLHUP;
+		_sockets[fdIndex].states.error = fds[fdIndex].revents & POLLERR;
+
+		if (_sockets[fdIndex].states.read)
 		{
-			// Listening socket
-			if (i == 0)
-			{
-				// Handle new connection directly here
-				struct sockaddr_in client_addr;
-				socklen_t addrlen = sizeof(client_addr);
-				int client_fd = accept(_listening_socket.socket.getSocketFd(), (struct sockaddr*)&client_addr, &addrlen);
-				if (client_fd < 0)
-				{
-					Logger::Log(LogLevel::ERROR, "Failed to accept new client connection: " + std::string(strerror(errno)));
-					continue;
-				}
-
-				_listening_socket.socket.setNonBlockingSocket(client_fd);
-
-				Socket clientSocket(_config);
-				clientSocket.setSocketFd(client_fd);
-				_sockets.emplace_back(client_fd, -1, e_socket_state::READ, clientSocket, std::stringstream());
-			}
-			else // Client socket
-			{
-				// Read data from client in buffer
-				_sockets[i].state = e_socket_state::READ;
-				char buffer[_config.getClientMaxBodySize()];
-				ssize_t bytes = recv(_sockets[i].fd, buffer, sizeof(buffer), 0);
-
-				// Handle errors
-				if (bytes <= 0 || bytes > _config.getClientMaxBodySize())
-				{
-					if (bytes <= 0)
-						Logger::Log(LogLevel::INFO, "Connection closed by client");
-					else if (bytes > _config.getClientMaxBodySize()) //as far as i know if that gets triggered we should display a 413 http error
-						Logger::Log(LogLevel::ERROR, "Client sent too much data, closing socket");
-					_sockets[i].state = e_socket_state::CLOSE;
-					_sockets[i].socket.closeSocket(_sockets[i].fd);
-					_sockets.erase(_sockets.begin() + i);
-					--i;
-				}
-				// Write data to buffer
-				_sockets[i].buffer.write(buffer, bytes);
-			}
+			// Read data from client in buffer
+			_sockets[fdIndex].buffer << _sockets[fdIndex].socket.receiveData();
 		}
-		else if (fds[i].revents & POLLOUT)
+		else if (_sockets[fdIndex].states.write)
 		{
-			_sockets[i].state = e_socket_state::WRITE;
+			// Handle response
+			Request req(_sockets[fdIndex].buffer.str());
+			Response response(req, _config);
+			_sockets[fdIndex].socket.sendData(response);
 		}
-		else if (fds[i].revents & (POLLHUP | POLLERR))
+		else if (_sockets[fdIndex].states.disconnect || _sockets[fdIndex].states.error)
 		{
-			if (fds[i].revents & POLLHUP)
+			if (_sockets[fdIndex].states.disconnect)
 				Logger::Log(LogLevel::INFO, "Client disconnected");
 			else
 				Logger::Log(LogLevel::ERROR, "Error occurred on client socket: " + std::string(strerror(errno)));
-			_sockets[i].state = e_socket_state::CLOSE;
-			_sockets[i].socket.closeSocket(_sockets[i].fd);
-			_sockets.erase(_sockets.begin() + i);
-			--i;
+			_sockets.erase(_sockets.begin() + fdIndex);
 		}
 	}
-	// Events to watch for
-	// POLLIN    // Ready to read (incoming requests/data)
-	// POLLOUT   // Ready to write (sending responses)
-	// POLLHUP   // Client disconnected
-	// POLLERR   // Error occurred
+
+	// Listening socket -> Handle new connection directly here
+	_listening_socket.states.read = fds[fdIndex].revents & POLLIN;
+	_listening_socket.states.write = fds[fdIndex].revents & POLLOUT;
+	_listening_socket.states.disconnect = fds[fdIndex].revents & POLLHUP;
+	_listening_socket.states.error = fds[fdIndex].revents & POLLERR;
+
+	struct sockaddr_in client_addr;
+	socklen_t addrlen = sizeof(struct sockaddr_in);
+	int client_fd = accept(_listening_socket.socket.getSocketFd(), (struct sockaddr*)&client_addr, &addrlen);
+	if (client_fd >= 0)
+	{
+		Socket clientSocket(_config, client_fd);
+		_sockets.emplace_back(client_fd, clientSocket);
+	}
+	else
+		Logger::Log(LogLevel::ERROR, "Failed to accept new client connection: " + std::string(strerror(errno)));
 }
 
 e_complete_data Server::isDataComplete(t_socket_data &socket) // used an enum
@@ -125,25 +93,29 @@ e_complete_data Server::isDataComplete(t_socket_data &socket) // used an enum
 	std::string data = socket.buffer.str();
 	std::regex pattern(HTTP_MIN_HEADER_PATTERN);
 
+	// Case 0: Ensure buffer is not encumulating the entirety of the lord of the rings trilogy
+	if (data.size() > _config.getClientMaxBodySize())
+	{
+		_sockets.erase(std::remove_if(_sockets.begin(), _sockets.end(), [&socket](const t_socket_data &s) { return s.fd == socket.fd; }), _sockets.end());
+		return e_complete_data::INCOMPLETE;
+	}
+
 	// Case 1: Check if data is empty or something else than POST/DELETE/GET -> Incomplete
 	if (data.empty() || (data.find("POST") == std::string::npos && data.find("DELETE") == std::string::npos && data.find("GET") == std::string::npos))
 	{
-		socket.state = e_socket_state::READ;
 		return e_complete_data::INCOMPLETE;
 	}
-	
+
 	// Case 2: Check for chunked transfer -> Chunked finished or unfinished
 	if (data.find("Transfer-Encoding: chunked") != std::string::npos && std::regex_match(data, pattern))
 	{
 		if (data.find("0\r\n\r\n") != std::string::npos)
 		{
-			socket.state = e_socket_state::WRITE;
 			return e_complete_data::CHUNKED_FINISHED;
 		}
-		socket.state = e_socket_state::READ;
 		return e_complete_data::CHUNKED_UNFINISHED;
 	}
-	
+
 	// Case 3: Check Content-Length -> Complete or Incomplete
 	if (data.find("Content-Length: ") != std::string::npos && std::regex_match(data, pattern))
 	{
@@ -153,12 +125,10 @@ e_complete_data Server::isDataComplete(t_socket_data &socket) // used an enum
 			size_t contentLength = std::stoi(data.substr(data.find("Content-Length: ") + 16, headerEnd - data.find("Content-Length: ") - 16));
 			if (data.size() - headerEnd - 4 >= contentLength)
 			{
-				socket.state = e_socket_state::WRITE;
 				return e_complete_data::COMPLETE;
 			}
 		}
 	}
-	socket.state = e_socket_state::READ;
 	return e_complete_data::INCOMPLETE;
 }
 
@@ -180,17 +150,17 @@ void Server::Run()
 		// Process received data
 		for (size_t i = 0; i < _sockets.size(); ++i)
 		{
-			e_complete_data status = isDataComplete(_sockets[i]);
 			try
 			{
-				std::string data = _sockets[i].socket.receiveData(_sockets[i].fd);
+				std::string data = _sockets[i].socket.receiveData();
+				e_complete_data status = isDataComplete(_sockets[i]);
 				Request req(data);
 				Response response(req, _config);
 				switch (status)
 				{
 					case e_complete_data::COMPLETE:
 					case e_complete_data::CHUNKED_FINISHED:
-						_sockets[i].socket.sendData(response, _sockets[i].fd);
+						_sockets[i].socket.sendData(response);
 						break;
 									
 					case e_complete_data::CHUNKED_UNFINISHED:
@@ -199,9 +169,9 @@ void Server::Run()
 						break;
 				}
 			}
-			catch (...)
+			catch (const std::exception &e)
 			{
-				std::cout << "The show goes on" << std::endl; //yep testing purposes
+				std::cout << e.what() << "But the show must go on" << std::endl; //yep testing purposes
 			}
 		}
 	}
