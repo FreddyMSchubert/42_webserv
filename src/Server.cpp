@@ -39,42 +39,11 @@ void Server::updatePoll()
 		return;
 	}
 
-	// Handle events
-	unsigned long fdIndex = -1;
-	while (++fdIndex < _sockets.size())
-	{
-		_sockets[fdIndex].states.read = fds[fdIndex].revents & POLLIN;
-		_sockets[fdIndex].states.write = fds[fdIndex].revents & POLLOUT;
-		_sockets[fdIndex].states.disconnect = fds[fdIndex].revents & POLLHUP;
-		_sockets[fdIndex].states.error = fds[fdIndex].revents & POLLERR;
-
-		if (_sockets[fdIndex].states.read)
-		{
-			// Read data from client in buffer
-			_sockets[fdIndex].buffer << _sockets[fdIndex].socket.receiveData();
-		}
-		else if (_sockets[fdIndex].states.write)
-		{
-			// Handle response
-			Request req(_sockets[fdIndex].buffer.str());
-			Response response(req, _config);
-			_sockets[fdIndex].socket.sendData(response);
-		}
-		else if (_sockets[fdIndex].states.disconnect || _sockets[fdIndex].states.error)
-		{
-			if (_sockets[fdIndex].states.disconnect)
-				Logger::Log(LogLevel::INFO, "Client disconnected");
-			else
-				Logger::Log(LogLevel::ERROR, "Error occurred on client socket: " + std::string(strerror(errno)));
-			_sockets.erase(_sockets.begin() + fdIndex);
-		}
-	}
-
 	// Listening socket -> Handle new connection directly here
-	_listening_socket.states.read = fds[fdIndex].revents & POLLIN;
-	_listening_socket.states.write = fds[fdIndex].revents & POLLOUT;
-	_listening_socket.states.disconnect = fds[fdIndex].revents & POLLHUP;
-	_listening_socket.states.error = fds[fdIndex].revents & POLLERR;
+	_listening_socket.states.read = fds[fds.size() - 1].revents & POLLIN;
+	_listening_socket.states.write = fds[fds.size() - 1].revents & POLLOUT;
+	_listening_socket.states.disconnect = fds[fds.size() - 1].revents & POLLHUP;
+	_listening_socket.states.error = fds[fds.size() - 1].revents & POLLERR;
 
 	struct sockaddr_in client_addr;
 	socklen_t addrlen = sizeof(struct sockaddr_in);
@@ -86,6 +55,39 @@ void Server::updatePoll()
 	}
 	else
 		Logger::Log(LogLevel::ERROR, "Failed to accept new client connection: " + std::string(strerror(errno)));
+
+	// Handle events
+	unsigned long fdIndex = -1;
+	unsigned long sockIndex = -1;
+	while (++fdIndex < _sockets.size() && ++sockIndex < fds.size())
+	{
+		_sockets[sockIndex].states.read = fds[fdIndex].revents & POLLIN;
+		_sockets[sockIndex].states.write = fds[fdIndex].revents & POLLOUT;
+		_sockets[sockIndex].states.disconnect = fds[fdIndex].revents & POLLHUP;
+		_sockets[sockIndex].states.error = fds[fdIndex].revents & POLLERR;
+
+		if (_sockets[sockIndex].states.read)
+		{
+			// Read data from client in buffer
+			_sockets[sockIndex].buffer << _sockets[fdIndex].socket.receiveData();
+		}
+		else if (_sockets[sockIndex].states.write)
+		{
+			// Handle response
+			Request req(_sockets[sockIndex].buffer.str());
+			Response response(req, _config);
+			_sockets[sockIndex].socket.sendData(response);
+		}
+		else if (_sockets[sockIndex].states.disconnect || _sockets[sockIndex].states.error)
+		{
+			if (_sockets[sockIndex].states.disconnect)
+				Logger::Log(LogLevel::INFO, "Client disconnected");
+			else
+				Logger::Log(LogLevel::ERROR, "Error occurred on client socket: " + std::string(strerror(errno)));
+			_sockets.erase(_sockets.begin() + sockIndex);
+			sockIndex--;
+		}
+	}
 }
 
 e_complete_data Server::isDataComplete(t_socket_data &socket) // used an enum
@@ -177,11 +179,11 @@ void Server::Run()
 	}
 }
 
-//How it should work: (i havent written everything but the idea is there)
-//1. We create a listening socket (Constructor)
-//2. After that we call Run in to start the server (Constructor)
-//3. In Run we will loop trough the sockets and check if there is any data to read for the server (updatePoll)
-//4. If there is data we will check if the data is complete (and chunked or not and how to handle it) (isDataComplete)
-//5. If the data is complete we will send a response back to the client (Run)
+// How it should work: (i havent written everything but the idea is there)
+// 1. We create a listening socket (Constructor)
+// 2. After that we call Run in to start the server (Constructor)
+// 3. In Run we will loop trough the sockets and check if there is any data to read for the server (updatePoll)
+// 4. If there is data we will check if the data is complete (and chunked or not and how to handle it) (isDataComplete)
+// 5. If the data is complete we will send a response back to the client (Run)
 
-//one thing: currently we are not using e_socket_state for anything its just there maybe for debugging but else its useless
+// one thing: currently we are not using e_socket_state for anything its just there maybe for debugging but else its useless
