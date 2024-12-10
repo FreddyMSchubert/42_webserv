@@ -4,10 +4,10 @@ void Response::handle_file_req(Config &config, FilePath &path)
 {
 	setPath(path.asUrl());
 
-	if (!isAllowedMethodAt(config, path, Method::GET))
+	if (!get_location(config, path.asUrl()).allowed_methods[static_cast<int>(Method::GET)])
 	{
-		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
-		setStatus(Status::MethodNotAllowed);
+		Logger::Log(LogLevel::WARNING, "GET: Location not found");
+		setStatus(Status::NotFound);
 		return;
 	}
 
@@ -71,7 +71,7 @@ void Response::handle_dir_req(Config &config, Path &path)
 {
 	t_location location = get_location(config, path.asFilePath());
 
-	if (!isAllowedMethodAt(config, path, Method::GET))
+	if (!get_location(config, path.asUrl()).allowed_methods[static_cast<int>(Method::GET)])
 	{
 		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
 		setStatus(Status::MethodNotAllowed);

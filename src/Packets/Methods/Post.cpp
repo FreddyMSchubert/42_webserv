@@ -19,7 +19,7 @@ void Response::handlePost(Request& req, Config &config)
 
 	t_location location = get_location(config, Path(path, Path::Type::URL, config).asFilePath());
 
-	if (!isAllowedMethodAt(config, Path(path, Path::Type::URL, config), Method::POST))
+	if (!get_location(config, Path(path, Path::Type::URL, config).asUrl()).allowed_methods[static_cast<int>(Method::POST)])
 	{
 		std::cerr << "POST method not allowed" << std::endl;
 		setStatus(Status::Forbidden);
@@ -94,7 +94,11 @@ void Response::handlePost(Request& req, Config &config)
 		return ;
 	}
 
-	setNonBlocking(fd);
+	int flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1)
+		throw std::runtime_error("Failed to get socket flags");
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+		throw std::runtime_error("Failed to set non-blocking mode");
 
 	if (write(fd, content.c_str(), content_length) == -1)
 	{
