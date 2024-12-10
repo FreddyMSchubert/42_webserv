@@ -54,6 +54,7 @@ Socket::Socket(Config &config) : _config(config)
 		throw std::runtime_error(e.what());
 	}
 }
+
 // Client socket constructor
 Socket::Socket(Config &config, int fd) : _config(config)
 {
@@ -61,19 +62,47 @@ Socket::Socket(Config &config, int fd) : _config(config)
 	Logger::Log(LogLevel::INFO, "Running Client Connection Socket...");
 }
 
-Socket &Socket::operator=(const Socket& copy)
+// Socket.cpp
+
+// Move constructor
+Socket::Socket(Socket&& other) noexcept
+	: _socket_fd(other._socket_fd),
+	_socket(other._socket),
+	_config(other._config)
 {
-	_socket_fd = dup(copy._socket_fd);
-	_socket = copy._socket;
-	_config = copy._config;
-	return *this;
-}
-Socket::~Socket()
-{
-	close(_socket_fd);
-	Logger::Log(LogLevel::INFO, "Socket " + std::to_string(_socket_fd) + " closed");
+	other._socket_fd = -1; // Mark as moved; prevents double close
 }
 
+// Move assignment operator
+Socket& Socket::operator=(Socket&& other) noexcept
+{
+	if (this != &other)
+	{
+		// Close existing socket if necessary
+		if (_socket_fd >= 0)
+		{
+			close(_socket_fd);
+		}
+
+		_socket_fd = other._socket_fd;
+		_socket = other._socket;
+		// Assuming _config is a reference to shared config; no need to move
+		// If _config is an owning pointer, adjust accordingly
+
+		other._socket_fd = -1; // Mark as moved
+	}
+	return *this;
+}
+
+// Modify destructor to handle moved state
+Socket::~Socket()
+{
+	if (_socket_fd >= 0)
+	{
+		close(_socket_fd);
+		Logger::Log(LogLevel::INFO, "Socket " + std::to_string(_socket_fd) + " closed");
+	}
+}
 
 void Socket::sendData(Response &response)
 {
@@ -88,6 +117,8 @@ void Socket::sendData(Response &response)
 }
 
 // TODO: handle protocols other then HTTP (probably not) that dont send \r\n\r\n in the end
+// Socket.cpp
+
 std::string Socket::receiveData()
 {
 	std::string data;
@@ -98,21 +129,26 @@ std::string Socket::receiveData()
 	if (received > 0)
 	{
 		data.append(buffer, received);
-		if (data.find("\r\n\r\n") != std::string::npos)
-			return data;
+		// Process data...
 	}
 	else if (received < 0)
 	{
 		Logger::Log(LogLevel::ERROR, "Failed to receive data: " + std::string(strerror(errno)));
-		close(_socket_fd);
 		throw std::runtime_error("Failed to receive data");
-		return data;
+	}
+	else // received == 0
+	{
+		// Connection closed by client
+		throw std::runtime_error("Client disconnected");
 	}
 
 	if (data.empty())
-		Logger::Log(LogLevel::WARNING, "Tried to receive data but received nothing");
+	{
+		Logger::Log(LogLevel::WARNING, "Received no data");
+	}
 	return data;
 }
+
 void Socket::sendRedirect(const std::string& new_url)
 {
 	std::string response = "HTTP/1.1 302 Found\r\n";

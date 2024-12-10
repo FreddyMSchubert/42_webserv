@@ -137,8 +137,7 @@ void Server::Run()
 		int client_fd = accept(_listening_socket.socket.getSocketFd(), (struct sockaddr*)&client_addr, &addrlen);
 		if (client_fd >= 0)
 		{
-			Socket clientSocket(_config, client_fd);
-			_sockets.emplace_back(client_fd, clientSocket);
+			_sockets.emplace_back(client_fd, Socket(_config, client_fd));
 		}
 		else
 		{

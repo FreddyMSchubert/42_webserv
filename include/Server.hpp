@@ -26,11 +26,39 @@ typedef struct s_socket_data
 	t_socket_state states;
 	std::stringstream buffer;
 
-	s_socket_data(int fd, Socket socket)
-		: socket(socket), fd(fd), buffer(std::stringstream()) {};
-	s_socket_data(Config &config)
-		: socket(config), fd(socket.getSocketFd()), buffer(std::stringstream()) {};
-} t_socket_data;
+	// Existing constructors
+	s_socket_data(int fd, Socket socket) // Client socket constructor
+		: socket(std::move(socket)), fd(fd), buffer() {}
+	s_socket_data(Config &config) // Listening socket constructor
+		: socket(config), fd(socket.getSocketFd()), buffer() {}
+
+	// Delete copy constructor and copy assignment operator
+	s_socket_data(const s_socket_data&) = delete;
+	s_socket_data& operator=(const s_socket_data&) = delete;
+
+	// Add move constructor
+	s_socket_data(s_socket_data&& other) noexcept
+		: socket(std::move(other.socket)),
+		fd(other.fd),
+		states(other.states),
+		buffer(std::move(other.buffer))
+	{
+		// Optional: Reset other's state if necessary
+	}
+
+	// Add move assignment operator
+	s_socket_data& operator=(s_socket_data&& other) noexcept
+	{
+		if (this != &other)
+		{
+			socket = std::move(other.socket);
+			fd = other.fd;
+			states = other.states;
+			buffer = std::move(other.buffer);
+		}
+		return *this;
+	}
+}	t_socket_data;
 
 class Server
 {
