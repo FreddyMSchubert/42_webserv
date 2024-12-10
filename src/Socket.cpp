@@ -107,25 +107,14 @@ std::string Socket::receiveData()
 
 	received = recv(_socket_fd, buffer, sizeof(buffer), 0);
 	if (received > 0)
-	{
 		data.append(buffer, received);
-		// Process data...
-	}
 	else if (received < 0)
-	{
-		Logger::Log(LogLevel::ERROR, "Failed to receive data: " + std::string(strerror(errno)));
 		throw std::runtime_error("Failed to receive data");
-	}
-	else // received == 0
-	{
-		// Connection closed by client
+	else
 		throw std::runtime_error("Client disconnected");
-	}
 
 	if (data.empty())
-	{
 		Logger::Log(LogLevel::WARNING, "Received no data");
-	}
 	return data;
 }
 

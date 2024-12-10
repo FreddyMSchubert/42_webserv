@@ -11,8 +11,6 @@ void Response::handle_file_req(Config &config, FilePath &path)
 		return;
 	}
 
-	std::cout << "Get is allowed for path " << path.asUrl() << std::endl;
-
 	try
 	{
 		std::string file = path.getFileContents();

@@ -112,7 +112,17 @@ void Server::handleExistingConnections()
 		if (_sockets[i].states.read)
 		{
 			Logger::Log(LogLevel::INFO, "Reading data from client");
-			_sockets[i].buffer << _sockets[i].socket.receiveData();
+			try
+			{
+				_sockets[i].buffer << _sockets[i].socket.receiveData();
+			}
+			catch(const std::runtime_error &e)
+			{
+				Logger::Log(LogLevel::WARNING, "Erroneous packet data: " + std::string(e.what()));
+				_sockets.erase(_sockets.begin() + i);
+				i--;
+				continue;
+			}
 		}
 		if (_sockets[i].states.write)
 		{
