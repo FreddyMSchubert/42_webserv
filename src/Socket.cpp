@@ -61,22 +61,19 @@ Socket::Socket(Config &config, int fd) : _config(config)
 	Logger::Log(LogLevel::INFO, "Running Client Connection Socket...");
 }
 
-Socket &Socket::operator=(const Socket &copy)
+Socket &Socket::operator=(const Socket& copy)
 {
-	if (this != &copy)
-	{
-		this->_socket_fd = copy._socket_fd;
-		this->_socket = copy._socket;
-		this->_config = copy._config;
-	}
-	return (*this);
+	_socket_fd = dup(copy._socket_fd);
+	_socket = copy._socket;
+	_config = copy._config;
+	return *this;
 }
-
 Socket::~Socket()
 {
 	close(_socket_fd);
 	Logger::Log(LogLevel::INFO, "Socket " + std::to_string(_socket_fd) + " closed");
 }
+
 
 void Socket::sendData(Response &response)
 {

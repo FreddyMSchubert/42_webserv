@@ -30,7 +30,7 @@
 class Socket
 {
 	private:
-		int _socket_fd;
+		int _socket_fd = -1;
 		struct sockaddr_in _socket;
 		Config &_config;
 
