@@ -53,9 +53,13 @@ bool Server::isDataComplete(t_socket_data &socket)
 {
 	std::string data = socket.buffer.str();
 
-	// Step 1: Ensure buffer is not encumulating the entirety of the lord of the rings trilogy
+	// Step 1: Ensure buffer is not giant
 	if (data.size() > _config.getClientMaxBodySize())
 		throw std::runtime_error("Client data size exceeded maximum body size");
+
+	size_t headerEnd = data.find("\r\n\r\n");
+	if (headerEnd == std::string::npos)
+		return false;
 
 	// Step 2: Check for complete content (chunked transfer encoding)
 	if (data.find("Transfer-Encoding: chunked") != std::string::npos)
@@ -79,7 +83,7 @@ bool Server::isDataComplete(t_socket_data &socket)
 	// ...
 	// TODO
 
-	return data.find("\r\n\r\n") != std::string::npos; // Step 5: Check for complete content (no content-length)
+	return true; // Step 5: No body & header is done
 }
 
 void Server::acceptNewConnections()
@@ -97,10 +101,7 @@ void Server::acceptNewConnections()
 			_sockets.emplace_back(client_fd, Socket(_config, client_fd));
 		}
 		else
-		{
-			Logger::Log(LogLevel::ERROR, "Failed to accept new client connection: " + std::string(strerror(errno)));
-			return;
-		}
+			break;
 	}
 }
 
@@ -127,9 +128,6 @@ void Server::handleExistingConnections()
 				i--;
 				continue;
 			}
-			std::cout << "Data complete: " << (dataComplete ? "true" : "false") << std::endl;
-			std::cout << "Data: \"\"\"" << _sockets[i].buffer.str() << "\"\"\"" << std::endl;
-			std::cout << "\n\n\n" << std::endl;
 			if (dataComplete)
 			{
 				Logger::Log(LogLevel::INFO, "Sending response to client");
@@ -137,6 +135,7 @@ void Server::handleExistingConnections()
 				Response res(req, _config);
 				_sockets[i].socket.sendData(res);
 				_sockets.erase(_sockets.begin() + i);
+				i--;
 			}
 		}
 		if (_sockets[i].states.disconnect || _sockets[i].states.error)
