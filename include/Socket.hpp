@@ -32,25 +32,18 @@ class Socket
 private:
 	int _socket_fd = -1;
 	struct sockaddr_in _socket;
-	Config &_config; // Assuming Config is a non-owning reference
+	Config &_config;
 
 public:
 	// Existing constructors
 	Socket(Config &config, int fd); // Client socket constructor
 	Socket(Config &config); // Listening socket constructor
-
-	// Delete copy constructor and copy assignment operator
 	Socket(const Socket&) = delete;
 	Socket& operator=(const Socket&) = delete;
-
-	// Add move constructor
-	Socket(Socket&& other) noexcept;
-
-	// Add move assignment operator
-	Socket& operator=(Socket&& other) noexcept;
-
-	// Destructor
 	~Socket();
+
+	Socket(Socket&& other) noexcept;
+	Socket& operator=(Socket&& other) noexcept;
 
 	int getSocketFd() const { return _socket_fd; }
 	std::string receiveData();

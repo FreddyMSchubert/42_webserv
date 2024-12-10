@@ -136,12 +136,8 @@ void Server::Run()
 		socklen_t addrlen = sizeof(struct sockaddr_in);
 		int client_fd = accept(_listening_socket.socket.getSocketFd(), (struct sockaddr*)&client_addr, &addrlen);
 		if (client_fd >= 0)
-		{
 			_sockets.emplace_back(client_fd, Socket(_config, client_fd));
-		}
 		else
-		{
 			Logger::Log(LogLevel::ERROR, "Failed to accept new client connection: " + std::string(strerror(errno)));
-		}
 	}
 }

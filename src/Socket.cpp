@@ -54,7 +54,6 @@ Socket::Socket(Config &config) : _config(config)
 		throw std::runtime_error(e.what());
 	}
 }
-
 // Client socket constructor
 Socket::Socket(Config &config, int fd) : _config(config)
 {
@@ -62,9 +61,6 @@ Socket::Socket(Config &config, int fd) : _config(config)
 	Logger::Log(LogLevel::INFO, "Running Client Connection Socket...");
 }
 
-// Socket.cpp
-
-// Move constructor
 Socket::Socket(Socket&& other) noexcept
 	: _socket_fd(other._socket_fd),
 	_socket(other._socket),
@@ -72,29 +68,17 @@ Socket::Socket(Socket&& other) noexcept
 {
 	other._socket_fd = -1; // Mark as moved; prevents double close
 }
-
-// Move assignment operator
 Socket& Socket::operator=(Socket&& other) noexcept
 {
-	if (this != &other)
-	{
-		// Close existing socket if necessary
-		if (_socket_fd >= 0)
-		{
-			close(_socket_fd);
-		}
-
-		_socket_fd = other._socket_fd;
-		_socket = other._socket;
-		// Assuming _config is a reference to shared config; no need to move
-		// If _config is an owning pointer, adjust accordingly
-
-		other._socket_fd = -1; // Mark as moved
-	}
+	if (this == &other)
+		return *this;
+	if (_socket_fd >= 0)
+		close(_socket_fd);
+	_socket_fd = other._socket_fd;
+	_socket = other._socket;
+	other._socket_fd = -1; // Mark as moved; prevents double close
 	return *this;
 }
-
-// Modify destructor to handle moved state
 Socket::~Socket()
 {
 	if (_socket_fd >= 0)
