@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 	{
 		for (auto &config : configs)
 		{
-			std::cout  << "Server: " << config.getHost() << ":" << config.getPort() << std::endl;
+			Logger::Log(LogLevel::INFO, "Initializing Server: " + config.getHost() + ":" + std::to_string(config.getPort()));
 			servers.emplace_back(config);
 		}
 

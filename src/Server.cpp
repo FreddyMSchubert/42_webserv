@@ -79,7 +79,7 @@ bool Server::isDataComplete(t_socket_data &socket)
 	// ...
 	// TODO
 
-	return false;
+	return data.find("\r\n\r\n") != std::string::npos; // Step 5: Check for complete content (no content-length)
 }
 
 void Server::acceptNewConnections()
@@ -92,7 +92,10 @@ void Server::acceptNewConnections()
 		socklen_t addrlen = sizeof(struct sockaddr_in);
 		int client_fd = accept(_listening_socket.socket.getSocketFd(), (struct sockaddr*)&client_addr, &addrlen);
 		if (client_fd >= 0)
+		{
+			Logger::Log(LogLevel::INFO, "New client connected");
 			_sockets.emplace_back(client_fd, Socket(_config, client_fd));
+		}
 		else
 		{
 			Logger::Log(LogLevel::ERROR, "Failed to accept new client connection: " + std::string(strerror(errno)));
@@ -107,6 +110,7 @@ void Server::handleExistingConnections()
 	{
 		if (_sockets[i].states.read)
 		{
+			Logger::Log(LogLevel::INFO, "Reading data from client");
 			_sockets[i].buffer << _sockets[i].socket.receiveData();
 		}
 		if (_sockets[i].states.write)
@@ -118,16 +122,21 @@ void Server::handleExistingConnections()
 			}
 			catch (const std::runtime_error &e)
 			{
-				Logger::Log(LogLevel::ERROR, e.what());
+				Logger::Log(LogLevel::WARNING, "Erroneous packet data: " + std::string(e.what()));
 				_sockets.erase(_sockets.begin() + i);
 				i--;
 				continue;
 			}
+			std::cout << "Data complete: " << (dataComplete ? "true" : "false") << std::endl;
+			std::cout << "Data: \"\"\"" << _sockets[i].buffer.str() << "\"\"\"" << std::endl;
+			std::cout << "\n\n\n" << std::endl;
 			if (dataComplete)
 			{
+				Logger::Log(LogLevel::INFO, "Sending response to client");
 				Request req(_sockets[i].buffer.str());
 				Response res(req, _config);
 				_sockets[i].socket.sendData(res);
+				_sockets.erase(_sockets.begin() + i);
 			}
 		}
 		if (_sockets[i].states.disconnect || _sockets[i].states.error)
