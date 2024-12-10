@@ -56,7 +56,8 @@ class Server
 
 		void updatePoll();
 		bool isDataComplete(t_socket_data &socket);
-		// void handleRequest(t_socket_data& socket);
+		void acceptNewConnections();
+		void handleExistingConnections();
 
 	public:
 		Server(Config &config);

@@ -30,7 +30,7 @@ Socket::Socket(Config &config) : _config(config)
 		if (bind(_socket_fd, (struct sockaddr *)&_socket, sizeof(_socket)) < 0)
 		{	
 			close(_socket_fd);
-			throw std::runtime_error("Failed to bind socket");
+			throw std::runtime_error("Failed to bind socket" + std::to_string(_socket_fd));
 		}
 
 		if (listen(_socket_fd, 10) == -1)
@@ -44,13 +44,12 @@ Socket::Socket(Config &config) : _config(config)
 		// set non-blocking
 		int flags = fcntl(_socket_fd, F_GETFL, 0);
 		if (flags == -1)
-			throw std::runtime_error("Failed to get socket flags");
+			throw std::runtime_error("Failed to get socket " + std::to_string(_socket_fd) + " flags");
 		if (fcntl(_socket_fd, F_SETFL, flags | O_NONBLOCK) == -1)
-			throw std::runtime_error("Failed to set non-blocking mode");
+			throw std::runtime_error("Failed to set non-blocking mode on socket " + std::to_string(_socket_fd));
 	}
 	catch(const std::exception &e)
 	{
-		std::cout << "Hi there" << std::endl;
 		throw std::runtime_error(e.what());
 	}
 }
@@ -58,7 +57,7 @@ Socket::Socket(Config &config) : _config(config)
 Socket::Socket(Config &config, int fd) : _config(config)
 {
 	_socket_fd = fd;
-	Logger::Log(LogLevel::INFO, "Running Client Connection Socket...");
+	Logger::Log(LogLevel::INFO, "Running Client Connection Socket " + std::to_string(_socket_fd) + "...");
 }
 
 Socket::Socket(Socket&& other) noexcept
@@ -99,9 +98,6 @@ void Socket::sendData(Response &response)
 	else
 		Logger::Log(LogLevel::INFO, "Data sent!");
 }
-
-// TODO: handle protocols other then HTTP (probably not) that dont send \r\n\r\n in the end
-// Socket.cpp
 
 std::string Socket::receiveData()
 {

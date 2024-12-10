@@ -77,67 +77,77 @@ bool Server::isDataComplete(t_socket_data &socket)
 
 	// Step 4: Check for stale packet
 	// ...
+	// TODO
 
 	return false;
 }
 
-void Server::Run()
+void Server::acceptNewConnections()
 {
-	//continuously looping is very resource intensive for that we might use epoll or select
-	// why is this an issue? this loop is all there is. what would it take the resources from?
+	if (!_listening_socket.states.read)
+		return;
 	while (true)
 	{
-		// Monitor sockets
-		updatePoll();
-
-		// Handle existing connections
-		for (size_t i = 0; i < _sockets.size(); i++)
-		{
-			if (_sockets[i].states.read)
-			{
-				// Read data from client in buffer
-				_sockets[i].buffer << _sockets[i].socket.receiveData();
-			}
-			else if (_sockets[i].states.write)
-			{
-				// Handle response
-				bool dataComplete;
-				try
-				{
-					dataComplete = isDataComplete(_sockets[i]);
-				}
-				catch (const std::runtime_error &e)
-				{
-					Logger::Log(LogLevel::ERROR, e.what());
-					_sockets.erase(_sockets.begin() + i);
-					i--;
-					continue;
-				}
-				if (dataComplete)
-				{
-					Request req(_sockets[i].buffer.str());
-					Response res(req, _config);
-					_sockets[i].socket.sendData(res);
-				}
-			}
-			else if (_sockets[i].states.disconnect || _sockets[i].states.error)
-			{
-				if (_sockets[i].states.disconnect)
-					Logger::Log(LogLevel::INFO, "Client disconnected");
-				else
-					Logger::Log(LogLevel::ERROR, "Error occurred on client socket: " + std::string(strerror(errno)));
-				_sockets.erase(_sockets.begin() + i);
-				i--;
-			}
-		}
-
-		// Accept new connections
 		struct sockaddr_in client_addr;
 		socklen_t addrlen = sizeof(struct sockaddr_in);
 		int client_fd = accept(_listening_socket.socket.getSocketFd(), (struct sockaddr*)&client_addr, &addrlen);
 		if (client_fd >= 0)
 			_sockets.emplace_back(client_fd, Socket(_config, client_fd));
 		else
+		{
 			Logger::Log(LogLevel::ERROR, "Failed to accept new client connection: " + std::string(strerror(errno)));
+			return;
+		}
+	}
+}
+
+void Server::handleExistingConnections()
+{
+	for (size_t i = 0; i < _sockets.size(); i++)
+	{
+		if (_sockets[i].states.read)
+		{
+			_sockets[i].buffer << _sockets[i].socket.receiveData();
+		}
+		if (_sockets[i].states.write)
+		{
+			bool dataComplete;
+			try
+			{
+				dataComplete = isDataComplete(_sockets[i]);
+			}
+			catch (const std::runtime_error &e)
+			{
+				Logger::Log(LogLevel::ERROR, e.what());
+				_sockets.erase(_sockets.begin() + i);
+				i--;
+				continue;
+			}
+			if (dataComplete)
+			{
+				Request req(_sockets[i].buffer.str());
+				Response res(req, _config);
+				_sockets[i].socket.sendData(res);
+			}
+		}
+		if (_sockets[i].states.disconnect || _sockets[i].states.error)
+		{
+			if (_sockets[i].states.disconnect)
+				Logger::Log(LogLevel::INFO, "Client disconnected");
+			else
+				Logger::Log(LogLevel::ERROR, "Error occurred on client socket: " + std::string(strerror(errno)));
+			_sockets.erase(_sockets.begin() + i);
+			i--;
+		}
+	}
+}
+
+void Server::Run()
+{
+	while (true)
+	{
+		updatePoll();
+		acceptNewConnections();
+		handleExistingConnections();
 	}
 }
