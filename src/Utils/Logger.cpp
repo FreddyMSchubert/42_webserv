@@ -11,7 +11,7 @@ void Logger::Log(LogLevel level, const std::string &message)
 	current_time += std::to_string(ltm->tm_mday) + " ";
 	current_time += std::to_string(ltm->tm_hour) + ":";
 	current_time += std::to_string(ltm->tm_min) + ":";
-	current_time += std::to_string(ltm->tm_sec) + "]\t";
+	current_time += std::to_string(ltm->tm_sec) + "] ";
 
 	std::string prefix("\033[1m");
 	switch (level)
@@ -24,9 +24,6 @@ void Logger::Log(LogLevel level, const std::string &message)
 			break;
 		case LogLevel::ERROR:
 			prefix = "\033[31m" + current_time + "[ERROR!]" + "\033[22m";
-			break;
-		case LogLevel::STAGE:
-			prefix = "\033[34m" + current_time + "[ STAGE]" + "\033[22m";
 			break;
 	}
 
