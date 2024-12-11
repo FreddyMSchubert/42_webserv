@@ -9,5 +9,5 @@
 	#define LOG_OUTGOING_PACKETS 0
 #endif
 #ifndef LOG_CONFIG_PARSING
-	#define LOG_CONFIG_PARSING true
+	#define LOG_CONFIG_PARSING false
 #endif

@@ -18,8 +18,8 @@ class Response : public Packet
 {
 	private:
 		void handleGet(Request& req, Config &config);
-			void handle_file_req(Config &config, FilePath &path);
-			void handle_dir_req(Config &config, Path &path);
+		void handle_file_req(Config &config, FilePath &path);
+		void handle_dir_req(Config &config, Path &path);
 		void handlePost(Request& req, Config &config);
 		void handleDelete(Request& req, Config &config);
 

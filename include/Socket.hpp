@@ -29,25 +29,26 @@
 
 class Socket
 {
-	private:
-		int _socket_pid;
-		struct sockaddr_in _socket;
-		std::vector<struct pollfd> _clients;
-		Config &_config;
-		void _connect();
-		void _close();
-		void _setNonBlocking(int fd);
-		std::string _receiveData(int client_fd);
-	public:
-		Socket(Config &config);
-		Socket(Socket&& other) noexcept = default;
-		Socket(const Socket &src) = delete;
-		Socket &operator=(const Socket &src) = delete;
-		~Socket();
-		void sendData(Response &response, int socket_fd);
-		void sendData(const std::string &data, int socket_fd);
-		void Run();
-		void closeSocket(int socket);
-		void redirectToError(int client_fd, int error_code);
-		void sendRedirect(int client_fd, const std::string& new_url);
+private:
+	int _socket_fd = -1;
+	struct sockaddr_in _socket;
+	Config &_config;
+
+public:
+	// Existing constructors
+	Socket(Config &config, int fd); // Client socket constructor
+	Socket(Config &config); // Listening socket constructor
+	Socket(const Socket&) = delete;
+	Socket& operator=(const Socket&) = delete;
+	~Socket();
+
+	Socket(Socket&& other) noexcept;
+	Socket& operator=(Socket&& other) noexcept;
+
+	int getSocketFd() const { return _socket_fd; }
+	std::string receiveData();
+	void sendRedirect(const std::string& new_url);
+	void redirectToError(int error_code);
+	void sendData(Response &response);
+	void sendData(std::string data);
 };

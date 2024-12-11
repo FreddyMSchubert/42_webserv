@@ -62,6 +62,7 @@ class Config
 		void extractConfigFromBrackets(std::vector<std::string> &lines, const std::string &data);
 
 	public:
+		Config();
 		Config(std::string data);
 		Config(const Config &other) = default;
 		Config &operator=(const Config &other) = default;

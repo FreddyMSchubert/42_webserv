@@ -14,9 +14,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-bool isAllowedMethodAt(Config &config, Path path, Method method);
 std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::string& path);
 t_location get_location(Config &config, std::string path);
-void setNonBlocking(int fd);
 std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, Config &config);
 std::string getFileData(std::string path);

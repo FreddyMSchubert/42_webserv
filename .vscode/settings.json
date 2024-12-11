@@ -75,7 +75,8 @@
 		"variant": "cpp",
 		"csignal": "cpp",
 		"regex": "cpp",
-		"__functional_base_03": "cpp"
+		"__functional_base_03": "cpp",
+		"list": "cpp"
 	},
 	"C_Cpp.default.compilerPath": "/usr/bin/clang++"
 }

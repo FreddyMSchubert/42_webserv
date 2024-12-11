@@ -65,6 +65,8 @@ re: fclean all
 run: all
 	@printf "$(GREEN)🏃 Running $(NAME)...$(RESET)\n"
 	@./$(NAME)
+ren: re
+	@./$(NAME)
 
 debug: re
 	@printf "$(CYAN)🐛 Debugging $(NAME)...$(RESET)\n"
@@ -78,4 +80,4 @@ rick:
 	@printf "$(BOLD)$(GREEN)🦜 Never gonna give you up!$(RESET)\n"
 	@curl -s -L https://raw.githubusercontent.com/keroserene/rickrollrc/master/roll.sh | bash
 
-.PHONY: all clean fclean re run debug parrot rick
+.PHONY: all clean fclean re run ren debug parrot rick
