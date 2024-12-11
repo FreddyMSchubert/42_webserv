@@ -98,7 +98,7 @@ void Server::acceptNewConnections()
 		if (client_fd >= 0)
 		{
 			Logger::Log(LogLevel::INFO, "New client connected");
-			_sockets.emplace_back(client_fd, Socket(_config, client_fd));
+			_sockets.emplace_back(client_fd, Socket(_config, client_fd), std::chrono::steady_clock::now());
 		}
 		else
 			break;
@@ -109,12 +109,20 @@ void Server::handleExistingConnections()
 {
 	for (int i = (int)_sockets.size() - 1; i >= 0; i--)
 	{
+		std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+		if (std::chrono::duration_cast<std::chrono::seconds>(now - _sockets[i].last_activity).count() > _config.getClientTimeout())
+		{
+			Logger::Log(LogLevel::INFO, "Client timed out");
+			_sockets.erase(_sockets.begin() + i);
+			continue;
+		}
 		if (_sockets[i].states.read)
 		{
 			Logger::Log(LogLevel::INFO, "Reading data from client");
 			try
 			{
 				_sockets[i].buffer << _sockets[i].socket.receiveData();
+				_sockets[i].last_activity = std::chrono::steady_clock::now();
 			}
 			catch(const std::runtime_error &e)
 			{

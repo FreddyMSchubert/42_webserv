@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include <array>
+#include <chrono>
 
 typedef struct s_socket_state
 {
@@ -25,9 +26,11 @@ typedef struct s_socket_data
 	int fd;
 	t_socket_state states;
 	std::stringstream buffer;
+	std::chrono::time_point<std::chrono::steady_clock> last_activity;
 
-	s_socket_data(int fd, Socket socket) // Client socket constructor
-		: socket(std::move(socket)), fd(fd), buffer() {}
+	s_socket_data(int fd, Socket socket,
+		std::chrono::time_point<std::chrono::steady_clock> last_activity) // Client socket constructor
+		: socket(std::move(socket)), fd(fd), buffer(), last_activity(last_activity) {}
 	s_socket_data(Config &config) // Listening socket constructor
 		: socket(config), fd(socket.getSocketFd()), buffer() {}
 	s_socket_data(const s_socket_data&) = delete;

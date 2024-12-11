@@ -12,13 +12,13 @@ Config::Config(std::string data)
 	extractConfigFromBrackets(lines, static_cast<const std::string&>(data));
 
 	// 2. parse each line, based on starting keyword
-	std::array<std::string, 7> keywords = {"listen", "server_name", "root", "index", "client_max_body_size", "error_page", "location"};
-	std::array<void (Config::*)(const std::string&), 7> parsers = {&Config::parseListen, &Config::parseServerName, &Config::parseRoot, &Config::parseIndex, &Config::parseClientMaxBodySize, &Config::parseErrorPage, &Config::parseLocation};
+	std::array<std::string, CONFIG_KEYWORD_COUNT> keywords = {"listen", "server_name", "root", "index", "client_max_body_size", "error_page", "location", "client_timeout"};
+	std::array<void (Config::*)(const std::string&), CONFIG_KEYWORD_COUNT> parsers = {&Config::parseListen, &Config::parseServerName, &Config::parseRoot, &Config::parseIndex, &Config::parseClientMaxBodySize, &Config::parseErrorPage, &Config::parseLocation, &Config::parseClientTimeout};
 	for (std::string &line : lines)
 	{
 		std::string keyword = line.substr(0, line.find(' '));
 		bool foundMatch = false;
-		for (int i = 0; i < 7; i++)
+		for (int i = 0; i < CONFIG_KEYWORD_COUNT; i++)
 		{
 			if (keyword == keywords[i])
 			{
@@ -193,6 +193,20 @@ void Config::parseErrorPage(const std::string & line)
 		Logger::Log(LogLevel::INFO, "Error pages:");
 		for (const auto &page : _error_pages)
 			Logger::Log(LogLevel::INFO, "Error " + std::to_string(page.first) + ": " + page.second.asUrl());
+	#endif
+}
+
+void Config::parseClientTimeout(const std::string & line)
+{
+	std::regex timeout_regex(R"(client_timeout\s+(\d+)s;)");
+	std::smatch match;
+	if (std::regex_match(line, match, timeout_regex))
+		_client_timeout = std::stoi(match[1]);
+	else
+		throw std::invalid_argument("Invalid client_timeout directive");
+
+	#if LOG_CONFIG_PARSING
+		Logger::Log(LogLevel::INFO, "Client timeout: " + std::to_string(_client_timeout));
 	#endif
 }
 

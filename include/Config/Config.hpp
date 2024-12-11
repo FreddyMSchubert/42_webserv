@@ -15,6 +15,8 @@
 #include "FilePath.hpp"
 #include "Settings.hpp"
 
+#define CONFIG_KEYWORD_COUNT 8
+
 typedef struct s_location
 {
 	std::variant<Path, FilePath>					path;				// path in config
@@ -39,6 +41,7 @@ class Config
 		std::optional<FilePath> _index_file; // optional but will always be present after constructor
 		unsigned int _client_max_body_size; // in bytes
 		std::map<int, FilePath> _error_pages;
+		int _client_timeout;
 		std::vector<t_location> _locations;
 
 		// Line parsers
@@ -48,6 +51,7 @@ class Config
 		void parseIndex(const std::string & line);
 		void parseClientMaxBodySize(const std::string & line);
 		void parseErrorPage(const std::string & line);
+		void parseClientTimeout(const std::string & line);
 
 		// Location Line Parsers
 		void parseLocation(const std::string & line);
@@ -75,6 +79,7 @@ class Config
 		FilePath getIndexFile() const { return *_index_file; }
 		unsigned int getClientMaxBodySize() const { return _client_max_body_size; }
 		std::map<int, FilePath> getErrorPages() const { return _error_pages; }
+		int getClientTimeout() const { return _client_timeout; }
 		std::vector<t_location> getLocations() const { return _locations; }
 
 		// Public Utils
