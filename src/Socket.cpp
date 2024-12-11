@@ -113,11 +113,11 @@ void Socket::Run()
 				req.logData();
 			#endif
 
-			// Response response = Response(req, _config);
-			// sendData(response, client.fd);
+			Response response = Response(req, _config);
+			sendData(response, client.fd);
 
-			// closeSocket(client.fd);
-			redirectToError(client.fd, 413);
+			closeSocket(client.fd);
+			// redirectToError(client.fd, 413);
 			Logger::Log(LogLevel::INFO, "Response sent and connection closed!");
 			break;
 		}
