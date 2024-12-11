@@ -1,2 +1,0 @@
-- [x] we need sometype of time tracking to kill packets that were started but never finished. just remove them after e.g. 60 seconds.
-- [ ] check in packet parsing that packet isnt longer than declared length
