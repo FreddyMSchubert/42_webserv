@@ -33,6 +33,9 @@ Config::Config(std::string data)
 		if (!foundMatch)
 			throw std::invalid_argument("Invalid directive: \"" + keyword + "\"");
 	}
+	if (_host.empty()) throw std::invalid_argument("No listen directive found");
+	if (_port == 0) throw std::invalid_argument("No listen directive found");
+	if (_root_dir.empty()) throw std::invalid_argument("No root directive found");
 }
 
 /* ------------------------ */
@@ -153,11 +156,11 @@ void Config::parseClientMaxBodySize(const std::string & line)
 		else if (unit == "GB" || unit == "gb")
 			_client_max_body_size = static_cast<unsigned int>(size) * 1024 * 1024 * 1024;
 		else
-			throw std::invalid_argument("Unsupported unit in client_max_body_size");
+			Logger::Log(LogLevel::WARNING, "Invalid unit in client_max_body_size directive. Using default value (1MB).");
 	}
 	else
 	{
-		throw std::invalid_argument("Invalid client_max_body_size directive");
+		Logger::Log(LogLevel::WARNING, "Invalid unit in client_max_body_size directive. Using default value (1MB).");
 	}
 
 	#if LOG_CONFIG_PARSING
@@ -203,7 +206,7 @@ void Config::parseClientTimeout(const std::string & line)
 	if (std::regex_match(line, match, timeout_regex))
 		_client_timeout = std::stoi(match[1]);
 	else
-		throw std::invalid_argument("Invalid client_timeout directive");
+		Logger::Log(LogLevel::WARNING, "Invalid client_timeout directive. Using default value (30s).");
 
 	#if LOG_CONFIG_PARSING
 		Logger::Log(LogLevel::INFO, "Client timeout: " + std::to_string(_client_timeout));
@@ -327,7 +330,7 @@ void Config::parseLocationAutoindex(const std::string & line, t_location & loc)
 			loc.directory_listing = false;
 	}
 	else
-		throw std::invalid_argument("Invalid location autoindex (directory_listing) directive: \"" + line + "\"");
+		Logger::Log(LogLevel::WARNING, "Invalid location autoindex directive. Using default value (off).");
 }
 
 void Config::parseLocationCgiExtensions(const std::string & line, t_location & loc)
