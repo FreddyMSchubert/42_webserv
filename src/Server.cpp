@@ -107,7 +107,7 @@ void Server::acceptNewConnections()
 
 void Server::handleExistingConnections()
 {
-	for (size_t i = 0; i < _sockets.size(); i++)
+	for (int i = (int)_sockets.size() - 1; i >= 0; i--)
 	{
 		if (_sockets[i].states.read)
 		{
@@ -120,7 +120,6 @@ void Server::handleExistingConnections()
 			{
 				Logger::Log(LogLevel::WARNING, "Erroneous packet data: " + std::string(e.what()));
 				_sockets.erase(_sockets.begin() + i);
-				i--;
 				continue;
 			}
 		}
@@ -135,7 +134,6 @@ void Server::handleExistingConnections()
 			{
 				Logger::Log(LogLevel::WARNING, "Erroneous packet data: " + std::string(e.what()));
 				_sockets.erase(_sockets.begin() + i);
-				i--;
 				continue;
 			}
 			if (dataComplete)
@@ -145,7 +143,7 @@ void Server::handleExistingConnections()
 				Response res(req, _config);
 				_sockets[i].socket.sendData(res);
 				_sockets.erase(_sockets.begin() + i);
-				i--;
+				continue;
 			}
 		}
 		if (_sockets[i].states.disconnect || _sockets[i].states.error)
@@ -155,7 +153,7 @@ void Server::handleExistingConnections()
 			else
 				Logger::Log(LogLevel::ERROR, "Error occurred on client socket: " + std::string(strerror(errno)));
 			_sockets.erase(_sockets.begin() + i);
-			i--;
+			continue;
 		}
 	}
 }
