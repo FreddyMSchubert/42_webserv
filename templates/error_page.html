@@ -12,7 +12,7 @@
 			height: 100vh;
 			margin: 0;
 			font-family: Arial, sans-serif;
-			background: url('https://img.sparknews.funkemedien.de/214885251/214885251_1532012732_v16_9_1600.webp') no-repeat center center fixed;
+			background: url('{img}') no-repeat center center fixed;
 			background-size: cover;
 		}
 		.blink {
@@ -21,8 +21,7 @@
 			background-color: rgba(255, 255, 255, 0.7);
 			padding: 20px;
 			border-radius: 10px;
-			position: absolute;
-			left: 0%;
+			{pos}
 		}
 		@keyframes blink {
 			0% { color: red; }
@@ -34,6 +33,6 @@
 	</style>
 </head>
 <body>
-	<div class="blink">404</div>
+	<div class="blink">{text}</div>
 </body>
 </html>

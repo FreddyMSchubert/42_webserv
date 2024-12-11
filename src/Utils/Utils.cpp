@@ -72,3 +72,12 @@ std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type
 		return FilePath(path, type, config);
 	return Path(path, type, config);
 }
+
+std::string getFileData(std::string path)
+{
+	std::ifstream file(path);
+	if (!file.is_open())
+		throw std::runtime_error("Failed to open file " + path);
+	std::string data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	return data;
+}

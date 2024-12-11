@@ -19,3 +19,4 @@ std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::str
 t_location get_location(Config &config, std::string path);
 void setNonBlocking(int fd);
 std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, Config &config);
+std::string getFileData(std::string path);
