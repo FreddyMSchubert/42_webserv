@@ -113,10 +113,11 @@ void Socket::Run()
 				req.logData();
 			#endif
 
-			Response response = Response(req, _config);
-			sendData(response, client.fd);
+			// Response response = Response(req, _config);
+			// sendData(response, client.fd);
 
-			closeSocket(client.fd);
+			// closeSocket(client.fd);
+			redirectToError(client.fd, 413);
 			Logger::Log(LogLevel::INFO, "Response sent and connection closed!");
 			break;
 		}
@@ -212,6 +213,58 @@ void Socket::_setNonBlocking(int fd)
 
 void Socket::redirectToError(int client_fd, int error_code)
 {
+	// 1. Noel's memery
+	bool noel = true;
+	std::string image;
+	std::string text;
+	std::string positioning;
+	std::string status_line;
+	switch (error_code)
+	{
+		case 404:
+			image = "https://img.sparknews.funkemedien.de/214885251/214885251_1532012732_v16_9_1600.webp";
+			text = "404 - Not Found";
+			positioning = "position: absolute; left: 0%;";
+			status_line = "HTTP/1.1 404 Not Found\r\n";
+			break;
+		case 413:
+			image = "https://i0.wp.com/worleygig.com/wp-content/uploads/2014/05/p1030261-e1401153271349.jpg";
+			text = "413 - Payload Too Large. Thats what she said!";
+			status_line = "HTTP/1.1 413 Payload Too Large\r\n";
+			positioning = "";
+			break;
+		default:
+			noel = false;
+			break;
+	}
+
+	if (noel)
+	{
+		std::string template_data = getFileData("templates/error_page.html");
+		size_t img_pos = template_data.find("{img}");
+		if (img_pos != std::string::npos)
+			template_data.replace(img_pos, 5, image);
+		size_t text_pos = template_data.find("{text}");
+		if (text_pos != std::string::npos)
+			template_data.replace(text_pos, 6, text);
+		size_t pos_pos = template_data.find("{pos}");
+		if (pos_pos != std::string::npos)
+			template_data.replace(pos_pos, 13, positioning);
+		
+		std::string response = status_line;
+		response += "Content-Type: text/html\r\n";
+		response += "Content-Length: " + std::to_string(template_data.length()) + "\r\n";
+		response += "Connection: close\r\n";
+		response += "\r\n"; // End of headers
+		response += template_data;
+
+		sendData(response, client_fd);
+		closeSocket(client_fd);
+		Logger::Log(LogLevel::INFO, "Redirected client to custom error page with code " + std::to_string(error_code) + ".");
+		return;
+	}
+
+	// 2. Generic cat/dog/fish/duck images
 	int websiteId = rand() % 4;
 	std::string website;
 	switch(websiteId)

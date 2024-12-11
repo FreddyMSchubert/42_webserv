@@ -31,12 +31,7 @@ void Response::handle_file_req(Config &config, FilePath &path)
 
 static std::string get_dir_list_html(Path &current_path, const std::vector<std::filesystem::directory_entry> &entries)
 {
-	std::ifstream file("./src/Packets/Methods/directoryListing.html");
-	std::string line;
-	std::string body = "";
-	while (std::getline(file, line))
-		body += line;
-	file.close();
+	std::string body = getFileData("templates/directory_listing.html");
 
 	// generate data to insert into the template
 	std::ostringstream dataToInsert;
