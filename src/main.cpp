@@ -133,8 +133,11 @@ int main(int argc, char *argv[])
 			servers.emplace_back(config);
 		}
 
-		for (auto &server : servers)
-			server.Run();
+		while (true)
+		{
+			for (auto &server : servers)
+				server.Run();
+		}
 	}
 	catch(const std::exception& e)
 	{
