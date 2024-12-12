@@ -107,7 +107,8 @@ void Socket::sendData(Response &response)
 std::string Socket::receiveData()
 {
 	std::string data;
-	char buffer[_config.getClientMaxBodySize() + 1];
+	int size = std::min(1024, static_cast<int>(_config.getClientMaxBodySize() + 1));
+	char buffer[size];
 	ssize_t received;
 
 	received = recv(_socket_fd, buffer, sizeof(buffer), 0);

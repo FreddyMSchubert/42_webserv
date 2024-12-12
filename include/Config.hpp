@@ -22,7 +22,7 @@ typedef struct s_location
 	std::variant<Path, FilePath>					path;				// path in config
 	std::string										root_dir;			// folder to get data from. not a path as it might not be in config root. If empty, use config root
 	std::array<bool, 3>								allowed_methods;	// saved in order of Method enum in Enums.hpp
-	bool											directory_listing;
+	bool											directory_listing = false;
 	std::vector<std::string>						cgi_extensions;
 	std::map<int, Path>								redirections;
 	Path											upload_dir;
@@ -39,9 +39,9 @@ class Config
 		int _port;
 		std::string _root_dir;
 		std::optional<FilePath> _index_file; // optional but will always be present after constructor
-		unsigned int _client_max_body_size; // in bytes
+		unsigned int _client_max_body_size = 1048576; // 1 MB in bytes
 		std::map<int, FilePath> _error_pages;
-		int _client_timeout; // in ms
+		int _client_timeout = 30000; // 30 seconds in ms
 		std::vector<t_location> _locations;
 
 		// Line parsers
