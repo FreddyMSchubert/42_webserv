@@ -41,7 +41,7 @@ class Config
 		std::optional<FilePath> _index_file; // optional but will always be present after constructor
 		unsigned int _client_max_body_size; // in bytes
 		std::map<int, FilePath> _error_pages;
-		int _client_timeout;
+		int _client_timeout; // in ms
 		std::vector<t_location> _locations;
 
 		// Line parsers
