@@ -28,16 +28,15 @@ typedef struct s_socket_data
 	std::stringstream buffer;
 	std::chrono::time_point<std::chrono::steady_clock> last_activity;
 
-	s_socket_data(int fd, Socket socket,
-		std::chrono::time_point<std::chrono::steady_clock> last_activity) // Client socket constructor
-		: socket(std::move(socket)), fd(fd), buffer(), last_activity(last_activity) {}
+	s_socket_data(int fd, Socket socket) // Client socket constructor
+		: socket(std::move(socket)), fd(fd), buffer(), last_activity(std::chrono::steady_clock::now()) {}
 	s_socket_data(Config &config) // Listening socket constructor
 		: socket(config), fd(socket.getSocketFd()), buffer() {}
 	s_socket_data(const s_socket_data&) = delete;
 	s_socket_data& operator=(const s_socket_data&) = delete;
 
 	s_socket_data(s_socket_data&& other) noexcept
-		: socket(std::move(other.socket)), fd(other.fd), states(other.states), buffer(std::move(other.buffer)) {}
+		: socket(std::move(other.socket)), fd(other.fd), states(other.states), buffer(std::move(other.buffer)), last_activity(other.last_activity) {}
 	s_socket_data& operator=(s_socket_data&& other) noexcept
 	{
 		if (this == &other)

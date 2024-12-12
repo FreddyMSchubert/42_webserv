@@ -201,10 +201,26 @@ void Config::parseErrorPage(const std::string & line)
 
 void Config::parseClientTimeout(const std::string & line)
 {
-	std::regex timeout_regex(R"(client_timeout\s+(\d+)s;)");
+	std::regex timeout_regex(R"(^\s*client_timeout\s+(\d+)\s*(ms|MS|s|S)\s*;?\s*$)");
 	std::smatch match;
 	if (std::regex_match(line, match, timeout_regex))
-		_client_timeout = std::stoi(match[1]);
+	{
+		int value = std::stoi(match[1]);
+		std::string unit = match[2];
+
+		if (unit == "ms" || unit == "MS")
+		{
+			_client_timeout = value;
+		}
+		else if (unit == "s" || unit == "S")
+		{
+			_client_timeout = value * 1000;
+		}
+		else
+		{
+			throw std::invalid_argument("Unsupported unit in client_timeout directive");
+		}
+	}
 	else
 		Logger::Log(LogLevel::WARNING, "Invalid client_timeout directive. Using default value (30s).");
 
