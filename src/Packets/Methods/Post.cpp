@@ -49,8 +49,8 @@ void Response::handlePost(Request& req, Config &config)
 	try
 	{
 		Path filepath = Path(req.getPath(), Path::Type::URL, config);
-		if (req.getHeaders().find("X-Filename") != req.getHeaders().end())
-			filename = filepath.asFilePath() + req.getHeaders()["X-Filename"];
+		if (req.getHeaders().find("Content-Filename") != req.getHeaders().end())
+			filename = filepath.asFilePath() + req.getHeaders()["Content-Filename"];
 		else
 			filename = filepath.asFilePath() + "default";
 	}
@@ -81,6 +81,7 @@ void Response::handlePost(Request& req, Config &config)
 		return ;
 	}
 	filename += "." + extension;
+	filename = "." + filename;
 
 	std::cout << "Filename: " << filename << std::endl;
 
