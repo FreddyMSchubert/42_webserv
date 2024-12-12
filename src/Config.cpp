@@ -265,8 +265,8 @@ void Config::parseLocation(const std::string& line)
 		};
 
 		// Step 4: Define keywords and corresponding parser functions
-		std::array<std::string, 6> keywords = {"allowed_methods", "root", "autoindex", "upload_dir", "cgi_extensions", "return"};
-		std::array<void (Config::*)(const std::string&, t_location&), 6> parsers = {&Config::parseLocationAllowedMethods, &Config::parseLocationRoot,  &Config::parseLocationAutoindex, &Config::parseLocationUploadDir, &Config::parseLocationCgiExtensions, &Config::parseLocationRedirections};
+		std::array<std::string, 7> keywords = {"allowed_methods", "root", "autoindex", "upload_dir", "cgi_extensions", "return", "cgi_extension"};
+		std::array<void (Config::*)(const std::string&, t_location&), 7> parsers = {&Config::parseLocationAllowedMethods, &Config::parseLocationRoot,  &Config::parseLocationAutoindex, &Config::parseLocationUploadDir, &Config::parseLocationCgiExtensions, &Config::parseLocationRedirections, &Config::parseLocationCgiExtensions};
 		for (const auto& configLine : configLines)
 		{
 			bool foundMatch = false;
@@ -349,22 +349,6 @@ void Config::parseLocationAutoindex(const std::string & line, t_location & loc)
 		Logger::Log(LogLevel::WARNING, "Invalid location autoindex directive. Using default value (off).");
 }
 
-void Config::parseLocationCgiExtensions(const std::string & line, t_location & loc)
-{
-	std::regex cgi_extensions_regex(R"(\s*cgi_extensions\s+(\.[a-zA-Z0-9]+(?:\s+\.[a-zA-Z0-9]+)*)\s*;\s*)");
-	std::smatch match;
-	if (std::regex_match(line, match, cgi_extensions_regex))
-	{
-		std::string extensions_str = match[1].str();
-		std::istringstream iss(extensions_str);
-		std::string extension;
-		while (iss >> extension)
-			loc.cgi_extensions.push_back(extension);
-	}
-	else
-		throw std::invalid_argument("Invalid location CGI extensions directive: \"" + line + "\"");
-}
-
 void Config::parseLocationRedirections(const std::string &line, t_location &loc)
 {
 	std::regex redirection_regex(R"(\s*return\s+(\d{3})\s+([^\s;]+)\s*;\s*)");
@@ -392,6 +376,22 @@ void Config::parseLocationUploadDir(const std::string &line, t_location &loc)
 	}
 	else
 		throw std::invalid_argument("Invalid location upload_dir directive: \"" + line + "\"");
+}
+
+void Config::parseLocationCgiExtensions(const std::string &line, t_location &loc)
+{
+	std::regex cgi_extensions_regex(R"DELIM(^\s*cgi_extension\s+([a-zA-Z0-9]+)\s+"([^"]+)"\s*;\s*\r?$)DELIM"); // custom delimiter to avoid escaping
+	std::smatch match;
+	if (std::regex_match(line, match, cgi_extensions_regex))
+	{
+		std::string extension = match[1].str();
+		std::string exec_command = match[2].str();
+		if (exec_command.find("[SCRIPT]") == std::string::npos)
+			throw std::invalid_argument("Execution command must contain the [SCRIPT] placeholder: \"" + line + "\"");
+		loc.cgi_extensions.push_back({extension, exec_command});
+	}
+	else
+		throw std::invalid_argument("Invalid cgi_extension directive: \"" + line + "\"");
 }
 
 /* ----------------- */
@@ -452,8 +452,8 @@ std::ostream &operator<<(std::ostream &os, const t_location &loc)
 		os << " " + methodToString(static_cast<Method>(i)) + ": " + (loc.allowed_methods.at(i) ? "true" : "false");
 	os << std::string(" Directory listing: ") + (loc.directory_listing ? "true" : "false") << " ";
 	os << "CGI extensions: ";
-	for (const std::string &ext : loc.cgi_extensions)
-		os << "  " + ext;
+	for (const std::pair<std::string, std::string> &ext : loc.cgi_extensions)
+		os << "  " + ext.first + ": " + ext.second;
 	os << " Redirections: ";
 	for (const auto &redir : loc.redirections)
 		os << "  " + std::to_string(redir.first) + ": " + redir.second.asUrl();
