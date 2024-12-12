@@ -24,27 +24,33 @@ Response::Response(Request& req, Config &config) : Packet()
 	}
 
 	if (cgi)
-	{
-		std::cout << "CGI" << std::endl;
-	}
+		handleCgiResponse(req, config);
 	else
+		handleMethodResponse(req, config);
+}
+
+void Response::handleMethodResponse(Request &req, Config &config)
+{
+	switch (req.getMethod())
 	{
-		switch (req.getMethod())
-		{
-			case Method::GET:
-				handleGet(req, config);
-				break;
-			case Method::POST:
-				handlePost(req, config);
-				break;
-			case Method::DELETE:
-				handleDelete(req, config);
-				break;
-			default:
-				std::cout << "Unknown method" << std::endl;
-				break;
-		}
+		case Method::GET:
+			handleGet(req, config);
+			break;
+		case Method::POST:
+			handlePost(req, config);
+			break;
+		case Method::DELETE:
+			handleDelete(req, config);
+			break;
+		default:
+			std::cout << "Unknown method" << std::endl;
+			break;
 	}
+}
+
+void Response::handleCgiResponse(Request &req, Config &config)
+{
+	std::cout << "CGI" << std::endl;
 }
 
 /* ----- METHODS ----- */
