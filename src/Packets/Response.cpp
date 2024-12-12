@@ -48,11 +48,6 @@ void Response::handleMethodResponse(Request &req, Config &config)
 	}
 }
 
-void Response::handleCgiResponse(Request &req, Config &config)
-{
-	std::cout << "CGI" << std::endl;
-}
-
 /* ----- METHODS ----- */
 
 std::string Response::getRawPacket()
