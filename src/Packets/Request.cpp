@@ -45,7 +45,14 @@ void Request::ParseRequestLine(std::string &line)
 
 	std::string path, version;
 	stream  >> path >> version;
-	setPath(sanitizeUri(path));
+	if (path.find('?') != std::string::npos)
+	{
+		std::string::size_type separator = path.find('?');
+		setPath(sanitizeUri(path.substr(0, separator)));
+		setArgs(path.substr(separator + 1));
+	}
+	else
+		setPath(sanitizeUri(path));
 	setVersion(version);
 }
 

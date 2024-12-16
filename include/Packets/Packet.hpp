@@ -11,6 +11,7 @@ class Packet
 {
 	private:
 		std::string _path;
+		std::string _args;
 		std::string _version;
 		std::map<std::string, std::string> _headers;
 		std::string _body;
@@ -30,6 +31,9 @@ class Packet
 		// getters and setters
 		std::string getPath();
 		void setPath(const std::string path);
+
+		std::string getArgs();
+		void setArgs(const std::string args);
 
 		std::string getVersion();
 		void setVersion(const std::string version);

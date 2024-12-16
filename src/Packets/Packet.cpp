@@ -73,6 +73,9 @@ void Packet::logData()
 void Packet::setPath(const std::string path) { _path = path; }
 std::string Packet::getPath() { return _path; }
 
+void Packet::setArgs(const std::string args) { _args = args; }
+std::string Packet::getArgs() { return _args; }
+
 void Packet::setVersion(const std::string version) { _version = version; }
 std::string Packet::getVersion() { return _version; }
 
