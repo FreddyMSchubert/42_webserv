@@ -39,7 +39,7 @@ class Config
 		int _port;
 		std::string _root_dir;
 		std::optional<FilePath> _index_file; // optional but will always be present after constructor
-		unsigned int _client_max_body_size = 1048576; // 1 MB in bytes
+		unsigned int _max_package_size = 1048576; // 1 MB in bytes
 		std::map<int, FilePath> _error_pages;
 		int _client_timeout = 30000; // 30 seconds in ms
 		std::vector<t_location> _locations;
@@ -77,7 +77,7 @@ class Config
 		int getPort() const { return _port; }
 		std::string getRootDir() const { return _root_dir; }
 		FilePath getIndexFile() const { return *_index_file; }
-		unsigned int getmaxPackageSize() const { return _client_max_body_size; }
+		unsigned int getmaxPackageSize() const { return _max_package_size; }
 		std::map<int, FilePath> getErrorPages() const { return _error_pages; }
 		int getClientTimeout() const { return _client_timeout; }
 		std::vector<t_location> getLocations() const { return _locations; }

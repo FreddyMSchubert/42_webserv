@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>404 Not Found</title>
+	<title>{title}</title>
 	<style>
 		body {
 			display: flex;
@@ -13,7 +13,9 @@
 			margin: 0;
 			font-family: Arial, sans-serif;
 			background: url('{img}') no-repeat center center fixed;
-			background-size: cover;
+			background-size: contain;
+			background-repeat: no-repeat;
+			background-position: center;
 		}
 		.blink {
 			font-size: 50px;
