@@ -107,7 +107,7 @@ void Socket::sendData(Response &response)
 std::string Socket::receiveData()
 {
 	std::string data;
-	int size = std::min(1024, static_cast<int>(_config.getMaxPackageSize() + 1));
+	int size = std::min(1048576, static_cast<int>(_config.getMaxPackageSize() + 1));
 	char buffer[size];
 	ssize_t received;
 

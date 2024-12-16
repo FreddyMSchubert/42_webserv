@@ -255,7 +255,7 @@ void Config::parseLocation(const std::string& line)
 
 		// Step 3: Initialize location with default values
 		t_location loc = {
-			Path(location_path, Path::Type::URL, *this),
+			1,
 			"",
 			{false, false, false},
 			false,
@@ -446,7 +446,7 @@ std::ostream &operator<<(std::ostream &os, const t_location &loc)
 {
 	os << "Path: " + (std::holds_alternative<Path>(loc.path) ? std::get<Path>(loc.path).asUrl() : std::get<FilePath>(loc.path).asUrl()) << " ";
 	os << "Root: " + loc.root_dir << " ";
-	os << "Upload: " + loc.upload_dir.asUrl() << " ";
+	os << "Upload: " + loc.upload_dir->asUrl() << " ";
 	os << "Methods:";
 	for (int i = 0; i < 3; i++)
 		os << " " + methodToString(static_cast<Method>(i)) + ": " + (loc.allowed_methods.at(i) ? "true" : "false");

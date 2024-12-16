@@ -10,6 +10,8 @@ Request::Request(const std::string &rawPacket)
 	std::getline(iss, line);
 	ParseRequestLine(line);
 
+	std::cout << "Request: " << rawPacket << std::endl;
+
 	while (std::getline(iss, line))
 	{
 		if (line.find(":") == std::string::npos)
