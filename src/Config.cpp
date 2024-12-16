@@ -140,7 +140,7 @@ void Config::parseIndex(const std::string & line)
 
 void Config::parseMaxPackageSize(const std::string & line)
 {
-	std::regex size_regex(R"(client_max_body_size\s+(\d+)\s*([KMG]?B);)", std::regex::icase);
+	std::regex size_regex(R"(max_package_size\s+(\d+)\s*([KMG]?B);)", std::regex::icase);
 	std::smatch match;
 	if (std::regex_match(line, match, size_regex))
 	{
@@ -148,23 +148,23 @@ void Config::parseMaxPackageSize(const std::string & line)
 		std::string unit = match[2];
 
 		if (unit == "B" || unit == "b")
-			_client_max_body_size = size;
+			_max_package_size = size;
 		else if (unit == "KB" || unit == "kb")
-			_client_max_body_size = static_cast<unsigned int>(size) * 1024;
+			_max_package_size = static_cast<unsigned int>(size) * 1024;
 		else if (unit == "MB" || unit == "mb")
-			_client_max_body_size = static_cast<unsigned int>(size) * 1024 * 1024;
+			_max_package_size = static_cast<unsigned int>(size) * 1024 * 1024;
 		else if (unit == "GB" || unit == "gb")
-			_client_max_body_size = static_cast<unsigned int>(size) * 1024 * 1024 * 1024;
+			_max_package_size = static_cast<unsigned int>(size) * 1024 * 1024 * 1024;
 		else
-			Logger::Log(LogLevel::WARNING, "Invalid unit in client_max_body_size directive. Using default value (1MB).");
+			Logger::Log(LogLevel::WARNING, "Invalid unit in max_package_size directive. Using default value (1MB).");
 	}
 	else
 	{
-		Logger::Log(LogLevel::WARNING, "Invalid unit in client_max_body_size directive. Using default value (1MB).");
+		Logger::Log(LogLevel::WARNING, "Invalid unit in max_package_size directive. Using default value (1MB).");
 	}
 
 	#if LOG_CONFIG_PARSING
-		Logger::Log(LogLevel::INFO, "Client max body size: " + std::to_string(_client_max_body_size));
+		Logger::Log(LogLevel::INFO, "Client max body size: " + std::to_string(_max_package_size));
 	#endif
 }
 

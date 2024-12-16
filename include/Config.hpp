@@ -39,7 +39,7 @@ class Config
 		int _port;
 		std::string _root_dir;
 		std::optional<FilePath> _index_file; // optional but will always be present after constructor
-		unsigned int _client_max_body_size = 1048576; // 1 MB in bytes
+		unsigned int _max_package_size = 1048576; // 1 MB in bytes
 		std::map<int, FilePath> _error_pages;
 		int _client_timeout = 30000; // 30 seconds in ms
 		std::vector<t_location> _locations;

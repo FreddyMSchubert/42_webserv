@@ -148,6 +148,7 @@ void Server::handleExistingConnections()
 				Request req(_sockets[i].buffer.str());
 				Response res(req, _config);
 				_sockets[i].socket.sendData(res);
+				// _sockets[i].socket.redirectToError(501); //testing for error pages
 				_sockets.erase(_sockets.begin() + i);
 				continue;
 			}
