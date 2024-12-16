@@ -54,7 +54,7 @@ bool Server::isDataComplete(t_socket_data &socket)
 	std::string data = socket.buffer.str();
 
 	// Step 1: Ensure buffer is not giant
-	if (data.size() > _config.getClientMaxBodySize())
+	if (data.size() > _config.getmaxPackageSize())
 		throw std::runtime_error("Client data size exceeded maximum body size");
 
 	size_t headerEnd = data.find("\r\n\r\n");
