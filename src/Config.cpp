@@ -12,7 +12,7 @@ Config::Config(std::string data)
 	extractConfigFromBrackets(lines, static_cast<const std::string&>(data));
 
 	// 2. parse each line, based on starting keyword
-	std::array<std::string, CONFIG_KEYWORD_COUNT> keywords = {"listen", "server_name", "root", "index", "client_max_body_size", "error_page", "location", "client_timeout"};
+	std::array<std::string, CONFIG_KEYWORD_COUNT> keywords = {"listen", "server_name", "root", "index", "max_package_size", "error_page", "location", "client_timeout"};
 	std::array<void (Config::*)(const std::string&), CONFIG_KEYWORD_COUNT> parsers = {&Config::parseListen, &Config::parseServerName, &Config::parseRoot, &Config::parseIndex, &Config::parseMaxPackageSize, &Config::parseErrorPage, &Config::parseLocation, &Config::parseClientTimeout};
 	for (std::string &line : lines)
 	{

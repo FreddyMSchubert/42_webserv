@@ -77,7 +77,7 @@ class Config
 		int getPort() const { return _port; }
 		std::string getRootDir() const { return _root_dir; }
 		FilePath getIndexFile() const { return *_index_file; }
-		unsigned int getMaxPackageSize() const { return _client_max_body_size; }
+		unsigned int getMaxPackageSize() const { return _max_package_size; }
 		std::map<int, FilePath> getErrorPages() const { return _error_pages; }
 		int getClientTimeout() const { return _client_timeout; }
 		std::vector<t_location> getLocations() const { return _locations; }
