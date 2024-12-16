@@ -13,7 +13,7 @@ Config::Config(std::string data)
 
 	// 2. parse each line, based on starting keyword
 	std::array<std::string, CONFIG_KEYWORD_COUNT> keywords = {"listen", "server_name", "root", "index", "client_max_body_size", "error_page", "location", "client_timeout"};
-	std::array<void (Config::*)(const std::string&), CONFIG_KEYWORD_COUNT> parsers = {&Config::parseListen, &Config::parseServerName, &Config::parseRoot, &Config::parseIndex, &Config::parsemaxPackageSize, &Config::parseErrorPage, &Config::parseLocation, &Config::parseClientTimeout};
+	std::array<void (Config::*)(const std::string&), CONFIG_KEYWORD_COUNT> parsers = {&Config::parseListen, &Config::parseServerName, &Config::parseRoot, &Config::parseIndex, &Config::parseMaxPackageSize, &Config::parseErrorPage, &Config::parseLocation, &Config::parseClientTimeout};
 	for (std::string &line : lines)
 	{
 		std::string keyword = line.substr(0, line.find(' '));
@@ -138,7 +138,7 @@ void Config::parseIndex(const std::string & line)
 	#endif
 }
 
-void Config::parsemaxPackageSize(const std::string & line)
+void Config::parseMaxPackageSize(const std::string & line)
 {
 	std::regex size_regex(R"(client_max_body_size\s+(\d+)\s*([KMG]?B);)", std::regex::icase);
 	std::smatch match;

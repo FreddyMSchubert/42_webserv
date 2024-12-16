@@ -49,7 +49,7 @@ class Config
 		void parseServerName(const std::string & line);
 		void parseRoot(const std::string & line);
 		void parseIndex(const std::string & line);
-		void parsemaxPackageSize(const std::string & line);
+		void parseMaxPackageSize(const std::string & line);
 		void parseErrorPage(const std::string & line);
 		void parseClientTimeout(const std::string & line);
 
@@ -77,7 +77,7 @@ class Config
 		int getPort() const { return _port; }
 		std::string getRootDir() const { return _root_dir; }
 		FilePath getIndexFile() const { return *_index_file; }
-		unsigned int getmaxPackageSize() const { return _client_max_body_size; }
+		unsigned int getMaxPackageSize() const { return _client_max_body_size; }
 		std::map<int, FilePath> getErrorPages() const { return _error_pages; }
 		int getClientTimeout() const { return _client_timeout; }
 		std::vector<t_location> getLocations() const { return _locations; }
