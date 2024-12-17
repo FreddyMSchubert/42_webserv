@@ -100,6 +100,7 @@ std::string Packet::getVersion() { return _version; }
 void Packet::setHeaders(const std::map<std::string, std::string> headers) { _headers = headers; }
 std::map<std::string, std::string> & Packet::getHeaders() { return _headers; }
 void Packet::addHeader(const std::string key, const std::string value) { _headers[key] = value; }
+std::string Packet::getHeader(const std::string key) { return _headers.find(key) != _headers.end() ? _headers[key] : ""; }
 
 void Packet::setBody(const std::string body) { _body = body; }
 std::string Packet::getBody() { return _body; }

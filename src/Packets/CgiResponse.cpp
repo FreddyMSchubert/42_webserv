@@ -72,9 +72,10 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	std::map<std::string, std::string> env;
 	env["DOCUMENT_ROOT"] = ".";
 	env["HTTP_HOST"] = config.getHost();
-	env["HTTP_USER_AGENT"] = req.getHeaders().at("User-Agent");
+	env["HTTP_USER_AGENT"] = req.getHeader("User-Agent");
 	env["HTTPS"] = req.getVersion().find("HTTPS") != std::string::npos ? "on" : "off";
 	env["PATH"] = std::filesystem::current_path();
+	env["HTTP_COOKIE"] = req.getHeader("Cookie");
 	// probably add more here
 	// -> https://www.cgi101.com/book/ch3/text.html
 
@@ -87,7 +88,6 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	envp.push_back(nullptr);
 
 	// 5. Fork
-
 	int pipeIn[2];
 	int pipeOut[2];
 
@@ -111,16 +111,12 @@ void Response::handleCgiResponse(Request &req, Config &config)
 		dup2(pipeIn[0], STDIN_FILENO);
 		close(pipeIn[0]);
 		close(pipeIn[1]);
-		
-		// Redirect stdout
 		dup2(pipeOut[1], STDOUT_FILENO);
+		dup2(pipeOut[1], STDERR_FILENO);
 		close(pipeOut[0]);
 		close(pipeOut[1]);
-		
-		// Execute the CGI script
-		// log the execve command
+
 		execve(executable.c_str(), argv.data(), envp.data());
-		// execve("/bin/ls", nullptr, nullptr);
 
 		// If execve returns, an error occurred
 		std::string error = "Failed to execute CGI script: " + std::string(strerror(errno)) + "\n";
@@ -132,7 +128,7 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	close(pipeIn[0]);
 	close(pipeOut[1]);
 
-	const std::string &requestData = req.getRawPacket();
+	const std::string &requestData = req.getBody(); // header info is already in env
 	ssize_t totalWritten = 0;
 	ssize_t bodyLength = requestData.size();
 	while (totalWritten < bodyLength) {

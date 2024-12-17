@@ -42,6 +42,7 @@ class Packet
 		std::map<std::string, std::string> &getHeaders();
 		void setHeaders(const std::map<std::string, std::string> headers);
 		void addHeader(const std::string key, const std::string value);
+		std::string getHeader(const std::string key);
 
 		std::string getBody();
 		void setBody(const std::string body);
