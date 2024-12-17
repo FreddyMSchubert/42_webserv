@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include <variant>
 
 void Response::handle_file_req(Config &config, FilePath &path)
 {
@@ -108,11 +109,13 @@ void Response::handleGet(Request& req, Config &config)
 			Logger::Log(LogLevel::INFO, "GET: Handling file request for " + std::get<FilePath>(path).asUrl());
 			handle_file_req(config, std::get<FilePath>(path));
 		}
-		else
+		else if (std::holds_alternative<Path>(path))
 		{
 			Logger::Log(LogLevel::INFO, "GET: Handling directory request for " + std::get<Path>(path).asUrl());
 			handle_dir_req(config, std::get<Path>(path));
 		}
+		else
+			throw "Invalid path type: HEY THIS SHOULDNT HAPPEN!";
 	}
 	catch (std::exception &e)
 	{

@@ -444,7 +444,10 @@ t_location Config::getRootLocation() const
 
 std::ostream &operator<<(std::ostream &os, const t_location &loc)
 {
-	os << "Path: " + (std::holds_alternative<Path>(loc.path) ? std::get<Path>(loc.path).asUrl() : std::get<FilePath>(loc.path).asUrl()) << " ";
+	if (std::holds_alternative<int>(loc.path))
+		os << "Path: " + std::to_string(std::get<int>(loc.path)) << " ";
+	else
+		os << "Path: " + (std::holds_alternative<Path>(loc.path) ? std::get<Path>(loc.path).asUrl() : std::get<FilePath>(loc.path).asUrl()) << " ";
 	os << "Root: " + loc.root_dir << " ";
 	os << "Upload: " + loc.upload_dir->asUrl() << " ";
 	os << "Methods:";

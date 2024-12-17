@@ -23,6 +23,11 @@ t_location get_location(Config &config, std::string path)
 
 	for (t_location &currLoc : config.getLocations())
 	{
+		if (std::holds_alternative<int>(currLoc.path))
+		{
+			Logger::Log(LogLevel::INFO, "get_location: Some location has a path of type int. This should not happen.");
+			continue;
+		}
 		std::string currLocPath = std::holds_alternative<Path>(currLoc.path) ? std::get<Path>(currLoc.path).asUrl() : std::get<FilePath>(currLoc.path).asUrl();
 		std::string retLocPath = std::holds_alternative<Path>(retLoc.path) ? std::get<Path>(retLoc.path).asUrl() : std::get<FilePath>(retLoc.path).asUrl();
 
