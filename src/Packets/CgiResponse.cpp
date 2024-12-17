@@ -24,7 +24,7 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	// 2. Apply / insert script
 	size_t scriptPlaceholder = exec_cmd.find("[SCRIPT]");
 	if (scriptPlaceholder != std::string::npos)
-		exec_cmd.replace(scriptPlaceholder, 8, "." + Path::combinePaths(config.getRootDir(), req.getPath()));
+		exec_cmd.replace(scriptPlaceholder, 8, Path::combinePaths(std::filesystem::current_path(), Path::combinePaths(config.getRootDir(), req.getPath())));
 	else
 		throw std::runtime_error("No script placeholder found in cgi command");
 
