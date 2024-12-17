@@ -47,20 +47,3 @@ void Response::handleMethodResponse(Request &req, Config &config)
 			break;
 	}
 }
-
-/* ----- METHODS ----- */
-
-std::string Response::getRawPacket()
-{
-	std::string rawData;
-
-	rawData +=  getVersion() + " " + std::to_string((int)getStatus()) + "\r\n";
-
-	for (auto &header : getHeaders())
-		rawData += header.first + ": " + header.second + "\r\n";
-	
-	rawData += "\r\n" + getBody();
-	rawData += "\r\n\r\n";
-
-	return rawData;
-}

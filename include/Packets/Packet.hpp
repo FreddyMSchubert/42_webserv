@@ -12,11 +12,11 @@ class Packet
 	private:
 		std::string _path;
 		std::string _args;
-		std::string _version;
+		std::string _version = "HTTP/1.1";
 		std::map<std::string, std::string> _headers;
 		std::string _body;
-		Method _method;
-		Status _status;
+		Method _method = Method::UNKNOWN;
+		Status _status = Status::UNKNOWN;
 	public:
 		// constructors
 		Packet();
@@ -27,6 +27,7 @@ class Packet
 
 		// methods
 		void logData();
+		std::string getRawPacket();
 
 		// getters and setters
 		std::string getPath();

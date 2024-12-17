@@ -68,6 +68,24 @@ void Packet::logData()
 		std::cout << "Body: " << _body << std::endl;
 }
 
+std::string Packet::getRawPacket()
+{
+	std::string rawData;
+
+	if (getStatus() == Status::UNKNOWN)
+		setStatus(Status::OK); // TODO: Probably dont do this this sounds like a terrible idea
+
+	rawData +=  getVersion() + " " + std::to_string((int)getStatus()) + "\r\n";
+
+	for (auto &header : getHeaders())
+		rawData += header.first + ": " + header.second + "\r\n";
+	
+	rawData += "\r\n" + getBody();
+	rawData += "\r\n\r\n";
+
+	return rawData;
+}
+
 /* ----- GETTERS & SETTERS ----- */
 
 void Packet::setPath(const std::string path) { _path = path; }

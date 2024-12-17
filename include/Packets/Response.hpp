@@ -28,8 +28,4 @@ class Response : public Packet
 	public:
 		Response(Request &req, Config &config);
 		~Response() = default;
-
-		// methods
-		std::string getRawPacket();
-		static std::string getMimeType(std::string filename);
 };
