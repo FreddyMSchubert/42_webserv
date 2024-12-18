@@ -28,6 +28,7 @@ class Packet
 		// methods
 		void logData();
 		std::string getRawPacket();
+		std::string getStatusMessage(int code);
 
 		// getters and setters
 		std::string getPath();
