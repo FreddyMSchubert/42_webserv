@@ -1,10 +1,5 @@
 # todo
 
-n = freddy
-f = noel
-a = jonas
-j = all
-
 - [ ] make get_location + get_locaitons use paths, not strings (should accept both filepaths and paths) F
 - [ ] make filepath locations possible, setting settings only for one specific file F
 	- what do we do if file is pointing to a folder? do we then do directory listing if you look for that file? lol F
