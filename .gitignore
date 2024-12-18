@@ -8,6 +8,15 @@ obj/
 
 .DS_Store
 
+env_variables.log
+test_file.log
+__pycache__
+
+sessions.txt
+users.txt
+
+www/cgi/data/
+
 # Prerequisites
 *.d
 

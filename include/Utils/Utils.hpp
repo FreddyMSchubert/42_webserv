@@ -16,5 +16,6 @@
 
 std::vector<std::filesystem::directory_entry> getDirectoryEntries(const std::string& path);
 t_location get_location(Config &config, std::string path);
+std::vector<t_location> get_locations(Config &config, std::string path);
 std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, Config &config);
 std::string getFileData(std::string path);

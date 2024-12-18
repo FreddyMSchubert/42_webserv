@@ -68,17 +68,39 @@ void Packet::logData()
 		std::cout << "Body: " << _body << std::endl;
 }
 
+std::string Packet::getRawPacket()
+{
+	std::string rawData;
+
+	if (getStatus() == Status::UNKNOWN)
+		throw std::runtime_error("Packet status is unknown");
+
+	rawData +=  getVersion() + " " + std::to_string((int)getStatus()) + getStatusMessage((int)getStatus()) + "\r\n";
+
+	for (auto &header : getHeaders())
+		rawData += header.first + ": " + header.second + "\r\n";
+	
+	rawData += "\r\n" + getBody();
+	// rawData += "\r\n\r\n";
+
+	return rawData;
+}
+
 /* ----- GETTERS & SETTERS ----- */
 
 void Packet::setPath(const std::string path) { _path = path; }
 std::string Packet::getPath() { return _path; }
 
+void Packet::setArgs(const std::string args) { _args = args; }
+std::string Packet::getArgs() { return _args; }
+
 void Packet::setVersion(const std::string version) { _version = version; }
-std::string Packet::getVersion() { return _version; }
+std::string Packet::getVersion() { return _version.empty() ? "HTTP/1.1" : _version; }
 
 void Packet::setHeaders(const std::map<std::string, std::string> headers) { _headers = headers; }
 std::map<std::string, std::string> & Packet::getHeaders() { return _headers; }
 void Packet::addHeader(const std::string key, const std::string value) { _headers[key] = value; }
+std::string Packet::getHeader(const std::string key) { return _headers.find(key) != _headers.end() ? _headers[key] : ""; }
 
 void Packet::setBody(const std::string body) { _body = body; }
 std::string Packet::getBody() { return _body; }

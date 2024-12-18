@@ -17,7 +17,6 @@ document.addEventListener('keydown', function(event) {
 obstacle.addEventListener('animationend', () => {
 	obstacle.style.animation = 'none';
 	obstacle.offsetHeight;
-	obstacle.style.animation = `obstacle-move ${Math.floor(Math.random() * 3) + 1}s linear`;
 	score++;
 	scoreElement.textContent = score;
 	if (score > highScore)
@@ -26,6 +25,10 @@ obstacle.addEventListener('animationend', () => {
 		highScoreElement.textContent = highScore;
 		localStorage.setItem('highScore', highScore);
 	}
+	const delay = Math.random() * 0.5 * 1000;
+	setTimeout(() => {
+		obstacle.style.animation = `obstacle-move ${((Math.random() * 1.25) + 1).toFixed(2)}s linear`;
+	}, delay);
 });
 
 function jump() {

@@ -34,6 +34,28 @@ t_location get_location(Config &config, std::string path)
 	return retLoc;
 }
 
+// returns a vector of all applying locations, in order of specificity
+std::vector<t_location> get_locations(Config &config, std::string path)
+{
+	std::vector<t_location> retLocs;
+	while (true)
+	{
+		t_location loc = get_location(config, path);
+		if (retLocs.empty() || loc.path != retLocs.back().path)
+			retLocs.push_back(loc);
+		else
+			break;
+
+		std::string locPath = std::holds_alternative<Path>(loc.path) ? std::get<Path>(loc.path).asUrl() : std::get<FilePath>(loc.path).asUrl();
+		path = path.substr(locPath.size());
+		if (path[0] == '/')
+			path = path.substr(1);
+		if (path.empty())
+			break;
+	}
+	return retLocs;
+}
+
 std::variant<Path, FilePath> createPath(const std::string &path, Path::Type type, Config &config)
 {
 	std::string filePath = path;
