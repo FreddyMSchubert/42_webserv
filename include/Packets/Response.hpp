@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <sys/wait.h>
 
 class Response : public Packet
 {
