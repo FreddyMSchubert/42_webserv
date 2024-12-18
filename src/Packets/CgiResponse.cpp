@@ -141,17 +141,26 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	close(pipeIn[1]);
 
 	std::string cgiOutput;
+	std::stringstream stream;
 	char buffer[4096];
 	ssize_t bytesRead;
-	while ((bytesRead = read(pipeOut[0], buffer, sizeof(buffer))) > 0) {
-		cgiOutput.append(buffer, bytesRead);
+	ssize_t totalBytesRead = 0;
+	while ((bytesRead = read(pipeOut[0], buffer, sizeof(buffer))) > 0)
+	{
+		totalBytesRead += bytesRead;
+		if (totalBytesRead + bytesRead > config.getMaxPackageSize())
+			throw std::runtime_error("CGI script output exceeded maximum package size");
+		stream.write(buffer, bytesRead);
 	}
+	cgiOutput = stream.str();
 	close(pipeOut[0]);
+	std::cout << "CGI script output: " << cgiOutput << std::endl;
 
 	// 7. Wait for child process to finish
 	int status;
 	waitpid(pid, &status, 0);
-	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+	{
 		setStatus(Status::InternalServerError);
 		setBody("500 Internal Server Error: CGI script execution failed.\n");
 		return;
@@ -159,10 +168,10 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	
 	// 8. Parse output
 	size_t headerEnd = cgiOutput.find("\r\n\r\n");
-	if (headerEnd == std::string::npos) {
+	if (headerEnd == std::string::npos)
 		headerEnd = cgiOutput.find("\n\n");
-	}
-	if (headerEnd == std::string::npos) {
+	if (headerEnd == std::string::npos)
+	{
 		setStatus(Status::InternalServerError);
 		setBody("500 Internal Server Error: Invalid CGI script output.\n");
 		return;

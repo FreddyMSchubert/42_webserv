@@ -5,7 +5,7 @@ Response::Response(Request& req, Config &config) : Packet()
 	bool cgi = false;
 	std::vector<t_location> locations = get_locations(config, req.getPath());
 	std::string fileEnding = req.getPath().substr(req.getPath().find_last_of('.') + 1);
-	if (fileEnding.size() > 0 && locations.size() > 0)
+	if (fileEnding.size() > 0 && locations.size() > 0 && (req.getMethod() == Method::GET || req.getMethod() == Method::POST))
 	{
 		for (t_location &loc : locations)
 		{
