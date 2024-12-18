@@ -10,6 +10,10 @@ obj/
 
 env_variables.log
 test_file.log
+__pycache__
+
+sessions.txt
+users.txt
 
 # Prerequisites
 *.d

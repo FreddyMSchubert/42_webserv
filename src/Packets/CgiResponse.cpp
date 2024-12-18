@@ -68,9 +68,28 @@ void Response::handleCgiResponse(Request &req, Config &config)
 		SERVER_SOFTWARE	The server software you're using (e.g. Apache 1.3)
 	*/
 
+/*
+At minimum, you must set:
+
+REQUEST_METHOD (e.g., GET or POST)
+CONTENT_LENGTH (if POST and you have a body)
+CONTENT_TYPE (e.g., application/x-www-form-urlencoded for form data)
+SCRIPT_FILENAME (full path to the executed CGI script)
+SERVER_PROTOCOL (e.g., HTTP/1.1)
+SERVER_NAME, SERVER_PORT (so the script knows the server environment)
+QUERY_STRING (if applicable for GET requests)
+
+*/
+
 	std::map<std::string, std::string> env;
-	env["DOCUMENT_ROOT"] = ".";
-	env["HTTP_HOST"] = config.getHost();
+	env["REQUEST_METHOD"] = methodToString(req.getMethod());
+	env["CONTENT_LENGTH"] = std::to_string(req.getBody().size());
+	env["CONTENT_TYPE"] = req.getHeader("Content-Type");
+	env["SCRIPT_FILENAME"] = argv[0];
+	env["SERVER_PROTOCOL"] = req.getVersion();
+	env["SERVER_NAME"] = config.getHost();
+	env["SERVER_PORT"] = std::to_string(config.getPort());
+	env["QUERY_STRING"] = req.getArgs();
 	env["HTTP_USER_AGENT"] = req.getHeader("User-Agent");
 	env["HTTPS"] = req.getVersion().find("HTTPS") != std::string::npos ? "on" : "off";
 	env["PATH"] = std::filesystem::current_path();
@@ -89,11 +108,14 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	// 5. Fork
 	int pipeIn[2];
 	int pipeOut[2];
+	int pipeErr[2];
 
 	if (pipe(pipeIn) == -1)
 		throw std::runtime_error("Failed to create pipe for cgi input");
 	if (pipe(pipeOut) == -1)
 		throw std::runtime_error("Failed to create pipe for cgi output");
+	if (pipe(pipeErr) == -1)
+		throw std::runtime_error("Failed to create pipe for cgi error");
 	
 	pid_t pid = fork();
 	if (pid < 0)
@@ -113,10 +135,11 @@ void Response::handleCgiResponse(Request &req, Config &config)
 		close(pipeIn[1]);
 		if (dup2(pipeOut[1], STDOUT_FILENO) == -1)
 			throw std::runtime_error("Failed to redirect stdout for cgi script");
-		if (dup2(pipeOut[1], STDERR_FILENO) == -1)
+		if (dup2(pipeErr[1], STDERR_FILENO) == -1)
 			throw std::runtime_error("Failed to redirect stderr for cgi script");
 		close(pipeOut[0]);
 		close(pipeOut[1]);
+		close(pipeErr[0]);
 
 		execve(argv[0], argv.data(), envp.data());
 
@@ -128,6 +151,7 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	// 6b. Parent Process - Insert input & extract output
 	close(pipeIn[0]);
 	close(pipeOut[1]);
+	close(pipeErr[1]);
 
 	const std::string &requestData = req.getBody(); // relevant header info is already in env
 	ssize_t totalWritten = 0;
@@ -200,5 +224,9 @@ void Response::handleCgiResponse(Request &req, Config &config)
 			getHeaders()[key] = value;
 		}
 	}
+	if (getHeader("Content-Type").empty())
+		addHeader("Content-Type", "text/plain");
+	if (getHeader("Content-Length").empty())
+		addHeader("Content-Length", std::to_string(bodyPart.size()));
 	setBody(bodyPart);
 }

@@ -81,7 +81,7 @@ std::string Packet::getRawPacket()
 		rawData += header.first + ": " + header.second + "\r\n";
 	
 	rawData += "\r\n" + getBody();
-	rawData += "\r\n\r\n";
+	// rawData += "\r\n\r\n";
 
 	return rawData;
 }
@@ -95,7 +95,7 @@ void Packet::setArgs(const std::string args) { _args = args; }
 std::string Packet::getArgs() { return _args; }
 
 void Packet::setVersion(const std::string version) { _version = version; }
-std::string Packet::getVersion() { return _version; }
+std::string Packet::getVersion() { return _version.empty() ? "HTTP/1.1" : _version; }
 
 void Packet::setHeaders(const std::map<std::string, std::string> headers) { _headers = headers; }
 std::map<std::string, std::string> & Packet::getHeaders() { return _headers; }
