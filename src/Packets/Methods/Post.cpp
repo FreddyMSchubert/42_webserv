@@ -6,14 +6,11 @@
 
 void Response::handlePost(Request& req, Config &config)
 {
-	(void)config;
-	
-	// TODO: Check if on route POST is allowed
-	// reutrn 405 (FORBIDDEN) if not allowed
+	std::cout << "Handling POST request" << std::endl;
 
 	std::string content = req.getBody();
 	std::string path = req.getPath();
-	int content_length;
+	size_t content_length;
 
 	setVersion("HTTP/1.1");
 
@@ -35,7 +32,7 @@ void Response::handlePost(Request& req, Config &config)
 		return;
 	}
 
-	content_length = std::stoi(req.getHeaders()["Content-Length"]);
+	content_length = std::stoul(req.getHeaders()["Content-Length"]);
 
 	if (req.getHeaders().find("Content-Type") == req.getHeaders().end())
 	{
@@ -49,8 +46,8 @@ void Response::handlePost(Request& req, Config &config)
 	try
 	{
 		Path filepath = Path(req.getPath(), Path::Type::URL, config);
-		if (req.getHeaders().find("X-Filename") != req.getHeaders().end())
-			filename = filepath.asFilePath() + req.getHeaders()["X-Filename"];
+		if (req.getHeaders().find("Content-Filename") != req.getHeaders().end())
+			filename = filepath.asFilePath() + req.getHeaders()["Content-Filename"];
 		else
 			filename = filepath.asFilePath() + "default";
 	}
@@ -81,6 +78,7 @@ void Response::handlePost(Request& req, Config &config)
 		return ;
 	}
 	filename += "." + extension;
+	filename = "." + filename;
 
 	std::cout << "Filename: " << filename << std::endl;
 
@@ -100,7 +98,8 @@ void Response::handlePost(Request& req, Config &config)
 	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
 		throw std::runtime_error("Failed to set non-blocking mode");
 
-	if (write(fd, content.c_str(), content_length) == -1)
+	(void)content_length; // TODO: use content_length instead of content.length() for it to be technically correct cuz we gotta use that what it says in the header
+	if (write(fd, content.c_str(), content.length()) == -1)
 	{
 		close(fd);
 		std::cerr << "Error writing to file" << std::endl;

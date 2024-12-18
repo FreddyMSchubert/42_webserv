@@ -107,7 +107,7 @@ void Socket::sendData(Response &response)
 std::string Socket::receiveData()
 {
 	std::string data;
-	int size = std::min(1024, static_cast<int>(_config.getClientMaxBodySize() + 1));
+	int size = std::min(1048576, static_cast<int>(_config.getMaxPackageSize() + 1));
 	char buffer[size];
 	ssize_t received;
 
@@ -142,23 +142,47 @@ void Socket::redirectToError(int error_code)
 {
 	// 1. Noel's memery
 	bool noel = true;
+	std::string title;
 	std::string image;
 	std::string text;
 	std::string positioning;
 	std::string status_line;
 	switch (error_code)
 	{
+		case 302:
+			title = "302 - Found";
+			image = "https://i.imgflip.com/9dx1g6.jpg";
+			text = "302 - Found. But u know what we didnt find? Your father.";
+			positioning = "";
+			status_line = "HTTP/1.1 302 Found\r\n";
+			break;
+		case 400:
+			title = "400 - Bad Request";
+			image = "https://i.imgflip.com/9dx3dr.jpg";
+			text = "400 - Bad Request. Listen to your mother and stop making bad requests!";
+			positioning = "";
+			status_line = "HTTP/1.1 400 Bad Request\r\n";
+			break;
 		case 404:
+			title = "404 - Not Found";
 			image = "https://img.sparknews.funkemedien.de/214885251/214885251_1532012732_v16_9_1600.webp";
 			text = "404 - Not Found";
 			positioning = "position: absolute; left: 0%;";
 			status_line = "HTTP/1.1 404 Not Found\r\n";
 			break;
 		case 413:
+			title = "413 - Payload Too Large";
 			image = "https://i0.wp.com/worleygig.com/wp-content/uploads/2014/05/p1030261-e1401153271349.jpg";
 			text = "413 - Payload Too Large. Thats what she said!";
 			status_line = "HTTP/1.1 413 Payload Too Large\r\n";
 			positioning = "";
+			break;
+		case 501:
+			title = "501 - Not Implemented";
+			image = "https://i.imgflip.com/9dx6ze.jpg";
+			text = "501 - Not Implemented. You know what else is not implemented? Your father.";
+			positioning = "";
+			status_line = "HTTP/1.1 501 Not Implemented\r\n";
 			break;
 		default:
 			noel = false;
@@ -168,6 +192,9 @@ void Socket::redirectToError(int error_code)
 	if (noel)
 	{
 		std::string template_data = getFileData("templates/error_page.html");
+		size_t title_pos = template_data.find("{title}");
+		if (title_pos != std::string::npos)
+			template_data.replace(title_pos, 7, title);
 		size_t img_pos = template_data.find("{img}");
 		if (img_pos != std::string::npos)
 			template_data.replace(img_pos, 5, image);

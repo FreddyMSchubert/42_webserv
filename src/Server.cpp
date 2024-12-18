@@ -28,7 +28,7 @@ void Server::updatePoll()
 	fds.push_back(listen_pfd);
 
 	// poll
-	int ret = poll(fds.data(), fds.size(), 100);
+	int ret = poll(fds.data(), fds.size(), 10);
 	if (ret < 0)
 	{
 		Logger::Log(LogLevel::ERROR, "Poll error: " + std::string(strerror(errno)) + " -> means that there is no data to read.");
@@ -52,20 +52,15 @@ void Server::updatePoll()
 bool Server::isDataComplete(t_socket_data &socket)
 {
 	std::string data = socket.buffer.str();
-
-	// Step 1: Ensure buffer is not giant
-	if (data.size() > _config.getClientMaxBodySize())
-		throw std::runtime_error("Client data size exceeded maximum body size");
-
 	size_t headerEnd = data.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)
 		return false;
 
-	// Step 2: Check for complete content (chunked transfer encoding)
+	// Chunked transfer encoding
 	if (data.find("Transfer-Encoding: chunked") != std::string::npos)
 		return data.find("0\r\n\r\n") != std::string::npos;
 
-	// Step 3: Check for complete content (normal packets)
+	// Normal packet
 	if (data.find("Content-Length: ") != std::string::npos)
 	{
 		size_t headerEnd = data.find("\r\n\r\n");
@@ -79,11 +74,7 @@ bool Server::isDataComplete(t_socket_data &socket)
 		}
 	}
 
-	// Step 4: Check for stale packet
-	// ...
-	// TODO
-
-	return true; // Step 5: No body & header is done
+	return true;
 }
 
 void Server::acceptNewConnections()
@@ -123,6 +114,12 @@ void Server::handleExistingConnections()
 			try
 			{
 				_sockets[i].buffer << _sockets[i].socket.receiveData();
+				if (_sockets[i].buffer.str().size() > _config.getMaxPackageSize())
+				{
+					Logger::Log(LogLevel::ERROR, "Client data size exceeded maximum body size");
+					_sockets.erase(_sockets.begin() + i);
+					continue;
+				}
 				_sockets[i].last_activity = std::chrono::steady_clock::now();
 			}
 			catch(const std::runtime_error &e)
@@ -151,6 +148,7 @@ void Server::handleExistingConnections()
 				Request req(_sockets[i].buffer.str());
 				Response res(req, _config);
 				_sockets[i].socket.sendData(res);
+				// _sockets[i].socket.redirectToError(501); //testing for error pages
 				_sockets.erase(_sockets.begin() + i);
 				continue;
 			}
