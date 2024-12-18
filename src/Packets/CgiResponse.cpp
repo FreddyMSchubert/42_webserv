@@ -31,15 +31,14 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	// 3. split up & convert command
 	std::vector<std::string> cmdParts;
 	std::istringstream iss(exec_cmd);
-	std::string executable;
 	std::string part;
-	std::getline(iss, executable, ' ');
 	while (std::getline(iss, part, ' '))
 		cmdParts.push_back(part);
 	if (cmdParts.empty())
 		throw std::runtime_error("No command found in cgi command");
 
 	std::vector<char *> argv;
+	argv.reserve(cmdParts.size() + 1);
 	for (std::string &part : cmdParts)
 		argv.push_back(const_cast<char *>(part.c_str()));
 	argv.push_back(nullptr);
@@ -100,7 +99,7 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	if (pid < 0)
 		throw std::runtime_error("Failed to fork for cgi execution");
 
-	std::cout << "Executing CGI script: " << executable << " with args: ";
+	std::cout << "Executing CGI script: " << argv[0] << " with args: ";
 	for (size_t i = 0; i < argv.size() - 1; i++)
 		std::cout << argv[i] << " ";
 	std::cout << std::endl;
@@ -108,19 +107,21 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	// 6a. Child Process - Execute CGI script
 	if (pid == 0)
 	{
-		dup2(pipeIn[0], STDIN_FILENO);
+		if (dup2(pipeIn[0], STDIN_FILENO) == -1)
+			throw std::runtime_error("Failed to redirect stdin for cgi script");
 		close(pipeIn[0]);
 		close(pipeIn[1]);
-		dup2(pipeOut[1], STDOUT_FILENO);
-		dup2(pipeOut[1], STDERR_FILENO);
+		if (dup2(pipeOut[1], STDOUT_FILENO) == -1)
+			throw std::runtime_error("Failed to redirect stdout for cgi script");
+		if (dup2(pipeOut[1], STDERR_FILENO) == -1)
+			throw std::runtime_error("Failed to redirect stderr for cgi script");
 		close(pipeOut[0]);
 		close(pipeOut[1]);
 
-		execve(executable.c_str(), argv.data(), envp.data());
+		execve(argv[0], argv.data(), envp.data());
 
 		// If execve returns, an error occurred
-		std::string error = "Failed to execute CGI script: " + std::string(strerror(errno)) + "\n";
-		std::cerr << error << std::endl;
+		std::cerr << "Failed to execute CGI script: " + std::string(strerror(errno)) << std::endl;
 		_exit(1);
 	}
 
@@ -128,7 +129,7 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	close(pipeIn[0]);
 	close(pipeOut[1]);
 
-	const std::string &requestData = req.getBody(); // header info is already in env
+	const std::string &requestData = req.getBody(); // relevant header info is already in env
 	ssize_t totalWritten = 0;
 	ssize_t bodyLength = requestData.size();
 	while (totalWritten < bodyLength) {

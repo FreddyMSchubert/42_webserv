@@ -8,6 +8,9 @@ obj/
 
 .DS_Store
 
+env_variables.log
+test_file.log
+
 # Prerequisites
 *.d
 
