@@ -2,6 +2,7 @@
 import os
 import cgi
 import cgitb
+import html  # Import the html module for escaping
 from http import cookies
 from common import load_sessions, find_user
 
@@ -18,7 +19,7 @@ print("\n")  # End headers
 if not session_id:
 	# No session id found
 	print("<html><body style='font-family:serif;'>")
-	print("<h1>No Session Found (っ °Д °;)っ </h1>")
+	print("<h1>No Session Found! (っ °Д °;)っ </h1>")
 	print("<p><a href='../index.html'>Back Home</a></p>")
 	print("</body></html>")
 else:
@@ -29,15 +30,30 @@ else:
 		user = find_user(email)
 		if user:
 			name = user[0]
+			# Read data from user's file
+			data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+			user_data_file = os.path.join(data_dir, f"{email}.txt")
 			print("<html><body style='font-family:serif;'>")
-			print(f"<h1>Greetings, {name}! 🥂 </h1>")
-			print("<p>You are logged in. (ง'̀-'́)ง</p>")
-			print("<ul>")
-			print("<li><a href='../save_data.html'>Save Data</a></li>")
-			print("<li><a href='view_data.py'>View Data</a></li>")
-			print("<li><a href='logout.py'>Logout</a></li>")
-			print("</ul>")
-			print("<p>Why did the computer show up at work late? It had a hard drive! 💻😂</p>")
+			print(f"<h1>Your Saved Data, {html.escape(name)}! 📂 </h1>")
+			if os.path.exists(user_data_file):
+				try:
+					with open(user_data_file, "r") as f:
+						data_lines = f.readlines()
+					if data_lines:
+						print("<ul>")
+						for line in data_lines:
+							safe_line = html.escape(line.strip())
+							print(f"<li>{safe_line}</li>")
+						print("</ul>")
+					else:
+						print("<p>You haven’t saved any data yet! Start now! 🚀</p>")
+				except Exception as e:
+					# Escape the error message to prevent potential XSS
+					safe_error = html.escape(str(e))
+					print(f"<p>Error reading data: {safe_error} 🛑 </p>")
+			else:
+				print("<p>No data found. Maybe it’s hiding? 🕵️‍♂️🔍</p>")
+			print("<p><a href='welcome.py'>Back to Welcome Page</a></p>")
 			print("</body></html>")
 		else:
 			print("<html><body style='font-family:serif;'>")

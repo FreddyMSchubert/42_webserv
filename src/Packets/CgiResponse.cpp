@@ -189,5 +189,9 @@ void Response::handleCgiResponse(Request &req, Config &config)
 		addHeader("Content-Type", "text/plain");
 	if (getHeader("Content-Length").empty())
 		addHeader("Content-Length", std::to_string(bodyPart.size()));
+	if (getHeader("Status").empty())
+		setStatus(Status::OK);
+	else
+		setStatus((Status)std::stoi(getHeader("Status")));
 	setBody(bodyPart);
 }

@@ -7,6 +7,9 @@ from common import load_sessions, find_user
 
 cgitb.enable()
 
+form = cgi.FieldStorage()
+data = form.getvalue("data", "").strip()
+
 print("Content-Type: text/html; charset=utf-8")
 
 # Parse cookies
@@ -18,7 +21,7 @@ print("\n")  # End headers
 if not session_id:
 	# No session id found
 	print("<html><body style='font-family:serif;'>")
-	print("<h1>No Session Found (っ °Д °;)っ </h1>")
+	print("<h1>No Session Found! (っ °Д °;)っ </h1>")
 	print("<p><a href='../index.html'>Back Home</a></p>")
 	print("</body></html>")
 else:
@@ -29,16 +32,22 @@ else:
 		user = find_user(email)
 		if user:
 			name = user[0]
-			print("<html><body style='font-family:serif;'>")
-			print(f"<h1>Greetings, {name}! 🥂 </h1>")
-			print("<p>You are logged in. (ง'̀-'́)ง</p>")
-			print("<ul>")
-			print("<li><a href='../save_data.html'>Save Data</a></li>")
-			print("<li><a href='view_data.py'>View Data</a></li>")
-			print("<li><a href='logout.py'>Logout</a></li>")
-			print("</ul>")
-			print("<p>Why did the computer show up at work late? It had a hard drive! 💻😂</p>")
-			print("</body></html>")
+			# Save data to a file named after the user's email
+			data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+			os.makedirs(data_dir, exist_ok=True)
+			user_data_file = os.path.join(data_dir, f"{email}.txt")
+			try:
+				with open(user_data_file, "a") as f:
+					f.write(f"{data}\n")
+				print("<html><body style='font-family:serif;'>")
+				print(f"<h1>Data Saved Successfully, {name}! 🎉 </h1>")
+				print("<p><a href='welcome.py'>Back to Welcome Page</a></p>")
+				print("</body></html>")
+			except Exception as e:
+				print("<html><body style='font-family:serif;'>")
+				print(f"<h1>Error Saving Data: {e} 🛑 </h1>")
+				print("<p><a href='save_data.html'>Try Again</a></p>")
+				print("</body></html>")
 		else:
 			print("<html><body style='font-family:serif;'>")
 			print("<h1>Oops, could not find your user info! (⊙_⊙;) </h1>")
