@@ -61,13 +61,13 @@ std::vector<Config> parse_configs(std::string filename)
 		throw std::runtime_error("Unmatched '{' in configuration file.");
 
 	std::vector<Config> configs;
-	for (const std::string &server_data : server_blocks)
+	for (size_t i = 0; i < server_blocks.size(); i++)
 	{
-		size_t start = server_data.find('{');
-		size_t end = server_data.rfind('}');
+		size_t start = server_blocks[i].find('{');
+		size_t end = server_blocks[i].rfind('}');
 		if (start == std::string::npos || end == std::string::npos || end <= start)
 			throw std::runtime_error("Invalid server block.");
-		std::string server_content = server_data.substr(start + 1, end - start - 1);
+		std::string server_content = server_blocks[i].substr(start + 1, end - start - 1);
 
 		try
 		{
@@ -76,7 +76,7 @@ std::vector<Config> parse_configs(std::string filename)
 		}
 		catch (const std::exception &e)
 		{
-			Logger::Log(LogLevel::ERROR, e.what());
+			Logger::Log(LogLevel::ERROR, "Problem with Server Config #" + std::to_string(i + 1) + ": \"" + e.what() + "\" - Server will not be started.");
 		}
 	}
 	return (configs);
