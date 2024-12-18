@@ -7,7 +7,7 @@ from common import remove_session
 
 cgitb.enable()
 
-print("Content-Type: text/html")
+print("Content-Type: text/html; charset=utf-8")
 
 cookie_str = os.environ.get("HTTP_COOKIE", "")
 cookie = cookies.SimpleCookie(cookie_str)

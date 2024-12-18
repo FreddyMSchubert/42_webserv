@@ -44,43 +44,6 @@ void Response::handleCgiResponse(Request &req, Config &config)
 	argv.push_back(nullptr);
 
 	// 4. Set up environment variables
-	/*
-		Key	Value
-		DOCUMENT_ROOT	The root directory of your server
-		HTTP_COOKIE	The visitor's cookie, if one is set
-		HTTP_HOST	The hostname of the page being attempted
-		HTTP_REFERER	The URL of the page that called your program
-		HTTP_USER_AGENT	The browser type of the visitor
-		HTTPS	"on" if the program is being called through a secure server
-		PATH	The system path your server is running under
-		QUERY_STRING	The query string (see GET, below)
-		REMOTE_ADDR	The IP address of the visitor
-		REMOTE_HOST	The hostname of the visitor (if your server has reverse-name-lookups on; otherwise this is the IP address again)
-		REMOTE_PORT	The port the visitor is connected to on the web server
-		REMOTE_USER	The visitor's username (for .htaccess-protected pages)
-		REQUEST_METHOD	GET or POST
-		REQUEST_URI	The interpreted pathname of the requested document or CGI (relative to the document root)
-		SCRIPT_FILENAME	The full pathname of the current CGI
-		SCRIPT_NAME	The interpreted pathname of the current CGI (relative to the document root)
-		SERVER_ADMIN	The email address for your server's webmaster
-		SERVER_NAME	Your server's fully qualified domain name (e.g. www.cgi101.com)
-		SERVER_PORT	The port number your server is listening on
-		SERVER_SOFTWARE	The server software you're using (e.g. Apache 1.3)
-	*/
-
-/*
-At minimum, you must set:
-
-REQUEST_METHOD (e.g., GET or POST)
-CONTENT_LENGTH (if POST and you have a body)
-CONTENT_TYPE (e.g., application/x-www-form-urlencoded for form data)
-SCRIPT_FILENAME (full path to the executed CGI script)
-SERVER_PROTOCOL (e.g., HTTP/1.1)
-SERVER_NAME, SERVER_PORT (so the script knows the server environment)
-QUERY_STRING (if applicable for GET requests)
-
-*/
-
 	std::map<std::string, std::string> env;
 	env["REQUEST_METHOD"] = methodToString(req.getMethod());
 	env["CONTENT_LENGTH"] = std::to_string(req.getBody().size());
@@ -94,8 +57,6 @@ QUERY_STRING (if applicable for GET requests)
 	env["HTTPS"] = req.getVersion().find("HTTPS") != std::string::npos ? "on" : "off";
 	env["PATH"] = std::filesystem::current_path();
 	env["HTTP_COOKIE"] = req.getHeader("Cookie");
-	// probably add more here
-	// -> https://www.cgi101.com/book/ch3/text.html
 
 	std::vector<std::string> envStrings;
 	for (auto &pair : env)

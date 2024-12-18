@@ -5,7 +5,7 @@ from common import save_user, find_user
 
 cgitb.enable()
 
-print("Content-Type: text/html\n")
+print("Content-Type: text/html; charset=utf-8\n")
 
 form = cgi.FieldStorage()
 name = form.getvalue("name", "")

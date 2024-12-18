@@ -7,7 +7,7 @@ from common import load_sessions, find_user
 
 cgitb.enable()
 
-print("Content-Type: text/html")
+print("Content-Type: text/html; charset=utf-8")
 
 # Parse cookies
 cookie = cookies.SimpleCookie(os.environ.get("HTTP_COOKIE", ""))

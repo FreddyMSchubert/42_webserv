@@ -10,7 +10,7 @@ form = cgi.FieldStorage()
 email = form.getvalue("email", "")
 password = form.getvalue("password", "")
 
-print("Content-Type: text/html")
+print("Content-Type: text/html; charset=utf-8")
 
 if not (email and password):
 	print("\n")
