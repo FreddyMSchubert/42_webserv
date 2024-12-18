@@ -28,7 +28,7 @@ void Server::updatePoll()
 	fds.push_back(listen_pfd);
 
 	// poll
-	int ret = poll(fds.data(), fds.size(), 10);
+	int ret = poll(fds.data(), fds.size(), 0);
 	if (ret < 0)
 	{
 		Logger::Log(LogLevel::ERROR, "Poll error: " + std::string(strerror(errno)) + " -> means that there is no data to read.");

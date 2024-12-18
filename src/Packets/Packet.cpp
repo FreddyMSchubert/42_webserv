@@ -75,7 +75,7 @@ std::string Packet::getRawPacket()
 	if (getStatus() == Status::UNKNOWN)
 		throw std::runtime_error("Packet status is unknown");
 
-	rawData +=  getVersion() + " " + std::to_string((int)getStatus()) + getStatusMessage((int)getStatus()) + "\r\n";
+	rawData +=  getVersion() + " " + std::to_string((int)getStatus()) + " " + getStatusMessage((int)getStatus()) + "\r\n";
 
 	for (auto &header : getHeaders())
 		rawData += header.first + ": " + header.second + "\r\n";
