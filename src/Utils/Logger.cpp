@@ -1,5 +1,15 @@
 #include "Logger.hpp"
 
+#include <iomanip>
+#include <sstream>
+
+std::string format_two_digits(int num)
+{
+	std::ostringstream oss;
+	oss << std::setw(2) << std::setfill('0') << num;
+	return oss.str();
+}
+
 void Logger::Log(LogLevel level, int serverId, const std::string &message)
 {
 	std::string current_time("[");
@@ -9,9 +19,9 @@ void Logger::Log(LogLevel level, int serverId, const std::string &message)
 	current_time += std::to_string(1900 + ltm->tm_year) + "-";
 	current_time += std::to_string(1 + ltm->tm_mon) + "-";
 	current_time += std::to_string(ltm->tm_mday) + " ";
-	current_time += std::to_string(ltm->tm_hour) + ":";
-	current_time += std::to_string(ltm->tm_min) + ":";
-	current_time += std::to_string(ltm->tm_sec) + "] ";
+	current_time += format_two_digits(ltm->tm_hour) + ":";
+	current_time += format_two_digits(ltm->tm_min) + ":";
+	current_time += format_two_digits(ltm->tm_sec) + "] ";
 
 	std::string prefix("\033[1m");
 	switch (level)
