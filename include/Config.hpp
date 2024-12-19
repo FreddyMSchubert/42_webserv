@@ -34,6 +34,8 @@ std::ostream &operator<<(std::ostream &os, const t_location &loc);
 class Config
 {
 	private:
+		int serverId = -1;
+
 		std::vector<std::string> _server_names;
 		std::string _host;
 		int _port;
@@ -67,10 +69,12 @@ class Config
 
 	public:
 		Config();
-		Config(std::string data);
+		Config(std::string data, int serverId);
 		Config(const Config &other) = default;
 		Config &operator=(const Config &other) = default;
 		~Config() = default;
+
+		int getServerId() const { return serverId; }
 
 		std::vector<std::string> getServerNames() const { return _server_names; }
 		std::string getHost() const { return _host; }

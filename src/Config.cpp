@@ -5,7 +5,7 @@ Config::Config()
 }
 
 // Expects the string between the {} of a server block
-Config::Config(std::string data)
+Config::Config(std::string data, int serverId) : serverId(serverId)
 {
 	// 1. split into a vector of strings, seperated by ';' or '}'
 	std::vector<std::string> lines;
@@ -122,7 +122,7 @@ void Config::parseIndex(const std::string & line)
 			catch (std::exception &e)
 			{
 				// only throw if last index file
-				Logger::Log(LogLevel::WARNING, "Index file: " + names[i] + " not found: " + e.what());
+				Logger::Log(LogLevel::WARNING, serverId, "Index file: " + names[i] + " not found: " + e.what());
 				if (i == names.size() - 1)
 					throw std::runtime_error("No valid index file found.");
 			}
@@ -156,11 +156,11 @@ void Config::parseMaxPackageSize(const std::string & line)
 		else if (unit == "GB" || unit == "gb")
 			_max_package_size = static_cast<unsigned int>(size) * 1024 * 1024 * 1024;
 		else
-			Logger::Log(LogLevel::WARNING, "Invalid unit in max_package_size directive. Using default value (1MB).");
+			Logger::Log(LogLevel::WARNING, serverId, "Invalid unit in max_package_size directive. Using default value (1MB).");
 	}
 	else
 	{
-		Logger::Log(LogLevel::WARNING, "Invalid unit in max_package_size directive. Using default value (1MB).");
+		Logger::Log(LogLevel::WARNING, serverId, "Invalid unit in max_package_size directive. Using default value (1MB).");
 	}
 
 	#if LOG_CONFIG_PARSING
@@ -222,7 +222,7 @@ void Config::parseClientTimeout(const std::string & line)
 		}
 	}
 	else
-		Logger::Log(LogLevel::WARNING, "Invalid client_timeout directive. Using default value (30s).");
+		Logger::Log(LogLevel::WARNING, serverId, "Invalid client_timeout directive. Using default value (30s).");
 
 	#if LOG_CONFIG_PARSING
 		Logger::Log(LogLevel::INFO, "Client timeout: " + std::to_string(_client_timeout));
@@ -346,7 +346,7 @@ void Config::parseLocationAutoindex(const std::string & line, t_location & loc)
 			loc.directory_listing = false;
 	}
 	else
-		Logger::Log(LogLevel::WARNING, "Invalid location autoindex directive. Using default value (off).");
+		Logger::Log(LogLevel::WARNING, serverId, "Invalid location autoindex directive. Using default value (off).");
 }
 
 void Config::parseLocationRedirections(const std::string &line, t_location &loc)

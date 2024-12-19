@@ -6,7 +6,7 @@ void Response::handle_file_req(Config &config, FilePath &path)
 
 	if (!get_location(config, path.asUrl()).allowed_methods[static_cast<int>(Method::GET)])
 	{
-		Logger::Log(LogLevel::WARNING, "GET: Location not found");
+		Logger::Log(LogLevel::WARNING, config.getServerId(), "GET: Location not found");
 		setStatus(Status::NotFound);
 		return;
 	}
@@ -21,7 +21,7 @@ void Response::handle_file_req(Config &config, FilePath &path)
 	}
 	catch (std::exception &e)
 	{
-		Logger::Log(LogLevel::ERROR, std::string("Failed to get file: ") + e.what());
+		Logger::Log(LogLevel::ERROR, config.getServerId(), std::string("Failed to get file: ") + e.what());
 		setBody("Failed to get file");
 		setStatus(Status::NotFound);
 	}
@@ -66,14 +66,14 @@ void Response::handle_dir_req(Config &config, Path &path)
 
 	if (!get_location(config, path.asUrl()).allowed_methods[static_cast<int>(Method::GET)])
 	{
-		Logger::Log(LogLevel::WARNING, "GET: Method not allowed");
+		Logger::Log(LogLevel::WARNING, config.getServerId(), "GET: Method not allowed");
 		setStatus(Status::MethodNotAllowed);
 		return;
 	}
 
 	if (location.directory_listing == false) // no directory listing allowed
 	{
-		Logger::Log(LogLevel::WARNING, "GET: Directory listing not allowed");
+		Logger::Log(LogLevel::WARNING, config.getServerId(), "GET: Directory listing not allowed");
 		setStatus(Status::Forbidden);
 		return;
 	}
@@ -91,7 +91,7 @@ void Response::handle_dir_req(Config &config, Path &path)
 
 void Response::handleGet(Request& req, Config &config)
 {
-	Logger::Log(LogLevel::INFO, "GET: Handling request");
+	Logger::Log(LogLevel::INFO, config.getServerId(), "GET: Handling request");
 
 	std::string reqTarget = req.getPath();
 	if (reqTarget == "/")
@@ -105,18 +105,18 @@ void Response::handleGet(Request& req, Config &config)
 
 		if (std::holds_alternative<FilePath>(path))
 		{
-			Logger::Log(LogLevel::INFO, "GET: Handling file request for " + std::get<FilePath>(path).asUrl());
+			Logger::Log(LogLevel::INFO, config.getServerId(), "GET: Handling file request for " + std::get<FilePath>(path).asUrl());
 			handle_file_req(config, std::get<FilePath>(path));
 		}
 		else
 		{
-			Logger::Log(LogLevel::INFO, "GET: Handling directory request for " + std::get<Path>(path).asUrl());
+			Logger::Log(LogLevel::INFO, config.getServerId(), "GET: Handling directory request for " + std::get<Path>(path).asUrl());
 			handle_dir_req(config, std::get<Path>(path));
 		}
 	}
 	catch (std::exception &e)
 	{
-		Logger::Log(LogLevel::ERROR, "Error getting data: " + std::string(e.what()));
+		Logger::Log(LogLevel::ERROR, config.getServerId(), "Error getting data: " + std::string(e.what()));
 		setStatus(Status::NotFound);
 		return;
 	}

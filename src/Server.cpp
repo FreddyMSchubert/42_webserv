@@ -4,7 +4,7 @@
 //Setup the listening socket and push it to the vector of sockets
 Server::Server(Config &config) : _config(config), _listening_socket{config}
 {
-	Logger::Log(LogLevel::INFO, "Server initialized on " + _config.getHost() + ":" + std::to_string(_config.getPort()));
+	Logger::Log(LogLevel::INFO, config.getServerId(), "Server initialized on " + _config.getHost() + ":" + std::to_string(_config.getPort()));
 }
 
 // POLLIN    // Ready to read (incoming requests/data)
@@ -31,7 +31,7 @@ void Server::updatePoll()
 	int ret = poll(fds.data(), fds.size(), 0);
 	if (ret < 0)
 	{
-		Logger::Log(LogLevel::ERROR, "Poll error: " + std::string(strerror(errno)) + " -> means that there is no data to read.");
+		Logger::Log(LogLevel::ERROR, _config.getServerId(), "Poll error: " + std::string(strerror(errno)) + " -> means that there is no data to read.");
 		return;
 	}
 
@@ -89,14 +89,14 @@ void Server::acceptNewConnections()
 		int client_fd = accept(_listening_socket.socket.getSocketFd(), (struct sockaddr*)&client_addr, &addrlen);
 		if (client_fd >= 0)
 		{
-			Logger::Log(LogLevel::INFO, "New client connected");
+			Logger::Log(LogLevel::INFO, _config.getServerId(), "New client connected");
 			_sockets.emplace_back(client_fd, Socket(_config, client_fd));
 			max_iterations--;
 		}
 		else
 		{
 			if (errno != EAGAIN && errno != EWOULDBLOCK) // i believe accept is not an i/o operation
-				Logger::Log(LogLevel::ERROR, "Accept error: " + std::string(strerror(errno)));
+				Logger::Log(LogLevel::ERROR, _config.getServerId(), "Accept error: " + std::string(strerror(errno)));
 			break;
 		}
 	}
@@ -110,19 +110,19 @@ void Server::handleExistingConnections()
 		std::chrono::time_point<std::chrono::steady_clock> last_activity = _sockets[i].last_activity;
 		if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_activity).count() > _config.getClientTimeout())
 		{
-			Logger::Log(LogLevel::INFO, "Client " + std::to_string(_sockets[i].fd) + " timed out");
+			Logger::Log(LogLevel::INFO, _config.getServerId(), "Client " + std::to_string(_sockets[i].fd) + " timed out");
 			_sockets.erase(_sockets.begin() + i);
 			continue;
 		}
 		if (_sockets[i].states.read)
 		{
-			Logger::Log(LogLevel::INFO, "Reading data from client");
+			Logger::Log(LogLevel::INFO, _config.getServerId(), "Reading data from client");
 			try
 			{
 				_sockets[i].buffer << _sockets[i].socket.receiveData();
 				if (_sockets[i].buffer.str().size() > _config.getMaxPackageSize())
 				{
-					Logger::Log(LogLevel::ERROR, "Client data size exceeded maximum body size");
+					Logger::Log(LogLevel::ERROR, _config.getServerId(), "Client data size exceeded maximum body size");
 					_sockets.erase(_sockets.begin() + i);
 					continue;
 				}
@@ -130,7 +130,7 @@ void Server::handleExistingConnections()
 			}
 			catch(const std::runtime_error &e)
 			{
-				Logger::Log(LogLevel::WARNING, "Erroneous packet data: " + std::string(e.what()));
+				Logger::Log(LogLevel::WARNING, _config.getServerId(), "Erroneous packet data: " + std::string(e.what()));
 				_sockets.erase(_sockets.begin() + i);
 				continue;
 			}
@@ -144,13 +144,13 @@ void Server::handleExistingConnections()
 			}
 			catch (const std::runtime_error &e)
 			{
-				Logger::Log(LogLevel::WARNING, "Erroneous packet data: " + std::string(e.what()));
+				Logger::Log(LogLevel::WARNING, _config.getServerId(), "Erroneous packet data: " + std::string(e.what()));
 				_sockets.erase(_sockets.begin() + i);
 				continue;
 			}
 			if (dataComplete)
 			{
-				Logger::Log(LogLevel::INFO, "Sending response to client");
+				Logger::Log(LogLevel::INFO, _config.getServerId(), "Sending response to client");
 				Request req(_sockets[i].buffer.str());
 				Response res(req, _config);
 				_sockets[i].socket.sendData(res);
@@ -162,9 +162,9 @@ void Server::handleExistingConnections()
 		if (_sockets[i].states.disconnect || _sockets[i].states.error)
 		{
 			if (_sockets[i].states.disconnect)
-				Logger::Log(LogLevel::INFO, "Client disconnected");
+				Logger::Log(LogLevel::INFO, _config.getServerId(), "Client disconnected");
 			else
-				Logger::Log(LogLevel::ERROR, "Error occurred on client socket: " + std::string(strerror(errno)));
+				Logger::Log(LogLevel::ERROR, _config.getServerId(), "Error occurred on client socket: " + std::string(strerror(errno)));
 			_sockets.erase(_sockets.begin() + i);
 			continue;
 		}

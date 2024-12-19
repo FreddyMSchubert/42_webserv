@@ -71,12 +71,12 @@ std::vector<Config> parse_configs(std::string filename)
 
 		try
 		{
-			Config server_config(server_content);
+			Config server_config(server_content, i + 1);
 			configs.push_back(server_config);
 		}
 		catch (const std::exception &e)
 		{
-			Logger::Log(LogLevel::ERROR, "Problem with Server Config #" + std::to_string(i + 1) + ": \"" + e.what() + "\" - Server will not be started.");
+			Logger::Log(LogLevel::ERROR, i + 1, "Problem with Server - it will not be started.");
 		}
 	}
 	return (configs);
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 
 	if (configs.size() == 0)
 	{
-		Logger::Log(LogLevel::ERROR, "Failed to initialize configs");
+		Logger::Log(LogLevel::ERROR, -1, "Failed to initialize configs");
 		return 1;
 	}
 
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 	{
 		for (auto &config : configs)
 		{
-			Logger::Log(LogLevel::INFO, "Initializing Server: " + config.getHost() + ":" + std::to_string(config.getPort()));
+			Logger::Log(LogLevel::INFO, config.getServerId(), "Initializing Server: " + config.getHost() + ":" + std::to_string(config.getPort()));
 			servers.emplace_back(config);
 		}
 
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 	}
 	catch(const std::exception& e)
 	{
-		Logger::Log(LogLevel::ERROR, e.what());
+		Logger::Log(LogLevel::ERROR, -1, e.what());
 		return 1;
 	}
 

@@ -15,7 +15,7 @@ let progressGoal = 10;
 let progressLevel = 0;
 let progress = 0;
 
-const progressGoalIncrease = 3;
+const progressGoalIncrease = 2;
 let progressCelebration = 0;
 
 let automations = [
@@ -128,7 +128,7 @@ function addScore(increment = 1, humanMade = false)
 		progressLevel++;
 		progressGoal *= progressGoalIncrease;
 		progress = 0;
-		progressCelebration = 300 + progressLevel * 10;
+		progressCelebration = progressLevel * 50 < 1000 ? progressLevel * 50 : 1000;
 		writeUpgradeData();
 
 		localStorage.setItem("progressLevel", progressLevel);

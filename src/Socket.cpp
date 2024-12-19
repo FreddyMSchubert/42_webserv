@@ -7,7 +7,7 @@ Socket::Socket(Config &config) : _config(config)
 	if (_socket_fd == -1)
 		throw std::runtime_error("Socket creation failed");
 
-	Logger::Log(LogLevel::INFO, "Running Listening Socket on fd " + std::to_string(_socket_fd) + "...");
+	Logger::Log(LogLevel::INFO, config.getServerId(), "Running Listening Socket on fd " + std::to_string(_socket_fd) + "...");
 	try
 	{
 		std::memset(&_socket, 0, sizeof(_socket));
@@ -39,7 +39,7 @@ Socket::Socket(Config &config) : _config(config)
 			throw std::runtime_error("Failed to listen on socket");
 		}
 
-		Logger::Log(LogLevel::INFO, "Socket " + std::to_string(_socket_fd) + " connected!");
+		Logger::Log(LogLevel::INFO, config.getServerId(), "Socket " + std::to_string(_socket_fd) + " connected!");
 		setNonBlocking();
 	}
 	catch(const std::exception &e)
@@ -52,7 +52,7 @@ Socket::Socket(Config &config, int fd) : _config(config)
 {
 	_socket_fd = fd;
 	setNonBlocking();
-	Logger::Log(LogLevel::INFO, "Running Client Connection Socket " + std::to_string(_socket_fd) + "...");
+	Logger::Log(LogLevel::INFO, config.getServerId(), "Running Client Connection Socket " + std::to_string(_socket_fd) + "...");
 }
 
 Socket::Socket(Socket&& other) noexcept
@@ -78,20 +78,20 @@ Socket::~Socket()
 	if (_socket_fd >= 0)
 	{
 		close(_socket_fd);
-		Logger::Log(LogLevel::INFO, "Socket " + std::to_string(_socket_fd) + " closed");
+		Logger::Log(LogLevel::INFO, _config.getServerId(), "Socket " + std::to_string(_socket_fd) + " closed");
 	}
 }
 
 void Socket::sendData(std::string data)
 {
 	#if LOG_OUTGOING_PACKETS
-		Logger::Log(LogLevel::INFO, "Sending data: " + data);
+		Logger::Log(LogLevel::INFO, _config.getServerId(), "Sending data: " + data);
 	#endif
 	ssize_t sent = send(_socket_fd, data.c_str(), data.length(), 0);
 	if (sent < 0)
 		throw std::runtime_error("Failed to send data");
 	else
-		Logger::Log(LogLevel::INFO, "Data sent!");
+		Logger::Log(LogLevel::INFO, _config.getServerId(), "Data sent!");
 }
 void Socket::sendData(Response &response)
 {
@@ -107,13 +107,12 @@ std::string Socket::receiveData()
 	received = recv(_socket_fd, buffer, sizeof(buffer), 0);
 	if (received > 0)
 		data.append(buffer, received);
-	else if (received < 0)
-		throw std::runtime_error("Failed to receive data");
-	else
-		throw std::runtime_error("Client disconnected");
+	else if (received <= 0)
+	{
+		Logger::Log(LogLevel::WARNING, _config.getServerId(), "Failed to receive data");
+		return "";
+	}
 
-	if (data.empty())
-		Logger::Log(LogLevel::WARNING, "Received no data");
 	return data;
 }
 
@@ -128,7 +127,7 @@ void Socket::sendRedirect(const std::string& new_url)
 	Request request(response);
 	Response responsePacket(request, _config);
 	sendData(responsePacket);
-	Logger::Log(LogLevel::INFO, "Redirected client to " + new_url);
+	Logger::Log(LogLevel::INFO, _config.getServerId(), "Redirected client to " + new_url);
 }
 void Socket::redirectToError(int error_code)
 {
@@ -205,7 +204,7 @@ void Socket::redirectToError(int error_code)
 		response += template_data;
 
 		sendData(response);
-		Logger::Log(LogLevel::INFO, "Redirected client to custom error page with code " + std::to_string(error_code) + ".");
+		Logger::Log(LogLevel::INFO, _config.getServerId(), "Redirected client to custom error page with code " + std::to_string(error_code) + ".");
 		return;
 	}
 
@@ -223,7 +222,7 @@ void Socket::redirectToError(int error_code)
 	if (websiteId > 0)
 		website += ".jpg";
 
-	Logger::Log(LogLevel::INFO, "Redirecting client to " + website + " with code " + std::to_string(error_code) + ".");
+	Logger::Log(LogLevel::INFO, _config.getServerId(), "Redirecting client to " + website + " with code " + std::to_string(error_code) + ".");
 	sendRedirect(website);
 }
 

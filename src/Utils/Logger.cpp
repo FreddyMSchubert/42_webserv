@@ -1,6 +1,6 @@
 #include "Logger.hpp"
 
-void Logger::Log(LogLevel level, const std::string &message)
+void Logger::Log(LogLevel level, int serverId, const std::string &message)
 {
 	std::string current_time("[");
 
@@ -17,13 +17,13 @@ void Logger::Log(LogLevel level, const std::string &message)
 	switch (level)
 	{
 		case LogLevel::INFO:
-			prefix = "\033[32m" + current_time + "[ INFO ]" + "\033[22m";
+			prefix = "\033[32m" + current_time + "[ INFO ] [" + std::to_string(serverId) + "]" + "\033[22m";
 			break;
 		case LogLevel::WARNING:
-			prefix = "\033[33m" + current_time + "[ WARN ]" + "\033[22m";
+			prefix = "\033[33m" + current_time + "[ WARN ] [" + std::to_string(serverId) + "]" + "\033[22m";
 			break;
 		case LogLevel::ERROR:
-			prefix = "\033[31m" + current_time + "[ERROR!]" + "\033[22m";
+			prefix = "\033[31m" + current_time + "[ERROR!] [" + std::to_string(serverId) + "]" + "\033[22m";
 			break;
 	}
 
