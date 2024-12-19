@@ -72,7 +72,7 @@ std::string Packet::getRawPacket()
 {
 	std::string rawData;
 
-	if (getStatus() == Status::UNKNOWN)
+	if (getStatus() == 0)
 		throw std::runtime_error("Packet status is unknown");
 
 	rawData +=  getVersion() + " " + std::to_string((int)getStatus()) + " " + getStatusMessage((int)getStatus()) + "\r\n";
@@ -110,4 +110,4 @@ Method Packet::getMethod() { return _method; }
 void Packet::setMethod(Method method) { _method = method; }
 
 void Packet::setStatus(Status status) { _status = status; }
-Status Packet::getStatus() { return _status; }
+int Packet::getStatus() { return static_cast<int>(_status); }

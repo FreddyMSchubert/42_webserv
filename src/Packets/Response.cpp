@@ -44,6 +44,7 @@ void Response::handleMethodResponse(Request &req, Config &config)
 			break;
 		default:
 			std::cout << "Unknown method" << std::endl;
+			setStatus(Status::MethodNotAllowed);
 			break;
 	}
 }

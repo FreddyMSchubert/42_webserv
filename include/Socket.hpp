@@ -33,6 +33,7 @@ private:
 	int _socket_fd = -1;
 	struct sockaddr_in _socket;
 	Config &_config;
+	bool _is_error_response = false;
 
 public:
 	// Existing constructors

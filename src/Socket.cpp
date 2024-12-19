@@ -93,9 +93,17 @@ void Socket::sendData(std::string data)
 	else
 		Logger::Log(LogLevel::INFO, _config.getServerId(), "Data sent!");
 }
+
 void Socket::sendData(Response &response)
 {
-	sendData(response.getRawPacket());
+    if (response.getStatus() != 200 && !_is_error_response)
+	{
+		_is_error_response = true;
+        redirectToError(response.getStatus());
+		_is_error_response = false;
+	}
+    else 
+        sendData(response.getRawPacket());
 }
 std::string Socket::receiveData()
 {
@@ -129,6 +137,7 @@ void Socket::sendRedirect(const std::string& new_url)
 	sendData(responsePacket);
 	Logger::Log(LogLevel::INFO, _config.getServerId(), "Redirected client to " + new_url);
 }
+
 void Socket::redirectToError(int error_code)
 {
 	// 1. Noel's memery

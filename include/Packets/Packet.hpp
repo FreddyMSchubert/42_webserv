@@ -53,5 +53,5 @@ class Packet
 		void setMethod(Method method);
 
 		void setStatus(Status status);
-		Status getStatus();
+		int getStatus();
 };
