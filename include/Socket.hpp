@@ -51,4 +51,6 @@ public:
 	void redirectToError(int error_code);
 	void sendData(Response &response);
 	void sendData(std::string data);
+
+	void setNonBlocking();
 };

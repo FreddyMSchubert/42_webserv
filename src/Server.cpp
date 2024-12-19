@@ -81,7 +81,8 @@ void Server::acceptNewConnections()
 {
 	if (!_listening_socket.states.read)
 		return;
-	while (true)
+	int max_iterations = 10;
+	while (max_iterations > 0)
 	{
 		struct sockaddr_in client_addr;
 		socklen_t addrlen = sizeof(struct sockaddr_in);
@@ -90,9 +91,14 @@ void Server::acceptNewConnections()
 		{
 			Logger::Log(LogLevel::INFO, "New client connected");
 			_sockets.emplace_back(client_fd, Socket(_config, client_fd));
+			max_iterations--;
 		}
 		else
+		{
+			if (errno != EAGAIN && errno != EWOULDBLOCK) // i believe accept is not an i/o operation
+				Logger::Log(LogLevel::ERROR, "Accept error: " + std::string(strerror(errno)));
 			break;
+		}
 	}
 }
 

@@ -40,13 +40,7 @@ Socket::Socket(Config &config) : _config(config)
 		}
 
 		Logger::Log(LogLevel::INFO, "Socket " + std::to_string(_socket_fd) + " connected!");
-
-		// set non-blocking
-		int flags = fcntl(_socket_fd, F_GETFL, 0);
-		if (flags == -1)
-			throw std::runtime_error("Failed to get socket " + std::to_string(_socket_fd) + " flags");
-		if (fcntl(_socket_fd, F_SETFL, flags | O_NONBLOCK) == -1)
-			throw std::runtime_error("Failed to set non-blocking mode on socket " + std::to_string(_socket_fd));
+		setNonBlocking();
 	}
 	catch(const std::exception &e)
 	{
@@ -57,6 +51,7 @@ Socket::Socket(Config &config) : _config(config)
 Socket::Socket(Config &config, int fd) : _config(config)
 {
 	_socket_fd = fd;
+	setNonBlocking();
 	Logger::Log(LogLevel::INFO, "Running Client Connection Socket " + std::to_string(_socket_fd) + "...");
 }
 
@@ -98,12 +93,10 @@ void Socket::sendData(std::string data)
 	else
 		Logger::Log(LogLevel::INFO, "Data sent!");
 }
-
 void Socket::sendData(Response &response)
 {
 	sendData(response.getRawPacket());
 }
-
 std::string Socket::receiveData()
 {
 	std::string data;
@@ -137,7 +130,6 @@ void Socket::sendRedirect(const std::string& new_url)
 	sendData(responsePacket);
 	Logger::Log(LogLevel::INFO, "Redirected client to " + new_url);
 }
-
 void Socket::redirectToError(int error_code)
 {
 	// 1. Noel's memery
@@ -233,4 +225,13 @@ void Socket::redirectToError(int error_code)
 
 	Logger::Log(LogLevel::INFO, "Redirecting client to " + website + " with code " + std::to_string(error_code) + ".");
 	sendRedirect(website);
+}
+
+void Socket::setNonBlocking()
+{
+	int flags = fcntl(_socket_fd, F_GETFL, 0);
+	if (flags == -1)
+		throw std::runtime_error("Failed to get socket " + std::to_string(_socket_fd) + " flags");
+	if (fcntl(_socket_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+		throw std::runtime_error("Failed to set non-blocking mode on socket " + std::to_string(_socket_fd));
 }
