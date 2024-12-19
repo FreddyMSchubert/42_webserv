@@ -38,6 +38,26 @@ Config::Config(std::string data)
 	if (_root_dir.empty()) throw std::invalid_argument("No root directive found");
 }
 
+Config::Config(const Config &other)
+{
+	*this = other;
+}
+Config &Config::operator=(const Config &other)
+{
+	if (this == &other)
+		return *this;
+	_server_names = other._server_names;
+	_host = other._host;
+	_port = other._port;
+	_root_dir = other._root_dir;
+	_index_file = other._index_file;
+	_max_package_size = other._max_package_size;
+	_error_pages = other._error_pages;
+	_client_timeout = other._client_timeout;
+	_locations = other._locations;
+	return *this;
+}
+
 /* ------------------------ */
 /* ----- LINE PARSERS ----- */
 /* ------------------------ */

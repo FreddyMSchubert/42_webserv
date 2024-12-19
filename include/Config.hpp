@@ -68,8 +68,8 @@ class Config
 	public:
 		Config();
 		Config(std::string data);
-		Config(const Config &other) = default;
-		Config &operator=(const Config &other) = default;
+		Config(const Config &other);
+		Config &operator=(const Config &other);
 		~Config() = default;
 
 		std::vector<std::string> getServerNames() const { return _server_names; }

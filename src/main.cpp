@@ -10,6 +10,7 @@
 #include <iostream>
 #include <vector>
 #include <signal.h>
+#include <pthread.h>
 
 #define LOCALHOST "127.0.0.1"
 
@@ -82,6 +83,24 @@ std::vector<Config> parse_configs(std::string filename)
 	return (configs);
 }
 
+void* handle_server(void* arg)
+{
+	Config *config = static_cast<Config*>(arg);
+	try
+	{
+		Server server(*config);
+		Logger::Log(LogLevel::INFO, "Server thread started for " + config->getHost() + ":" + std::to_string(config->getPort()));
+		server.Run();
+	}
+	catch (const std::exception& e)
+	{
+		Logger::Log(LogLevel::ERROR, "Server encountered an error: " + std::string(e.what()));
+	}
+
+	delete config;
+	return NULL;
+}
+
 int main(int argc, char *argv[])
 {
 	std::vector<Config> configs;
@@ -96,10 +115,13 @@ int main(int argc, char *argv[])
 		std::string configFilee = "./config/default.conf";
 		if (argc == 2)
 			configFilee = argv[1];
-		try {
+		try
+		{
 			configs = parse_configs(configFilee);
-		} catch (std::exception & e){
+		} catch (std::exception & e)
+		{
 			std::cout << e.what() << std::endl;
+			return 1;
 		}
 		for (auto it1 = configs.begin(); it1 != configs.end(); ++it1)
 		{
@@ -107,43 +129,51 @@ int main(int argc, char *argv[])
 			{
 				if (it1->getHost() == it2->getHost() && it1->getPort() == it2->getPort())
 				{
+					Logger::Log(LogLevel::ERROR, "Host and Port are similar in minimum two servers! Removing duplicate.");
 					it2 = configs.erase(it2);
-					it1 = configs.erase(it1);
-					throw std::runtime_error("Host and Port are similar in minimum two servers!");
+				}
+				else
+				{
+					++it2;
 				}
 			}
 		}
 	}
 
-	if (configs.size() == 0)
+	if (configs.empty())
 	{
 		Logger::Log(LogLevel::ERROR, "Failed to initialize configs");
 		return 1;
 	}
 
-	if (configs.size() == 0) return 1;
-
-	std::vector<Server> servers;
+	std::vector<pthread_t> threads;
 
 	try
 	{
-		for (auto &config : configs)
+		for (size_t i = 0; i < configs.size(); i++)
 		{
-			Logger::Log(LogLevel::INFO, "Initializing Server: " + config.getHost() + ":" + std::to_string(config.getPort()));
-			servers.emplace_back(config);
-		}
-
-		while (true)
-		{
-			for (auto &server : servers)
-				server.Run();
+			Config *config = new Config(configs[i]);
+			pthread_t thread;
+			if (pthread_create(&thread, NULL, handle_server, config) != 0)
+			{
+				Logger::Log(LogLevel::ERROR, "Failed to create thread for server " + config->getHost() + ":" + std::to_string(config->getPort()));
+				delete config;
+				continue;
+			}
+			threads.push_back(thread);
+			Logger::Log(LogLevel::INFO, "Thread created for " + config->getHost() + ":" + std::to_string(config->getPort()));
 		}
 	}
-	catch(const std::exception& e)
+	catch (const std::exception &e)
 	{
-		Logger::Log(LogLevel::ERROR, e.what());
+		Logger::Log(LogLevel::ERROR, "Failed to start server: " + std::string(e.what()));
 		return 1;
 	}
+
+	for (size_t i = 0; i < threads.size(); i++)
+		pthread_join(threads[i], NULL);
+	
+	Logger::Log(LogLevel::INFO, "All servers have stopped.");
 
 	return 0;
 }
