@@ -34,12 +34,12 @@ FilePath::FilePath(const std::string &path, Path::Type type, Config &config) : P
 std::string FilePath::getFileContents() const
 {
 	if (!std::filesystem::exists("." + asFilePath()))
-		throw std::runtime_error("File does not exist");
+		throw std::runtime_error("File " + asFilePath() + " does not exist");
 	if (!std::filesystem::is_regular_file("." + asFilePath()))
-		throw std::runtime_error("Path is not a file");
+		throw std::runtime_error("Path " + asFilePath() + " is not a file");
 	std::ifstream file("." + asFilePath());
 	if (!file.is_open() || !file.good())
-		throw std::runtime_error("Failed to open file");
+		throw std::runtime_error("Failed to open file " + asFilePath());
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	return buffer.str();

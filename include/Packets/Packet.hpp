@@ -28,7 +28,7 @@ class Packet
 		// methods
 		void logData();
 		std::string getRawPacket();
-		std::string getStatusMessage(int code);
+		static std::string getStatusMessage(int code);
 
 		// getters and setters
 		std::string getPath();
@@ -53,5 +53,5 @@ class Packet
 		void setMethod(Method method);
 
 		void setStatus(Status status);
-		int getStatus();
+		Status getStatus();
 };

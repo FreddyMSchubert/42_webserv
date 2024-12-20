@@ -69,6 +69,9 @@ void Path::goDownIntoDir(const std::string& dir)
 // Combines two paths into one with a single / between them
 std::string Path::combinePaths(const std::string& path1, const std::string& path2)
 {
+	if (path1.empty()) return path2;
+	if (path2.empty()) return path1;
+
 	if (path1.back() == '/' && path2.front() == '/')
 		return path1 + path2.substr(1);
 	else if (path1.back() != '/' && path2.front() != '/')
@@ -82,8 +85,6 @@ std::string Path::combinePaths(const std::string& path1, const std::string& path
 */
 std::string Path::verifyPath(std::string path)
 {
-	if (path.find("./") != std::string::npos)
-		throw std::runtime_error("Path: Path contains ./ : " + path);
 	if (path.find_last_of('/') != path.size() - 1)
 		path.push_back('/');
 	if (path.find_first_of('/') != 0)

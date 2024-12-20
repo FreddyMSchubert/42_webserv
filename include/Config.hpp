@@ -19,13 +19,13 @@
 
 typedef struct s_location
 {
-	std::variant<Path, FilePath>						path;				// path in config
-	std::string											root_dir;			// folder to get data from. not a path as it might not be in config root. If empty, use config root
-	std::array<bool, 3>									allowed_methods;	// saved in order of Method enum in Enums.hpp
-	bool												directory_listing = false;
-	std::vector<std::pair<std::string, std::string>>	cgi_extensions;
-	std::map<int, Path>									redirections;
-	Path												upload_dir;
+	std::variant<Path, FilePath>							path;				// path in config
+	std::string												root_dir;			// folder to get data from. not a path as it might not be in config root. If empty, use config root
+	std::array<bool, 3>										allowed_methods;	// saved in order of Method enum in Enums.hpp
+	bool													directory_listing = false;
+	std::vector<std::pair<std::string, std::string>>		cgi_extensions;
+	std::vector<std::pair<int, FilePath>>					redirections;
+	Path																		upload_dir;
 
 	Path getPathAsPath() const { return std::holds_alternative<Path>(path) ? std::get<Path>(path) : static_cast<Path>(std::get<FilePath>(path)); }
 } t_location;

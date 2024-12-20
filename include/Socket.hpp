@@ -33,7 +33,8 @@ private:
 	int _socket_fd = -1;
 	struct sockaddr_in _socket;
 	Config &_config;
-	bool _is_error_response = false;
+
+	void sendRedirect(const std::string& new_url, int status_code);
 
 public:
 	// Existing constructors
@@ -48,10 +49,9 @@ public:
 
 	int getSocketFd() const { return _socket_fd; }
 	std::string receiveData();
-	void sendRedirect(const std::string& new_url);
-	void redirectToError(int error_code);
-	void sendData(Response &response);
-	void sendData(std::string data);
+	void redirectToError(Status error_code);
+	void redirectToOtherResource(FilePath path, int status_code);
+	void sendData(const std::string & data);
 
 	void setNonBlocking();
 };

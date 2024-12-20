@@ -82,7 +82,7 @@ Socket::~Socket()
 	}
 }
 
-void Socket::sendData(std::string data)
+void Socket::sendData(const std::string & data)
 {
 	#if LOG_OUTGOING_PACKETS
 		Logger::Log(LogLevel::INFO, _config.getServerId(), "Sending data: " + data);
@@ -94,17 +94,6 @@ void Socket::sendData(std::string data)
 		Logger::Log(LogLevel::INFO, _config.getServerId(), "Data sent!");
 }
 
-void Socket::sendData(Response &response)
-{
-    if (response.getStatus() != 200 && !_is_error_response)
-	{
-		_is_error_response = true;
-        redirectToError(response.getStatus());
-		_is_error_response = false;
-	}
-    else 
-        sendData(response.getRawPacket());
-}
 std::string Socket::receiveData()
 {
 	std::string data;
@@ -124,9 +113,9 @@ std::string Socket::receiveData()
 	return data;
 }
 
-void Socket::sendRedirect(const std::string& new_url)
+void Socket::sendRedirect(const std::string& new_url, int status_code)
 {
-	std::string response = "HTTP/1.1 302 Found\r\n";
+	std::string response = "HTTP/1.1 " + std::to_string(status_code) + " " + Packet::getStatusMessage(status_code) + "\r\n";
 	response += "Location: " + new_url + "\r\n";
 	response += "Content-Length: 0\r\n";
 	response += "Connection: close\r\n";
@@ -134,20 +123,69 @@ void Socket::sendRedirect(const std::string& new_url)
 
 	Request request(response);
 	Response responsePacket(request, _config);
-	sendData(responsePacket);
+	sendData(responsePacket.getRawPacket());
 	Logger::Log(LogLevel::INFO, _config.getServerId(), "Redirected client to " + new_url);
 }
-
-void Socket::redirectToError(int error_code)
+void Socket::redirectToOtherResource(FilePath path, int status_code)
 {
-	// 1. Noel's memery
+	std::string body;
+	try
+	{
+		body = path.getFileContents();
+	}
+	catch (const std::exception &e)
+	{
+		Logger::Log(LogLevel::ERROR, _config.getServerId(), "Failed to read file: " + path.asFilePath());
+		redirectToError(Status::NotFound);
+		return;
+	}
+	std::string response = "HTTP/1.1 " + std::to_string(status_code) + " " + Packet::getStatusMessage(status_code) + "\r\n";
+	response += "Content-Type: " + path.getMimeType() + "\r\n";
+	response += "Content-Length: " + std::to_string(body.size()) + "\r\n";
+	response += "Connection: close\r\n";
+	response += "\r\n";
+	response += body;
+
+	sendData(response);
+	Logger::Log(LogLevel::INFO, _config.getServerId(), "Redirected client to other resource: " + path.asUrl());
+}
+void Socket::redirectToError(Status error_code)
+{
+	int errorCodeInt = static_cast<int>(error_code);
+
+	// 1. Custom error pages
+	std::map<int, FilePath> errorPages = _config.getErrorPages();
+	if (errorPages.find(errorCodeInt) != errorPages.end())
+	{
+		FilePath errorPage = errorPages.at(errorCodeInt);
+		std::string body;
+		try {
+			body = errorPage.getFileContents();
+		} catch (const std::exception &e) {
+			Logger::Log(LogLevel::ERROR, _config.getServerId(), "Failed to read custom error page: " + errorPage.asUrl());
+			return;
+			// redirectToError(Status::NotFound);
+		}
+		std::string response = "HTTP/1.1 " + std::to_string(errorCodeInt) + " " + Packet::getStatusMessage(errorCodeInt) + "\r\n";
+		response += "Content-Type: text/html\r\n";
+		response += "Content-Length: " + std::to_string(body.size()) + "\r\n";
+		response += "Connection: close\r\n";
+		response += "\r\n";
+		response += body;
+
+		sendData(response);
+		Logger::Log(LogLevel::INFO, _config.getServerId(), "Redirected client to custom error page with code " + std::to_string(errorCodeInt) + ".");
+		return;
+	}
+
+	// 2. Noel's memery
 	bool noel = true;
 	std::string title;
 	std::string image;
 	std::string text;
 	std::string positioning;
 	std::string status_line;
-	switch (error_code)
+	switch (errorCodeInt)
 	{
 		case 302:
 			title = "302 - Found";
@@ -213,11 +251,11 @@ void Socket::redirectToError(int error_code)
 		response += template_data;
 
 		sendData(response);
-		Logger::Log(LogLevel::INFO, _config.getServerId(), "Redirected client to custom error page with code " + std::to_string(error_code) + ".");
+		Logger::Log(LogLevel::INFO, _config.getServerId(), "Redirected client to custom error page with code " + std::to_string(errorCodeInt) + ".");
 		return;
 	}
 
-	// 2. Generic cat/dog/fish/duck images
+	// 3. Generic cat/dog/fish/duck images
 	int websiteId = rand() % 4;
 	std::string website;
 	switch(websiteId)
@@ -227,12 +265,12 @@ void Socket::redirectToError(int error_code)
 		case 2: website = "https://http.fish/"; break;
 		case 3: website = "https://httpducks.com/"; break;
 	}
-	website = website + std::to_string(error_code);
+	website = website + std::to_string(errorCodeInt);
 	if (websiteId > 0)
 		website += ".jpg";
 
-	Logger::Log(LogLevel::INFO, _config.getServerId(), "Redirecting client to " + website + " with code " + std::to_string(error_code) + ".");
-	sendRedirect(website);
+	Logger::Log(LogLevel::INFO, _config.getServerId(), "Redirecting client to " + website + " with code " + std::to_string(errorCodeInt) + ".");
+	sendRedirect(website, errorCodeInt);
 }
 
 void Socket::setNonBlocking()

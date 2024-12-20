@@ -12,3 +12,6 @@
 	- not actually required but maybe it finds somethign deasastrous, evals might use them as well
 - [ ] go through eval sheet A
 - [ ] test using siege A
+
+- [ ] when should error pages be shown with cgi - what if cgi wants to construct errors themselves?
+- [ ] what if root isnt set before redirections. does config parsing break?

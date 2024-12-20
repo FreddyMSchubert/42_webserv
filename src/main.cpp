@@ -76,7 +76,7 @@ std::vector<Config> parse_configs(std::string filename)
 		}
 		catch (const std::exception &e)
 		{
-			Logger::Log(LogLevel::ERROR, i + 1, "Problem with Server - it will not be started.");
+			Logger::Log(LogLevel::ERROR, i + 1, "Problem with Server (" + std::string(e.what()) + ") - it will not be started.");
 		}
 	}
 	return (configs);

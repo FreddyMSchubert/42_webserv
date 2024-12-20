@@ -150,11 +150,29 @@ void Server::handleExistingConnections()
 			}
 			if (dataComplete)
 			{
-				Logger::Log(LogLevel::INFO, _config.getServerId(), "Sending response to client");
+				Logger::Log(LogLevel::INFO, _config.getServerId(), "Determining response to client");
 				Request req(_sockets[i].buffer.str());
 				Response res(req, _config);
-				_sockets[i].socket.sendData(res);
-				// _sockets[i].socket.redirectToError(501); //testing for error pages
+
+				std::vector<t_location> locations = get_locations(_config, req.getPath());
+				for (const auto & loc : locations)
+					if (!loc.redirections.empty())
+						_sockets[i].socket.redirectToOtherResource(loc.redirections[0].second, loc.redirections[0].first);
+
+				Logger::Log(LogLevel::INFO, _config.getServerId(), "Sending response to client");
+				try
+				{
+					std::cout << (res.getStatus() == Status::OK) << std::endl;
+					if (res.getStatus() != Status::OK)
+						_sockets[i].socket.redirectToError(res.getStatus());
+					else
+						_sockets[i].socket.sendData(res.getRawPacket());
+				}
+				catch (const std::exception &e)
+				{
+					Logger::Log(LogLevel::ERROR, _config.getServerId(), "Failed to send response: " + std::string(e.what()));
+				}
+				Logger::Log(LogLevel::INFO, _config.getServerId(), "Response sent to client");
 				_sockets.erase(_sockets.begin() + i);
 				continue;
 			}

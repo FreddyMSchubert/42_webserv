@@ -357,8 +357,8 @@ void Config::parseLocationRedirections(const std::string &line, t_location &loc)
 	{
 		int status_code = std::stoi(match[1].str());
 		std::string redirect_path = match[2].str();
-		redirect_path = Path::combinePaths(loc.getPathAsPath().asFilePath(), redirect_path);
-		loc.redirections.emplace(status_code, FilePath(redirect_path, Path::Type::FILESYSTEM, *this));
+		redirect_path = Path::combinePaths(_root_dir, redirect_path);
+		loc.redirections.insert(loc.redirections.begin(), {status_code, FilePath(redirect_path, Path::Type::FILESYSTEM, *this)});
 	}
 	else
 		throw std::invalid_argument("Invalid location redirect directive: \"" + line + "\"");
@@ -440,23 +440,4 @@ t_location Config::getRootLocation() const
 			return loc;
 	}
 	throw std::runtime_error("Root location not present in config " + getRootDir());
-}
-
-std::ostream &operator<<(std::ostream &os, const t_location &loc)
-{
-	os << "Path: " + (std::holds_alternative<Path>(loc.path) ? std::get<Path>(loc.path).asUrl() : std::get<FilePath>(loc.path).asUrl()) << " ";
-	os << "Root: " + loc.root_dir << " ";
-	os << "Upload: " + loc.upload_dir.asUrl() << " ";
-	os << "Methods:";
-	for (int i = 0; i < 3; i++)
-		os << " " + methodToString(static_cast<Method>(i)) + ": " + (loc.allowed_methods.at(i) ? "true" : "false");
-	os << std::string(" Directory listing: ") + (loc.directory_listing ? "true" : "false") << " ";
-	os << "CGI extensions: ";
-	for (const std::pair<std::string, std::string> &ext : loc.cgi_extensions)
-		os << "  " + ext.first + ": " + ext.second;
-	os << " Redirections: ";
-	for (const auto &redir : loc.redirections)
-		os << "  " + std::to_string(redir.first) + ": " + redir.second.asUrl();
-	
-	return os;
 }
