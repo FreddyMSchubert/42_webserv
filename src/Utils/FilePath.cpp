@@ -14,7 +14,7 @@ std::string formatPath(std::string path)
 
 FilePath::FilePath(const std::string &path, Path::Type type, Config &config) : Path(formatPath(path), type, config)
 {
-	// std::cout << "FilePath constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM ? "Path::Type::Filesystem" : "Path::Type::URL") << " and config root " << config.getRootDir() << std::endl;
+	std::cout << "FilePath constructor called with path: " << path << " and type: " << (type == Path::Type::FILESYSTEM ? "Path::Type::Filesystem" : "Path::Type::URL") << " and config root " << config.getRootDir() << std::endl;
 
 	std::string filePath = path;
 	if (type == Path::Type::URL)
