@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include <cstring>
 
 void Response::handleCgiResponse(Request &req, Config &config)
 {
@@ -77,7 +78,7 @@ void Response::handleCgiResponse(Request &req, Config &config)
 		throw std::runtime_error("Failed to create pipe for cgi output");
 	if (pipe(pipeErr) == -1)
 		throw std::runtime_error("Failed to create pipe for cgi error");
-	
+
 	pid_t pid = fork();
 	if (pid < 0)
 		throw std::runtime_error("Failed to fork for cgi execution");
@@ -105,7 +106,7 @@ void Response::handleCgiResponse(Request &req, Config &config)
 		execve(argv[0], argv.data(), envp.data());
 
 		// If execve returns, an error occurred
-		std::cerr << "Failed to execute CGI script: " + std::string(strerror(errno)) << std::endl;
+		std::cerr << "Failed to execute CGI script: " << strerror(errno) << std::endl;
 		_exit(1);
 	}
 
@@ -150,7 +151,7 @@ void Response::handleCgiResponse(Request &req, Config &config)
 		setBody("500 Internal Server Error: CGI script execution failed.\n");
 		return;
 	}
-	
+
 	// 8. Parse output
 	size_t headerEnd = cgiOutput.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)
